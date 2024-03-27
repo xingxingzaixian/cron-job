@@ -25,3 +25,7 @@ type Task struct {
 }
 
 // 获取所有
+func (t *Task) GetActiveTasks() (tasks []*Task) {
+	global.GormDB.Find(&tasks)
+	return
+}
