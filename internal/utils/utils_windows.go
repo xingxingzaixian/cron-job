@@ -3,7 +3,9 @@ package utils
 import (
 	"context"
 	"errors"
+	"github.com/gogf/gf/v2/encoding/gcharset"
 	"os/exec"
+	"strconv"
 	"syscall"
 )
 
@@ -33,10 +35,9 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 
 func ConvertEncoding(outputGBK string) string {
 	// windows平台编码为gbk，需转换为utf8才能入库
-	outputUTF8, ok := GBK2UTF8(outputGBK)
-	if ok {
-		return outputUTF8
+	outputUTF8, err := gcharset.ToUTF8("GBK", outputGBK)
+	if err != nil {
+		return outputGBK
 	}
-
-	return outputGBK
+	return outputUTF8
 }
