@@ -15,6 +15,5 @@
 # vendor/
 .idea
 logs
-dist
 node_modules
 components.d.ts
