@@ -15,8 +15,9 @@ type Task struct {
 	Protocol      global.TaskProtocol `gorm:"type:tinyint;not null;index" json:"protocol"`
 	Command       string              `gorm:"size:512;not null" json:"command"`
 	Timeout       int                 `gorm:"type:mediumint;not null;default:0" json:"timeout"`
-	Policy        global.TaskPolicy   `gorm:"type:tinyint;not null;default:0" json:"policy"`
+	Policy        global.TaskPolicy   `gorm:"type:tinyint;not null;default:1" json:"policy"`
 	Count         int                 `gorm:"type:smallint;not null;default:0" json:"count"`
+	Delay         int                 `gorm:"type:smallint;not null;default:0" json:"delay"`
 	RetryTimes    int8                `gorm:"type:tinyint;not null;default:0" json:"retry_times"`
 	RetryInterval int16               `gorm:"type:smallint;not null;default:0" json:"retry_interval"`
 	Tag           string              `gorm:"size:32;not null;default:''" json:"tag"`

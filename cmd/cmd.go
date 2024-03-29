@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	task "cronJob/internal/service/cron/task_manager"
 	"cronJob/internal/service/web/router"
 	"cronJob/lib/config"
 	"cronJob/lib/database"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"syscall"
@@ -50,14 +52,14 @@ func startServer(configFile string) {
 
 	// 4. 启动定时任务调度
 	go func() {
-		//proxy_router.HttpServerRun()
+		task.CronServerRun()
 	}()
 
 	// 5. 监听退出信号
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-
-	//proxy_router.HttpServerStop()
+	zap.S().Info("Shutting down server...")
+	task.CronServerStop()
 	router.HttpServerStop()
 }

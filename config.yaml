@@ -19,3 +19,4 @@ db:
   name: "cronJob"
   user: "root"
   password: "marco@123"
+  prefix: "cron_"
