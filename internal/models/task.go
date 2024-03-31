@@ -12,8 +12,9 @@ type Task struct {
 	gorm.Model
 	Name          string              `gorm:"size:32;not null" json:"name"`
 	Spec          string              `gorm:"size:64;not null" json:"spec"`
-	Protocol      global.TaskProtocol `gorm:"type:tinyint;not null;index" json:"protocol"`
+	Protocol      global.TaskProtocol `gorm:"type:tinyint;not null" json:"protocol"`
 	Command       string              `gorm:"size:512;not null" json:"command"`
+	Params        string              `gorm:"type:mediumtext" json:"params"`
 	Timeout       int                 `gorm:"type:mediumint;not null;default:0" json:"timeout"`
 	Policy        global.TaskPolicy   `gorm:"type:tinyint;not null;default:1" json:"policy"`
 	Count         int                 `gorm:"type:smallint;not null;default:0" json:"count"`
@@ -21,7 +22,7 @@ type Task struct {
 	RetryTimes    int8                `gorm:"type:tinyint;not null;default:0" json:"retry_times"`
 	RetryInterval int16               `gorm:"type:smallint;not null;default:0" json:"retry_interval"`
 	Tag           string              `gorm:"size:32;not null;default:''" json:"tag"`
-	Remark        string              `gorm:"size:100;not null;default:''" json:"remark"`
+	Remark        string              `gorm:"size:256;not null;default:''" json:"remark"`
 	Status        global.TaskStatus   `gorm:"type:tinyint;not null;index;default:1" json:"status"`
 }
 
