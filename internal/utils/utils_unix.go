@@ -1,11 +1,17 @@
 package utils
 
+import (
+	"context"
+	"errors"
+	"os/exec"
+	"syscall"
+)
+
 type Result struct {
 	output string
 	err    error
 }
 
-/*
 // 执行shell命令，可设置执行超时时间
 func ExecShell(ctx context.Context, command string) (string, error) {
 	cmd := exec.Command("/bin/bash", "-c", command)
@@ -28,5 +34,3 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 		return result.output, result.err
 	}
 }
-
-*/

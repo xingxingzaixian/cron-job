@@ -1,12 +1,23 @@
-package global
+package schemas
 
 import (
+	"cronJob/internal/global"
 	"errors"
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"net/http"
 	"strings"
 )
+
+type Validatable interface {
+	BindValidParam(c *gin.Context) error
+}
+
+type FormPage struct {
+	PageNo   int `json:"pageNo" form:"pageNo" comment:"pageNo页数" example:"1" default:"1"`           //页数
+	PageSize int `json:"pageSize" form:"pageSize" comment:"pageSize每页条数" example:"20" default:"10"` //每页条数
+}
 
 // DefaultGetValidParams 获取Get、Post、Uri请求参数
 func DefaultGetValidParams(c *gin.Context, params interface{}) error {
@@ -49,7 +60,7 @@ func DefaultGetValidParams(c *gin.Context, params interface{}) error {
 }
 
 func GetValidator(c *gin.Context) (*validator.Validate, error) {
-	val, ok := c.Get(ValidatorKey)
+	val, ok := c.Get(global.ValidatorKey)
 	if !ok {
 		return nil, errors.New("未设置验证器")
 	}
@@ -61,7 +72,7 @@ func GetValidator(c *gin.Context) (*validator.Validate, error) {
 }
 
 func GetTranslation(c *gin.Context) (ut.Translator, error) {
-	trans, ok := c.Get(TranslatorKey)
+	trans, ok := c.Get(global.TranslatorKey)
 	if !ok {
 		return nil, errors.New("未设置翻译器")
 	}
@@ -71,3 +82,39 @@ func GetTranslation(c *gin.Context) (ut.Translator, error) {
 	}
 	return translator, nil
 }
+
+type Response struct {
+	Code int         `json:"code"`
+	Msg  string      `json:"message"`
+	Data interface{} `json:"data"`
+}
+
+func ResponseSuccess(ctx *gin.Context, data interface{}) {
+	ctx.JSON(http.StatusOK, &Response{
+		Code: http.StatusOK,
+		Msg:  "",
+		Data: data,
+	})
+}
+
+func ResponseError(ctx *gin.Context, code int, err error) {
+	ctx.JSON(http.StatusOK, &Response{
+		Code: code,
+		Msg:  err.Error(),
+		Data: "",
+	})
+}
+
+const (
+	TaskListParamInvalid = 1001 + iota
+	TaskCreateError
+	TaskUpdateError
+	TaskNotExist // 服务ID错误
+	TaskAddParamInvalid
+	TaskSearchParamInvalid
+	TaskSearchListInvalid
+	TaskAlreadyExist
+	TaskParamInvalid
+	TaskLogParamInvalid
+	TaskLogListInvalid
+)

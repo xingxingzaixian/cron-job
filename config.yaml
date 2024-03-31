@@ -9,14 +9,14 @@ http:
 swagger:
   title: "定时任务服务swagger API"
   desc: "这是一个简单的定时任务执行系统"
-  host: "127.0.0.1:8200"
+  host: "127.0.0.1:8210"
   base_path: ""
 
 db:
   engine: "mysql"
-  host: "10.10.8.252"
+  host: "127.0.0.1"
   port: 3306
   name: "cronJob"
   user: "root"
-  password: "marco@123"
+  password: "aA111111"
   prefix: "cron_"

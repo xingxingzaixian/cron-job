@@ -4,7 +4,6 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/job"
-	"fmt"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcron"
@@ -41,14 +40,14 @@ func (t *tTaskManager) startALL() {
 		task := &models.Task{}
 		// 获取任务列表
 		taskList := task.GetActiveTasks()
-		fmt.Printf("%d\n", len(taskList))
+
 		// 初始化定时任务执行对象
 		t.cron = gcron.New()
 		t.cron.Start()
 
 		taskNum := 0
 		for _, item := range taskList {
-			t.AddTask(item)
+			t.AddTask(&item)
 			taskNum++
 		}
 
@@ -57,7 +56,14 @@ func (t *tTaskManager) startALL() {
 }
 
 func (t *tTaskManager) RunTask(taskModel *models.Task) {
-	g.Go(gctx.GetInitCtx(), job.CreateJob(taskModel), nil)
+	g.Go(gctx.GetInitCtx(), job.CreateJob(*taskModel), nil)
+}
+
+func (t *tTaskManager) StartTask(taskModel *models.Task) {
+	cronName := strconv.Itoa(int(taskModel.ID))
+	if t.cron.Search(cronName) == nil {
+		t.cron.Start(cronName)
+	}
 }
 
 func (t *tTaskManager) StopTask(taskModel *models.Task) {
@@ -68,13 +74,14 @@ func (t *tTaskManager) StopTask(taskModel *models.Task) {
 }
 
 func (t *tTaskManager) AddTask(taskModel *models.Task) error {
-	taskFunc := job.CreateJob(taskModel)
+	taskFunc := job.CreateJob(*taskModel)
 	if taskFunc == nil {
 		zap.S().Error("创建任务处理Job失败,不支持的任务协议#", taskModel.Protocol)
 		return gerror.Newf("创建任务处理Job失败,不支持的任务协议#", taskModel.Protocol)
 	}
 
 	cronName := strconv.Itoa(int(taskModel.ID))
+
 	var err error
 	var cronJob *gcron.Entry
 	switch taskModel.Policy {

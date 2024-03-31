@@ -5,7 +5,6 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/handler"
-	"github.com/gogf/gf/v2/container/gmap"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcron"
 	"go.uber.org/zap"
@@ -26,24 +25,27 @@ func createHandler(taskModel *models.Task) handler.Handler {
 	return h
 }
 
-func CreateJob(taskModel *models.Task) gcron.JobFunc {
-	hdler := createHandler(taskModel)
+// CreateJob generates a job function based on the provided task model.
+//
+// It takes a models.Task parameter and returns a gcron.JobFunc.
+// 返回闭包函数，必须传递对象而非指针，否则闭包函数只会在最后一次生效
+func CreateJob(taskModel models.Task) gcron.JobFunc {
+	hdler := createHandler(&taskModel)
 	if hdler == nil {
 		return nil
 	}
 
-	taskFunc := func(ctx context.Context) {
-		taskLogId := beforeExecJob(taskModel)
+	return func(ctx context.Context) {
+		taskLogId := beforeExecJob(&taskModel)
 		if taskLogId <= 0 {
 			return
 		}
 
 		zap.S().Infof("开始执行任务#%s#命令-%s", taskModel.Name, taskModel.Command)
-		taskResult := execJob(hdler, taskModel, taskLogId)
+		taskResult := execJob(hdler, &taskModel, taskLogId)
 		zap.S().Infof("任务完成#%s#命令-%s", taskModel.Name, taskModel.Command)
-		afterExecJob(taskModel, taskResult, taskLogId)
+		afterExecJob(&taskModel, taskResult, taskLogId)
 	}
-	return taskFunc
 }
 
 // 任务前置操作
@@ -122,17 +124,15 @@ func createTaskLog(taskModel *models.Task, status global.TaskStatus) (insertId u
 func updateTaskLog(taskLogId uint, taskResult global.TaskResult) (int64, error) {
 	taskLogModel := new(models.TaskLog)
 	var status global.TaskStatus
-	result := taskResult.Result
 	if taskResult.Err != nil {
 		status = global.TaskStatusFailure
 	} else {
 		status = global.TaskStatusFinish
 	}
 
-	update := gmap.NewFrom(g.MapAnyAny{
+	return taskLogModel.Update(taskLogId, g.Map{
 		"retry_times": taskResult.RetryTimes,
 		"status":      status,
-		"result":      result,
+		"result":      taskResult.Result,
 	})
-	return taskLogModel.Update(taskLogId, update)
 }

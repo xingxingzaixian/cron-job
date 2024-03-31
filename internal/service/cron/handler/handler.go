@@ -5,6 +5,7 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/utils"
+	"fmt"
 	"go.uber.org/zap"
 	"time"
 )
@@ -28,6 +29,7 @@ func (h *HTTPHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, er
 type RPCHandler struct{}
 
 func (h *RPCHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, error) {
+	fmt.Println(22222222222, taskModel.Command)
 	return "", nil
 }
 

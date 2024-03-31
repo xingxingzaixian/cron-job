@@ -1,0 +1,530 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/task/edit": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "新增/修改任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务管理"
+                ],
+                "summary": "新增/修改任务",
+                "operationId": "/api/task/edit",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.TaskEditHTTPInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/task/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "任务列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务管理"
+                ],
+                "summary": "任务列表",
+                "operationId": "/api/task/list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页数",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务协议",
+                        "name": "protocol",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务标签",
+                        "name": "tag",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.SearchTaskResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/task/op": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "操作任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务管理"
+                ],
+                "summary": "操作任务",
+                "operationId": "/api/task/op",
+                "parameters": [
+                    {
+                        "description": "操作信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.TaskOptionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/taskLog/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "任务执行日志列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务日志管理"
+                ],
+                "summary": "任务执行日志列表",
+                "operationId": "/api/taskLog/list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页数",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "任务名称",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.SearchTaskResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/taskLog/query": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "任务执行日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务日志管理"
+                ],
+                "summary": "任务执行日志",
+                "operationId": "/api/taskLog/query",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.SearchTaskResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "global.TaskPolicy": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-comments": {
+                "TaskPolicyMulti": "并行策略",
+                "TaskPolicyOnce": "单词策略",
+                "TaskPolicySingle": "单利策略",
+                "TaskPolicyTimes": "多次策略"
+            },
+            "x-enum-varnames": [
+                "TaskPolicyMulti",
+                "TaskPolicyOnce",
+                "TaskPolicySingle",
+                "TaskPolicyTimes"
+            ]
+        },
+        "global.TaskProtocol": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "TaskProtocolHttp",
+                "TaskProtocolShell",
+                "TaskProtocolGrpc"
+            ]
+        },
+        "schemas.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "schemas.SearchTaskResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.TaskItemOutput"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schemas.TaskEditHTTPInput": {
+            "type": "object",
+            "required": [
+                "command",
+                "name",
+                "protocol",
+                "spec"
+            ],
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "example": ""
+                },
+                "count": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "delay": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "id": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "name": {
+                    "type": "string",
+                    "example": ""
+                },
+                "policy": {
+                    "default": 1,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskPolicy"
+                        }
+                    ],
+                    "example": 1
+                },
+                "protocol": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskProtocol"
+                        }
+                    ],
+                    "example": 1
+                },
+                "remark": {
+                    "type": "string",
+                    "example": ""
+                },
+                "retry_interval": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "retry_times": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "spec": {
+                    "type": "string",
+                    "example": ""
+                },
+                "tag": {
+                    "type": "string",
+                    "example": ""
+                },
+                "timeout": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                }
+            }
+        },
+        "schemas.TaskItemOutput": {
+            "type": "object",
+            "required": [
+                "command",
+                "name",
+                "protocol",
+                "spec"
+            ],
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "example": ""
+                },
+                "count": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "delay": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "id": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "name": {
+                    "type": "string",
+                    "example": ""
+                },
+                "policy": {
+                    "default": 1,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskPolicy"
+                        }
+                    ],
+                    "example": 1
+                },
+                "protocol": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskProtocol"
+                        }
+                    ],
+                    "example": 1
+                },
+                "remark": {
+                    "type": "string",
+                    "example": ""
+                },
+                "retry_interval": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "retry_times": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                },
+                "spec": {
+                    "type": "string",
+                    "example": ""
+                },
+                "tag": {
+                    "type": "string",
+                    "example": ""
+                },
+                "timeout": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 0
+                }
+            }
+        },
+        "schemas.TaskOptionInput": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "op": {
+                    "type": "string",
+                    "example": "stop"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,342 @@
+definitions:
+  global.TaskPolicy:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    type: integer
+    x-enum-comments:
+      TaskPolicyMulti: 并行策略
+      TaskPolicyOnce: 单词策略
+      TaskPolicySingle: 单利策略
+      TaskPolicyTimes: 多次策略
+    x-enum-varnames:
+    - TaskPolicyMulti
+    - TaskPolicyOnce
+    - TaskPolicySingle
+    - TaskPolicyTimes
+  global.TaskProtocol:
+    enum:
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - TaskProtocolHttp
+    - TaskProtocolShell
+    - TaskProtocolGrpc
+  schemas.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  schemas.SearchTaskResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/schemas.TaskItemOutput'
+        type: array
+      total:
+        type: integer
+    type: object
+  schemas.TaskEditHTTPInput:
+    properties:
+      command:
+        example: ""
+        type: string
+      count:
+        default: 0
+        example: 0
+        type: integer
+      delay:
+        default: 0
+        example: 0
+        type: integer
+      id:
+        default: 0
+        type: integer
+      name:
+        example: ""
+        type: string
+      policy:
+        allOf:
+        - $ref: '#/definitions/global.TaskPolicy'
+        default: 1
+        example: 1
+      protocol:
+        allOf:
+        - $ref: '#/definitions/global.TaskProtocol'
+        example: 1
+      remark:
+        example: ""
+        type: string
+      retry_interval:
+        default: 0
+        example: 0
+        type: integer
+      retry_times:
+        default: 0
+        example: 0
+        type: integer
+      spec:
+        example: ""
+        type: string
+      tag:
+        example: ""
+        type: string
+      timeout:
+        default: 0
+        example: 0
+        type: integer
+    required:
+    - command
+    - name
+    - protocol
+    - spec
+    type: object
+  schemas.TaskItemOutput:
+    properties:
+      command:
+        example: ""
+        type: string
+      count:
+        default: 0
+        example: 0
+        type: integer
+      delay:
+        default: 0
+        example: 0
+        type: integer
+      id:
+        default: 0
+        type: integer
+      name:
+        example: ""
+        type: string
+      policy:
+        allOf:
+        - $ref: '#/definitions/global.TaskPolicy'
+        default: 1
+        example: 1
+      protocol:
+        allOf:
+        - $ref: '#/definitions/global.TaskProtocol'
+        example: 1
+      remark:
+        example: ""
+        type: string
+      retry_interval:
+        default: 0
+        example: 0
+        type: integer
+      retry_times:
+        default: 0
+        example: 0
+        type: integer
+      spec:
+        example: ""
+        type: string
+      tag:
+        example: ""
+        type: string
+      timeout:
+        default: 0
+        example: 0
+        type: integer
+    required:
+    - command
+    - name
+    - protocol
+    - spec
+    type: object
+  schemas.TaskOptionInput:
+    properties:
+      id:
+        example: 1
+        type: integer
+      op:
+        example: stop
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/task/edit:
+    post:
+      consumes:
+      - application/json
+      description: 新增/修改任务
+      operationId: /api/task/edit
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.TaskEditHTTPInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 新增/修改任务
+      tags:
+      - 任务管理
+  /api/task/list:
+    get:
+      consumes:
+      - application/json
+      description: 任务列表
+      operationId: /api/task/list
+      parameters:
+      - description: 页数
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: 任务名称
+        in: query
+        name: name
+        type: string
+      - description: 任务协议
+        in: query
+        name: protocol
+        type: string
+      - description: 任务标签
+        in: query
+        name: tag
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.SearchTaskResponse'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 任务列表
+      tags:
+      - 任务管理
+  /api/task/op:
+    post:
+      consumes:
+      - application/json
+      description: 操作任务
+      operationId: /api/task/op
+      parameters:
+      - description: 操作信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.TaskOptionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 操作任务
+      tags:
+      - 任务管理
+  /api/taskLog/list:
+    get:
+      consumes:
+      - application/json
+      description: 任务执行日志列表
+      operationId: /api/taskLog/list
+      parameters:
+      - description: 页数
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: 任务名称
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.SearchTaskResponse'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 任务执行日志列表
+      tags:
+      - 任务日志管理
+  /api/taskLog/query:
+    get:
+      consumes:
+      - application/json
+      description: 任务执行日志
+      operationId: /api/taskLog/query
+      parameters:
+      - description: 任务ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.SearchTaskResponse'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 任务执行日志
+      tags:
+      - 任务日志管理
+swagger: "2.0"

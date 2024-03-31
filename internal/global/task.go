@@ -25,11 +25,13 @@ const (
 )
 
 const (
-	TaskStatusFailure TaskStatus = 1 // 失败
-	TaskStatusRunning TaskStatus = 2 // 运行中
-	TaskStatusFinish  TaskStatus = 3 // 成功
-	TaskStatusCancel  TaskStatus = 4 // 取消
-	TaskStatusTimeout TaskStatus = 5 // 超时
+	TaskStatusDisabled TaskStatus = 0 + iota // 禁用
+	TaskStatusEnabled                        // 启用
+	TaskStatusFailure                        // 失败
+	TaskStatusRunning                        // 运行中
+	TaskStatusFinish                         // 成功
+	TaskStatusCancel                         // 取消
+	TaskStatusTimeout                        // 超时
 )
 
 type TaskResult struct {

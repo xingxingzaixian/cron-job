@@ -5,6 +5,7 @@ import (
 	"cronJob/internal/service/web/router"
 	"cronJob/lib/config"
 	"cronJob/lib/database"
+	"cronJob/lib/logger"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,6 +40,9 @@ func Execute() {
 }
 
 func startServer(configFile string) {
+	// 0. 初始化日志
+	logger.InitLogger()
+
 	// 1. 初始化配置
 	config.InitConfig(configFile)
 

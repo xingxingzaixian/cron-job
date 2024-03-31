@@ -1,10 +1,12 @@
 package router
 
 import (
+	"cronJob/docs"
 	"cronJob/internal/service/web/api"
 	"cronJob/web"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"io/fs"
@@ -12,12 +14,12 @@ import (
 )
 
 func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
-	//docs.SwaggerInfo.Title = viper.GetString("swagger.title")
-	//docs.SwaggerInfo.Description = viper.GetString("swagger.desc")
-	//docs.SwaggerInfo.Version = "1.0"
-	//docs.SwaggerInfo.Host = viper.GetString("swagger.host")
-	//docs.SwaggerInfo.BasePath = viper.GetString("swagger.base")
-	//docs.SwaggerInfo.Schemes = []string{"http"}
+	docs.SwaggerInfo.Title = viper.GetString("swagger.title")
+	docs.SwaggerInfo.Description = viper.GetString("swagger.desc")
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = viper.GetString("swagger.host")
+	docs.SwaggerInfo.BasePath = viper.GetString("swagger.base")
+	docs.SwaggerInfo.Schemes = []string{"http"}
 
 	router := gin.Default()
 	router.Use(gin.Logger(), gin.Recovery(), gzip.Gzip(gzip.DefaultCompression))
@@ -34,9 +36,14 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	router.StaticFS("/admin", http.FS(webFs))
 
 	apiRouter := router.Group("/api")
-	serviceRouter := apiRouter.Group("/service")
+	taskRouter := apiRouter.Group("/task")
 	{
-		api.ServiceRegister(serviceRouter)
+		api.TaskRegister(taskRouter)
+	}
+
+	taskLogRouter := apiRouter.Group("/taskLog")
+	{
+		api.TaskLogRegister(taskLogRouter)
 	}
 	return router
 }
