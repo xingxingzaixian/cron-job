@@ -94,6 +94,7 @@ func execJob(handler handler.Handler, taskModel *models.Task, taskUniqueId uint)
 			}
 		}
 	}
+
 	return global.TaskResult{Result: output, Err: err, RetryTimes: taskModel.RetryTimes}
 }
 
@@ -108,12 +109,6 @@ func afterExecJob(taskModel *models.Task, taskResult global.TaskResult, taskLogI
 func createTaskLog(taskModel *models.Task, status global.TaskStatus) (insertId uint, err error) {
 	taskLogModel := new(models.TaskLog)
 	taskLogModel.TaskId = taskModel.ID
-	taskLogModel.Name = taskModel.Name
-	taskLogModel.Spec = taskModel.Spec
-	taskLogModel.Protocol = taskModel.Protocol
-	taskLogModel.Command = taskModel.Command
-	taskLogModel.Timeout = taskModel.Timeout
-	taskLogModel.Policy = taskModel.Policy
 	taskLogModel.RetryTimes = taskModel.RetryTimes
 	taskLogModel.Status = status
 	insertId, err = taskLogModel.Create()
@@ -124,15 +119,18 @@ func createTaskLog(taskModel *models.Task, status global.TaskStatus) (insertId u
 func updateTaskLog(taskLogId uint, taskResult global.TaskResult) (int64, error) {
 	taskLogModel := new(models.TaskLog)
 	var status global.TaskStatus
+	var result string
 	if taskResult.Err != nil {
 		status = global.TaskStatusFailure
+		result = taskResult.Err.Error()
 	} else {
 		status = global.TaskStatusFinish
+		result = taskResult.Result
 	}
 
 	return taskLogModel.Update(taskLogId, g.Map{
 		"retry_times": taskResult.RetryTimes,
 		"status":      status,
-		"result":      taskResult.Result,
+		"result":      result,
 	})
 }

@@ -230,8 +230,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "任务名称",
-                        "name": "id",
+                        "description": "任务ID",
+                        "name": "taskId",
                         "in": "query",
                         "required": true
                     }
@@ -344,6 +344,36 @@ const docTemplate = `{
                 "TaskProtocolGrpc"
             ]
         },
+        "global.TaskStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-comments": {
+                "TaskStatusCancel": "取消",
+                "TaskStatusDisabled": "禁用",
+                "TaskStatusEnabled": "启用",
+                "TaskStatusFailure": "失败",
+                "TaskStatusFinish": "成功",
+                "TaskStatusRunning": "运行中",
+                "TaskStatusTimeout": "超时"
+            },
+            "x-enum-varnames": [
+                "TaskStatusDisabled",
+                "TaskStatusEnabled",
+                "TaskStatusFailure",
+                "TaskStatusRunning",
+                "TaskStatusFinish",
+                "TaskStatusCancel",
+                "TaskStatusTimeout"
+            ]
+        },
         "schemas.Response": {
             "type": "object",
             "properties": {
@@ -401,6 +431,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": ""
                 },
+                "params": {
+                    "type": "string",
+                    "example": ""
+                },
                 "policy": {
                     "default": 1,
                     "allOf": [
@@ -435,6 +469,14 @@ const docTemplate = `{
                 "spec": {
                     "type": "string",
                     "example": ""
+                },
+                "status": {
+                    "default": 0,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskStatus"
+                        }
+                    ]
                 },
                 "tag": {
                     "type": "string",
@@ -478,6 +520,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": ""
                 },
+                "params": {
+                    "type": "string",
+                    "example": ""
+                },
                 "policy": {
                     "default": 1,
                     "allOf": [
@@ -512,6 +558,14 @@ const docTemplate = `{
                 "spec": {
                     "type": "string",
                     "example": ""
+                },
+                "status": {
+                    "default": 0,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskStatus"
+                        }
+                    ]
                 },
                 "tag": {
                     "type": "string",

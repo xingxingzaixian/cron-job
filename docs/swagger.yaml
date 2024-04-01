@@ -26,6 +26,32 @@ definitions:
     - TaskProtocolHttp
     - TaskProtocolShell
     - TaskProtocolGrpc
+  global.TaskStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    type: integer
+    x-enum-comments:
+      TaskStatusCancel: 取消
+      TaskStatusDisabled: 禁用
+      TaskStatusEnabled: 启用
+      TaskStatusFailure: 失败
+      TaskStatusFinish: 成功
+      TaskStatusRunning: 运行中
+      TaskStatusTimeout: 超时
+    x-enum-varnames:
+    - TaskStatusDisabled
+    - TaskStatusEnabled
+    - TaskStatusFailure
+    - TaskStatusRunning
+    - TaskStatusFinish
+    - TaskStatusCancel
+    - TaskStatusTimeout
   schemas.Response:
     properties:
       code:
@@ -62,6 +88,9 @@ definitions:
       name:
         example: ""
         type: string
+      params:
+        example: ""
+        type: string
       policy:
         allOf:
         - $ref: '#/definitions/global.TaskPolicy'
@@ -85,6 +114,10 @@ definitions:
       spec:
         example: ""
         type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/global.TaskStatus'
+        default: 0
       tag:
         example: ""
         type: string
@@ -117,6 +150,9 @@ definitions:
       name:
         example: ""
         type: string
+      params:
+        example: ""
+        type: string
       policy:
         allOf:
         - $ref: '#/definitions/global.TaskPolicy'
@@ -140,6 +176,10 @@ definitions:
       spec:
         example: ""
         type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/global.TaskStatus'
+        default: 0
       tag:
         example: ""
         type: string
@@ -288,9 +328,9 @@ paths:
         name: pageSize
         required: true
         type: integer
-      - description: 任务名称
+      - description: 任务ID
         in: query
-        name: id
+        name: taskId
         required: true
         type: integer
       produces:

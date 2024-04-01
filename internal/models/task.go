@@ -23,7 +23,7 @@ type Task struct {
 	RetryInterval int16               `gorm:"type:smallint;not null;default:0" json:"retry_interval"`
 	Tag           string              `gorm:"size:32;not null;default:''" json:"tag"`
 	Remark        string              `gorm:"size:256;not null;default:''" json:"remark"`
-	Status        global.TaskStatus   `gorm:"type:tinyint;not null;index;default:1" json:"status"`
+	Status        global.TaskStatus   `gorm:"type:tinyint;not null;default:0" json:"status"`
 }
 
 func (t *Task) Create() (uint, error) {

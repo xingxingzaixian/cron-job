@@ -57,6 +57,7 @@ func (s *TaskApi) GetTaskList(ctx *gin.Context) {
 				Spec:          v.Spec,
 				Protocol:      v.Protocol,
 				Command:       v.Command,
+				Params:        v.Params,
 				Timeout:       v.Timeout,
 				Policy:        v.Policy,
 				Count:         v.Count,
@@ -65,6 +66,7 @@ func (s *TaskApi) GetTaskList(ctx *gin.Context) {
 				RetryInterval: v.RetryInterval,
 				Tag:           v.Tag,
 				Remark:        v.Remark,
+				Status:        v.Status,
 			},
 		})
 	}
@@ -108,6 +110,7 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 		_, err = task.Update(params.ID, g.Map{
 			"name":           params.Name,
 			"command":        params.Command,
+			"params":         params.Params,
 			"spec":           params.Spec,
 			"protocol":       params.Protocol,
 			"timeout":        params.Timeout,
@@ -118,6 +121,7 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 			"retry_interval": params.RetryInterval,
 			"tag":            params.Tag,
 			"remark":         params.Remark,
+			"status":         params.Status,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -125,8 +129,13 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 			return
 		}
 
-		// 添加任务到调度进程中
-		taskManager.TaskManager.UpdateTask(task)
+		// 如果更新的任务状态是禁用，就删除当前正在调度的任务
+		if task.Status == global.TaskStatusDisabled {
+			taskManager.TaskManager.RemoveTask(task)
+		} else {
+			// 添加任务到调度进程中
+			taskManager.TaskManager.UpdateTask(task)
+		}
 	} else {
 		if ok := task.IsNameExist(params.Name); ok {
 			schemas.ResponseError(ctx, schemas.TaskAlreadyExist, errors.New("任务名已存在"))
@@ -134,6 +143,7 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 		}
 		task.Name = params.Name
 		task.Command = params.Command
+		task.Params = params.Params
 		task.Spec = params.Spec
 		task.Protocol = params.Protocol
 		task.Timeout = params.Timeout
@@ -144,6 +154,7 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 		task.RetryInterval = params.RetryInterval
 		task.Tag = params.Tag
 		task.Remark = params.Remark
+		task.Status = params.Status
 		_, err := task.Create()
 		if err != nil {
 			tx.Rollback()
@@ -151,8 +162,10 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 			return
 		}
 
-		// 添加任务到调度进程中
-		taskManager.TaskManager.AddTask(task)
+		if task.Status == global.TaskStatusEnabled {
+			// 添加任务到调度进程中
+			taskManager.TaskManager.AddTask(task)
+		}
 	}
 
 	tx.Commit()

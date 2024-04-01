@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -33,6 +34,7 @@ func Get(url, params string, timeout time.Duration) (string, error) {
 	}
 	defer r.Close()
 
+	fmt.Println(66666666666666666, r.StatusCode, r.ReadAllString())
 	return r.ReadAllString(), nil
 }
 
@@ -51,24 +53,30 @@ func Post(url, params string, timeout time.Duration) (string, error) {
 }
 
 func parseClient(url, params string, timeout time.Duration) (*gclient.Client, string, g.Map, error) {
+	client := g.Client()
+	client.SetTimeout(timeout)
+	if params == "" {
+		return client, url, nil, nil
+	}
+
 	var data g.Map
 	err := json.Unmarshal([]byte(params), &data)
 	if err != nil {
 		return nil, url, nil, err
 	}
-	client := g.Client()
-	client.SetTimeout(timeout)
 
 	headers, ok := data["headers"]
 	if ok {
-		client.SetHeaderMap(headers.(g.MapStrStr))
+		for key, value := range headers.(g.Map) {
+			client.SetHeader(key, value.(string))
+		}
 	}
 
 	query, ok := data["query"]
 	if ok {
 		v := urlParse.Values{}
-		for key, value := range query.(g.MapStrStr) {
-			v.Add(key, value)
+		for key, value := range query.(g.Map) {
+			v.Add(key, value.(string))
 		}
 
 		if strings.Contains(url, "?") {

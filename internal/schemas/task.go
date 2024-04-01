@@ -11,6 +11,7 @@ type TaskEditHTTPInput struct {
 	Spec          string              `json:"spec" form:"spec" comment:"任务运行时间" example:"" validate:"required"`
 	Protocol      global.TaskProtocol `json:"protocol" form:"protocol" comment:"任务协议" example:"1" validate:"required"`
 	Command       string              `json:"command" form:"command" comment:"任务命令" example:"" validate:"required"`
+	Params        string              `json:"params" form:"params" comment:"命令参数" example:"" `
 	Timeout       int                 `json:"timeout" form:"timeout" comment:"超时时间" example:"0" default:"0"`
 	Policy        global.TaskPolicy   `json:"policy" form:"policy" comment:"任务策略" example:"1" default:"1"`
 	Count         int                 `json:"count" form:"count" comment:"执行次数" example:"0" default:"0"`
@@ -19,6 +20,7 @@ type TaskEditHTTPInput struct {
 	RetryInterval int16               `json:"retry_interval" form:"retry_interval" comment:"重试间隔" example:"0" default:"0"`
 	Tag           string              `json:"tag" form:"tag" comment:"任务标签" example:"" default:""`
 	Remark        string              `json:"remark" form:"remark" comment:"任务备注" example:"" default:""`
+	Status        global.TaskStatus   `json:"status" form:"status" comment:"任务状态" default:"0"`
 }
 
 func (param *TaskEditHTTPInput) BindValidParam(c *gin.Context) error {

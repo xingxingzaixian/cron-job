@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -37,6 +38,7 @@ func (h *HTTPHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, er
 		return "", fmt.Errorf("任务【%d】参数解析失败-%s", taskModel.ID, err.Error())
 	}
 
+	fmt.Println(22222222222)
 	method, ok := command["method"]
 	if !ok {
 		return "", fmt.Errorf("任务【%d】参数解析失败", taskModel.ID)
@@ -48,10 +50,11 @@ func (h *HTTPHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, er
 	}
 
 	var output string
+	method = strings.ToUpper(method.(string))
 	zap.S().Infof("execute http start: [id: %d url: %s method: %s]", taskUniqueId, url, method)
-	if method.(string) == "GET" {
+	if method == "GET" {
 		output, err = httpclient.Get(url.(string), taskModel.Params, time.Duration(taskModel.Timeout)*time.Second)
-	} else if method.(string) == "POST" {
+	} else if method == "POST" {
 		output, err = httpclient.Post(url.(string), taskModel.Params, time.Duration(taskModel.Timeout)*time.Second)
 	} else {
 		err = fmt.Errorf("任务【%d】不支持的请求方式【%s】", taskModel.ID, method)
@@ -67,7 +70,6 @@ func (h *HTTPHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, er
 type RPCHandler struct{}
 
 func (h *RPCHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, error) {
-	fmt.Println(22222222222, taskModel.Command)
 	return "", nil
 }
 
