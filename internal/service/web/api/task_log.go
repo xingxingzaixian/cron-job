@@ -27,7 +27,7 @@ func TaskLogRegister(group *gin.RouterGroup) {
 // @Param pageNo query int true "页数"
 // @Param pageSize query int true "每页条数"
 // @Param taskId query int true "任务ID"
-// @Success 200 {object} schemas.Response{data=schemas.SearchTaskResponse} "success"
+// @Success 200 {object} schemas.Response{data=schemas.TaskLogOutput} "success"
 // @Router /api/taskLog/list [get]
 func (s *TaskLogApi) GetTaskLogList(ctx *gin.Context) {
 	params := schemas.TaskLogListInput{}
@@ -68,8 +68,8 @@ func (s *TaskLogApi) GetTaskLogList(ctx *gin.Context) {
 // @ID /api/taskLog/query
 // @Accept json
 // @Produce json
-// @Param id query int true "任务ID"
-// @Success 200 {object} schemas.Response{data=schemas.SearchTaskResponse} "success"
+// @Param id query int true "任务日志ID"
+// @Success 200 {object} schemas.Response{data=schemas.TaskLogItemOutput} "success"
 // @Router /api/taskLog/query [get]
 func (s *TaskLogApi) GetTaskLog(ctx *gin.Context) {
 	params := schemas.TaskLogInput{}

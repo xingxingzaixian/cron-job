@@ -237,7 +237,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schemas.SearchTaskResponse"
+                                            "$ref": "#/definitions/schemas.TaskLogOutput"
                                         }
                                     }
                                 }
@@ -269,7 +269,7 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "任务ID",
+                        "description": "任务日志ID",
                         "name": "id",
                         "in": "query",
                         "required": true
@@ -287,7 +287,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schemas.SearchTaskResponse"
+                                            "$ref": "#/definitions/schemas.TaskLogItemOutput"
                                         }
                                     }
                                 }
@@ -564,6 +564,52 @@
                     "type": "integer",
                     "default": 0,
                     "example": 0
+                }
+            }
+        },
+        "schemas.TaskLogItemOutput": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "result": {
+                    "description": "执行结果",
+                    "type": "string"
+                },
+                "retry_times": {
+                    "description": "任务重试次数",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态 0:执行失败 1:执行中  2:执行完毕 3:任务取消(上次任务未执行完成) 4:异步执行",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskStatus"
+                        }
+                    ]
+                },
+                "task_id": {
+                    "description": "任务id",
+                    "type": "integer"
+                },
+                "total_time": {
+                    "description": "执行总时长",
+                    "type": "integer"
+                }
+            }
+        },
+        "schemas.TaskLogOutput": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.TaskLogItemOutput"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
