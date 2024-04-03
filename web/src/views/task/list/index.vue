@@ -28,7 +28,7 @@
         :row-key="(item: any) => item.id"
         class="sm:h-full"
       />
-      <ServiceOperateDrawer
+      <TaskOperateDrawer
         v-model:visible="drawerVisible"
         :operate-type="operateType"
         :dataId="dataId"
@@ -44,25 +44,24 @@ import { $t } from '@/locales';
 import { message } from '@/utils/message';
 import { useBoolean, useTable } from '@/hooks';
 import TableHeaderOperation from '@/components/custom/TableHeaderOperation.vue';
-import ServiceOperateDrawer, { type OperateType } from './modules/service-operate-drawer.vue';
-import { fetchServiceList } from '@/api/service';
-import type { ServiceListOutput, ServiceSearchParam } from '@/api/service/types';
+import TaskOperateDrawer, { type OperateType } from './modules/task-operate-drawer.vue';
+import { fetchTaskList } from '@/api/task';
+import type { SearchTaskResponse, QueryTask } from '@/api/task/types';
 import { NButton, NPopconfirm } from 'naive-ui';
-defineOptions({ name: 'ServiceList' });
+defineOptions({ name: 'TaskList' });
 
 const checkedRowKeys = ref<string[]>([]);
 const dataId = ref<number>(0);
 const { bool: drawerVisible, setTrue: openDrawer } = useBoolean();
 
 const { columns, filteredColumns, data, loading, pagination, updateSearchParams, getData } = useTable<
-  ServiceListOutput,
-  ServiceSearchParam
+  SearchTaskResponse,
+  QueryTask
 >({
-  apiFn: fetchServiceList,
+  apiFn: fetchTaskList,
   apiParams: {
     pageNo: 1,
-    pageSize: 10,
-    info: ''
+    pageSize: 15
   },
   transformer: (res: any) => {
     const { list = [], total = 0 } = res.data || {};
@@ -87,28 +86,33 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
   columns: () => [
     {
       key: 'id',
-      title: 'ID',
+      title: '任务ID',
       align: 'center',
       width: 64
     },
     {
-      key: 'serviceName',
-      title: $t('page.service.list.serviceName'),
+      key: 'name',
+      title: $t('page.task.list.name'),
       minWidth: 100
     },
     {
-      key: 'serviceDesc',
-      title: $t('page.service.list.serviceDesc'),
+      key: 'tag',
+      title: $t('page.task.list.tag'),
       minWidth: 100
     },
     {
-      key: 'rule',
-      title: $t('page.service.list.rule'),
+      key: 'cron表达式',
+      title: $t('page.task.list.spec'),
       minWidth: 100
     },
     {
-      key: 'urlRewrite',
-      title: $t('page.service.list.urlRewrite'),
+      key: 'protocol',
+      title: $t('page.task.list.protocol'),
+      minWidth: 100
+    },
+    {
+      key: 'status',
+      title: $t('page.task.list.status'),
       minWidth: 100
     },
     {

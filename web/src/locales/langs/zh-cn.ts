@@ -22,14 +22,12 @@ const local = {
   route: {
     login: '登陆',
     home: '首页',
-    welcome: '欢迎访问 GateKeeper 管理系统',
+    welcome: '欢迎访问 CronJob 任务管理系统',
     exception: '异常',
     exception_403: '没有权限',
     exception_404: '请求错误',
     exception_500: '服务器错误',
-    service: '服务列表',
-    service_list: '列表',
-    service_log: '日志',
+    task_log: '日志',
     task: '任务列表'
   },
   icon: {
@@ -37,29 +35,19 @@ const local = {
     fullscreen: '全屏'
   },
   system: {
-    title: 'GateKeeper 管理系统'
+    title: 'CronJob 任务管理系统'
   },
   page: {
-    home: {
-      dayTitle: '今日访问量',
-      weekTitle: '本周访问量',
-      monthTitle: '本月访问量',
-      interfaceTitle: '接口调用量',
-      visits: '访问量',
-      hour: '小时',
-      day: '天',
-      interface: '接口'
-    },
-    service: {
+    task: {
       list: {
-        title: '服务列表',
-        serviceName: '服务名称',
-        rule: '代理规则',
-        serviceDesc: '服务描述',
-        urlRewrite: '代理地址',
-        needHttps: '是否支持https',
-        addService: '新增服务',
-        editService: '编辑服务',
+        title: '任务列表',
+        name: '任务名称',
+        tag: '任务标签',
+        spec: 'cron表达式',
+        protocol: '执行方式',
+        status: '状态',
+        addTask: '新增任务',
+        editTask: '编辑任务',
         form: {
           serviceName: '请输入服务名称',
           serviceDesc: '请输入服务描述',

@@ -38,7 +38,7 @@ import type { FormRules } from 'naive-ui';
 import { message } from '@/utils/message';
 import { computed, reactive, watch } from 'vue';
 import type { ServiceUpdateHTTPInput } from '@/api/service/types';
-import { fetchServiceGet, fetchServiceAdd, fetchServiceUpdate } from '@/api/service';
+import { fetchServiceGet, fetchTaskEdit } from '@/api/task';
 import { useForm } from '@/hooks';
 
 defineOptions({

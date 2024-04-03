@@ -1,4 +1,5 @@
 import apiHttp from '@/request';
+import type { HttpResult } from '@/types/api';
 import type {
   QueryTask,
   SearchTaskResponse,

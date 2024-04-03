@@ -13,27 +13,6 @@ const routes: AppRouteRecordRaw[] = [
     }
   },
   {
-    path: '/',
-    name: 'Home',
-    component: BaseLayout,
-    meta: {
-      title: 'route.home',
-      ignoreAuth: true
-    },
-    redirect: '/welcome',
-    children: [
-      {
-        path: '/welcome',
-        name: 'Welcome',
-        component: () => import('@/views/home'),
-        meta: {
-          title: 'route.welcome',
-          hideInMenu: true
-        }
-      }
-    ]
-  },
-  {
     name: 'not-found',
     path: '/:pathMatch(.*)*',
     component: () => import('@/views/exception/404/index.vue'),

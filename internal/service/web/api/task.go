@@ -15,6 +15,7 @@ type TaskApi struct{}
 func TaskRegister(group *gin.RouterGroup) {
 	service := &TaskApi{}
 	group.GET("/list", service.GetTaskList)
+	group.GET("/view", service.GetTaskDetail)
 	group.POST("/edit", service.EditTask)
 	group.POST("/op", service.OpTask)
 }
@@ -74,6 +75,53 @@ func (s *TaskApi) GetTaskList(ctx *gin.Context) {
 	schemas.ResponseSuccess(ctx, schemas.SearchTaskResponse{
 		Total: count,
 		List:  result,
+	})
+}
+
+// GetTaskDetail godoc
+// @Summary 任务信息
+// @Description 任务信息
+// @Tags 任务管理
+// @Security ApiKeyAuth
+// @ID /api/task/view
+// @Accept json
+// @Produce json
+// @Param id query int true "任务ID"
+// @Success 200 {object} schemas.Response{data=schemas.TaskItemOutput} "success"
+// @Router /api/task/view [get]
+func (s *TaskApi) GetTaskDetail(ctx *gin.Context) {
+	params := &schemas.TaskViewInput{}
+	if err := params.BindValidParam(ctx); err != nil {
+		schemas.ResponseError(ctx, schemas.TaskSearchParamInvalid, err)
+		return
+	}
+
+	task := &models.Task{}
+	if err := task.FindOne(global.GormDB, g.Map{
+		"id": params.ID,
+	}); err != nil {
+		schemas.ResponseError(ctx, schemas.TaskNotExist, err)
+		return
+	}
+
+	schemas.ResponseSuccess(ctx, schemas.TaskItemOutput{
+		TaskEditHTTPInput: schemas.TaskEditHTTPInput{
+			ID:            task.ID,
+			Name:          task.Name,
+			Spec:          task.Spec,
+			Protocol:      task.Protocol,
+			Command:       task.Command,
+			Params:        task.Params,
+			Timeout:       task.Timeout,
+			Policy:        task.Policy,
+			Count:         task.Count,
+			Delay:         task.Delay,
+			RetryTimes:    task.RetryTimes,
+			RetryInterval: task.RetryInterval,
+			Tag:           task.Tag,
+			Remark:        task.Remark,
+			Status:        task.Status,
+		},
 	})
 }
 

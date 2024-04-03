@@ -48,10 +48,18 @@ type SearchTaskResponse struct {
 }
 
 type TaskOptionInput struct {
-	ID uint   `json:"id" form:"id" comment:"任务ID" example:"1"`
-	Op string `json:"op" form:"op" comment:"操作" example:"stop" comment:"start|stop|run|delete"`
+	ID uint   `json:"id" form:"id" comment:"任务ID" example:"1" validate:"required"`
+	Op string `json:"op" form:"op" comment:"操作" example:"stop" comment:"start|stop|run|delete" validate:"required"`
 }
 
 func (param *TaskOptionInput) BindValidParam(c *gin.Context) error {
+	return DefaultGetValidParams(c, param)
+}
+
+type TaskViewInput struct {
+	ID uint `json:"id" form:"id" comment:"任务ID" example:"1" validate:"required"`
+}
+
+func (param *TaskViewInput) BindValidParam(c *gin.Context) error {
 	return DefaultGetValidParams(c, param)
 }
