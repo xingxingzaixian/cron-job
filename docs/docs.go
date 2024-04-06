@@ -194,6 +194,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/task/view": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "任务信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务管理"
+                ],
+                "summary": "任务信息",
+                "operationId": "/api/task/view",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.TaskItemOutput"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/taskLog/list": {
             "get": {
                 "security": [
@@ -626,6 +676,10 @@ const docTemplate = `{
         },
         "schemas.TaskOptionInput": {
             "type": "object",
+            "required": [
+                "id",
+                "op"
+            ],
             "properties": {
                 "id": {
                     "type": "integer",

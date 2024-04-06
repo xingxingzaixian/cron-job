@@ -7,11 +7,12 @@ import type {
   TaskOptionInput,
   TaskLogOutput,
   TaskLogItemOutput,
-  QueryTaskLog
+  QueryTaskLog,
+  TaskItemOutput
 } from './types';
 
 export const fetchTaskList = (params: QueryTask) => {
-  return apiHttp.post<HttpResult<SearchTaskResponse>>({
+  return apiHttp.get<HttpResult<SearchTaskResponse>>({
     url: '/api/task/list',
     params
   });
@@ -31,15 +32,21 @@ export const fetchTaskOp = (data: TaskOptionInput) => {
   });
 };
 
+export const fetchTaskView = (id: number) => {
+  return apiHttp.get<HttpResult<TaskItemOutput>>({
+    url: `/api/task/view?id=${id}`
+  });
+};
+
 export const fetchTaskLogList = (params: QueryTaskLog) => {
   return apiHttp.get<HttpResult<TaskLogOutput>>({
-    url: '/api/task/op',
+    url: '/api/taskLog/list',
     params
   });
 };
 
 export const fetchTaskLogQuery = (id: number) => {
   return apiHttp.get<HttpResult<TaskLogItemOutput>>({
-    url: `/api/task/op?id=${id}`
+    url: `/api/taskLog/query?id=${id}`
   });
 };

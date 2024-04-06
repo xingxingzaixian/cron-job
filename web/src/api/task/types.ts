@@ -1,17 +1,19 @@
+import type { TaskPolicy, TaskProtocol, TaskStatus } from '@/enum/task';
+
 export interface TaskEditHTTPInput {
   command: string;
   count: number;
   delay: number;
-  id?: number;
+  id?: number | null;
   name: string;
   params: string;
-  policy: number;
-  protocol: number;
+  policy: TaskPolicy;
+  protocol: TaskProtocol;
   remark: string;
   retry_interval: number;
   retry_times: number;
   spec: string;
-  status: number;
+  status: TaskStatus;
   tag: string;
   timeout: number;
 }

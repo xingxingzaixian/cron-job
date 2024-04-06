@@ -43,7 +43,7 @@ func (t *Task) Update(id uint, data g.Map) (int64, error) {
 	return result.RowsAffected, nil
 }
 
-// 获取所有
+// GetActiveTasks 获取所有
 func (t *Task) GetActiveTasks() (tasks []Task) {
 	global.GormDB.Where("status != ?", global.TaskStatusDisabled).Find(&tasks)
 	return

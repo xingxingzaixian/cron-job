@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-stretch gap-16px overflow-hidden <sm:overflow-auto">
     <NCard
-      :title="$t('page.service.list.title')"
+      :title="$t('page.task.list.title')"
       :bordered="false"
       size="small"
       class="sm:flex-1 sm:overflow-hidden rd-8px shadow-sm"
@@ -48,6 +48,8 @@ import TaskOperateDrawer, { type OperateType } from './modules/task-operate-draw
 import { fetchTaskList } from '@/api/task';
 import type { SearchTaskResponse, QueryTask } from '@/api/task/types';
 import { NButton, NPopconfirm } from 'naive-ui';
+import { TaskProtocol, TaskStatus } from '@/enum/task';
+
 defineOptions({ name: 'TaskList' });
 
 const checkedRowKeys = ref<string[]>([]);
@@ -88,7 +90,7 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
       key: 'id',
       title: '任务ID',
       align: 'center',
-      width: 64
+      width: 100
     },
     {
       key: 'name',
@@ -101,19 +103,45 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
       minWidth: 100
     },
     {
-      key: 'cron表达式',
+      key: 'spec',
       title: $t('page.task.list.spec'),
       minWidth: 100
     },
     {
       key: 'protocol',
       title: $t('page.task.list.protocol'),
-      minWidth: 100
+      minWidth: 100,
+      render: (row: any) => (
+        <div>
+          {row.protocol === TaskProtocol.HTTP ? (
+            <span>HTTP</span>
+          ) : row.protocol === TaskProtocol.Shell ? (
+            <span>Shell</span>
+          ) : (
+            <span>Grpc</span>
+          )}
+        </div>
+      )
     },
     {
       key: 'status',
       title: $t('page.task.list.status'),
-      minWidth: 100
+      minWidth: 100,
+      render: (row: any) => (
+        <div>
+          {row.status === TaskStatus.Disabled ? (
+            <span>{$t('task.status.disabled')}</span>
+          ) : row.status === TaskStatus.Enabled ? (
+            <span>{$t('task.status.enabled')}</span>
+          ) : row.status === TaskStatus.Failure ? (
+            <span>{$t('task.status.failure')}</span>
+          ) : row.status === TaskStatus.Running ? (
+            <span>{$t('task.status.running')}</span>
+          ) : (
+            <span>{$t('task.status.finish')}</span>
+          )}
+        </div>
+      )
     },
     {
       key: 'operate',

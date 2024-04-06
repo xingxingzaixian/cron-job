@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
   fill: false
 });
 
-const icon = computed(() => (props.fill ? 'ph:codepen-logo-duotone' : 'ph:codepen-logo-fill'));
+const icon = computed(() => (props.fill ? 'eos-icons:cronjob' : 'eos-icons:cronjob'));
 </script>
 
 <style scoped></style>

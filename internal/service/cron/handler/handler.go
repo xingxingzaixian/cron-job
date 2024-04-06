@@ -38,7 +38,6 @@ func (h *HTTPHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, er
 		return "", fmt.Errorf("任务【%d】参数解析失败-%s", taskModel.ID, err.Error())
 	}
 
-	fmt.Println(22222222222)
 	method, ok := command["method"]
 	if !ok {
 		return "", fmt.Errorf("任务【%d】参数解析失败", taskModel.ID)

@@ -231,6 +231,9 @@ definitions:
       op:
         example: stop
         type: string
+    required:
+    - id
+    - op
     type: object
 info:
   contact: {}
@@ -339,6 +342,35 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 操作任务
+      tags:
+      - 任务管理
+  /api/task/view:
+    get:
+      consumes:
+      - application/json
+      description: 任务信息
+      operationId: /api/task/view
+      parameters:
+      - description: 任务ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.TaskItemOutput'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 任务信息
       tags:
       - 任务管理
   /api/taskLog/list:

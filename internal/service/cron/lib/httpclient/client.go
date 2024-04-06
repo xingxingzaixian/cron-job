@@ -2,7 +2,6 @@ package httpclient
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -34,7 +33,6 @@ func Get(url, params string, timeout time.Duration) (string, error) {
 	}
 	defer r.Close()
 
-	fmt.Println(66666666666666666, r.StatusCode, r.ReadAllString())
 	return r.ReadAllString(), nil
 }
 

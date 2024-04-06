@@ -16,12 +16,12 @@ const themeStore = defineStore('theme-store', () => {
     return darkMode.value
       ? {
           common: {
-            primaryColor: '#FFFFFF'
+            primaryColor: '#165DFF'
           }
         }
       : {
           common: {
-            primaryColor: '#000000'
+            primaryColor: '#722ED1'
           }
         };
   });

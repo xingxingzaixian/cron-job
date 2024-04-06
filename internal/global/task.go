@@ -2,7 +2,6 @@ package global
 
 type TaskProtocol int8
 type TaskStatus int8
-type TaskLevel int8
 type TaskPolicy int8
 type TaskHTTPMethod int8
 

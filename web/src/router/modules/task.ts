@@ -18,8 +18,9 @@ const routes: AppRouteRecordRaw[] = [
         name: 'TaskList',
         component: () => import('@/views/task/list'),
         meta: {
-          title: 'route.task',
-          ignoreAuth: true
+          title: 'route.task_list',
+          ignoreAuth: true,
+          icon: 'ic:baseline-format-list-bulleted'
         }
       },
       {
@@ -28,7 +29,8 @@ const routes: AppRouteRecordRaw[] = [
         component: () => import('@/views/task/log'),
         meta: {
           title: 'route.task_log',
-          ignoreAuth: true
+          ignoreAuth: true,
+          icon: 'material-symbols-light:nest-clock-farsight-analog-outline-rounded'
         }
       }
     ]

@@ -1,26 +1,72 @@
 <template>
-  <NDrawer v-model:show="visible" :title="title" display-directive="show" :width="360">
+  <NDrawer v-model:show="visible" :title="title" display-directive="show" :width="500">
     <NDrawerContent :title="title" :native-scrollbar="false" closable>
       <NForm ref="formRef" :model="model" :rules="rules">
-        <NFormItem :label="$t('page.service.list.serviceName')" path="serviceName">
-          <NInput v-model:value="model.serviceName" :placeholder="$t('page.service.list.form.serviceName')" />
+        <NFormItem :label="$t('page.task.list.name')" path="name">
+          <NInput v-model:value="model.name" :placeholder="$t('page.task.list.form.name')" />
         </NFormItem>
-        <NFormItem :label="$t('page.service.list.serviceDesc')" path="serviceDesc">
-          <NInput
-            v-model:value="model.serviceDesc"
-            :placeholder="$t('page.service.list.form.serviceDesc')"
-            type="textarea"
+        <NFormItem :label="$t('page.task.list.tag')" path="tag">
+          <NInput v-model:value="model.tag" :placeholder="$t('page.task.list.form.tag')" />
+        </NFormItem>
+        <NFormItem :label="$t('page.task.list.spec')" path="spec">
+          <NInput v-model:value="model.spec" :placeholder="$t('page.task.list.form.specDesc')" />
+        </NFormItem>
+        <NGrid x-gap="12" :cols="2">
+          <NGridItem>
+            <NFormItem :label="$t('page.task.list.protocol')" path="protocol">
+              <NSelect
+                v-model:value="model.protocol"
+                :options="protocolOptions"
+                :placeholder="$t('page.task.list.form.protocol')"
+              />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.task.list.status')" path="status">
+              <NSwitch v-model:value="status" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
+        <NFormItem v-if="model.protocol === 2" :label="$t('page.task.list.command')" path="command">
+          <NInput v-model:value="model.command" :placeholder="$t('page.task.list.form.command')" type="textarea" />
+        </NFormItem>
+        <HttpVue v-else :command="model.command" :params="model.params" @update="updateValue" />
+        <NFormItem :label="$t('page.task.list.remark')" path="remark">
+          <NInput v-model:value="model.remark" :placeholder="$t('page.task.list.form.remark')" type="textarea" />
+        </NFormItem>
+
+        <NDivider>{{ $t('task.runPolicy') }}</NDivider>
+        <NFormItem :label="$t('page.task.list.policy')" path="policy">
+          <NSelect
+            v-model:value="model.policy"
+            :options="policyOptions"
+            :placeholder="$t('page.task.list.form.policy')"
           />
         </NFormItem>
-        <NFormItem :label="$t('page.service.list.rule')" path="rule">
-          <NInput v-model:value="model.rule" :placeholder="$t('page.service.list.form.rule')" />
-        </NFormItem>
-        <NFormItem :label="$t('page.service.list.urlRewrite')" path="urlRewrite">
-          <NInput v-model:value="model.urlRewrite" :placeholder="$t('page.service.list.form.urlRewrite')" />
-        </NFormItem>
-        <NFormItem :label="$t('page.service.list.needHttps')" path="needHttps">
-          <NSwitch v-model:value="model.needHttps" />
-        </NFormItem>
+        <NGrid x-gap="12" :cols="2">
+          <NGridItem>
+            <NFormItem :label="$t('page.task.list.delay')" path="delay">
+              <NInputNumber v-model:value="model.delay" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.task.list.timeout')" path="timeout">
+              <NInputNumber v-model:value="model.timeout" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
+        <NGrid x-gap="12" :cols="2">
+          <NGridItem>
+            <NFormItem :label="$t('page.task.list.retry_times')" path="retry_times">
+              <NInputNumber v-model:value="model.retry_times" />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem :label="$t('page.task.list.retry_interval')" path="retry_interval">
+              <NInputNumber v-model:value="model.retry_interval" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
       </NForm>
       <template #footer>
         <NSpace :size="16">
@@ -34,15 +80,17 @@
 
 <script setup lang="ts">
 import { $t } from '@/locales';
-import type { FormRules } from 'naive-ui';
+import type { FormRules, SelectOption } from 'naive-ui';
 import { message } from '@/utils/message';
-import { computed, reactive, watch } from 'vue';
-import type { ServiceUpdateHTTPInput } from '@/api/service/types';
-import { fetchServiceGet, fetchTaskEdit } from '@/api/task';
+import { computed, reactive, watch, ref } from 'vue';
+import type { TaskEditHTTPInput } from '@/api/task/types';
+import { fetchTaskView, fetchTaskEdit } from '@/api/task';
+import HttpVue from './http.vue';
+import { TaskPolicy, TaskProtocol, TaskStatus } from '@/enum/task';
 import { useForm } from '@/hooks';
 
 defineOptions({
-  name: 'ServiceOperateDrawer'
+  name: 'TaskOperateDrawer'
 });
 
 interface Props {
@@ -64,11 +112,45 @@ const visible = defineModel<boolean>('visible', {
 
 const { formRef, validate, restoreValidation } = useForm();
 
+const protocolOptions: SelectOption[] = [
+  {
+    label: $t('task.protocol.http'),
+    value: 1
+  },
+  {
+    label: $t('task.protocol.shell'),
+    value: 2
+  }
+  // {
+  //   label: $t('task.protocol.grpc'),
+  //   value: 3
+  // }
+];
+
+const policyOptions: SelectOption[] = [
+  {
+    label: $t('task.policy.multi'),
+    value: 1
+  },
+  {
+    label: $t('task.policy.once'),
+    value: 2
+  },
+  {
+    label: $t('task.policy.single'),
+    value: 3
+  },
+  {
+    label: $t('task.policy.times'),
+    value: 4
+  }
+];
 const rules: FormRules = {};
+const status = ref<boolean>(false);
 const title = computed(() => {
   const titles: Record<OperateType, string> = {
-    add: $t('page.service.list.addService'),
-    edit: $t('page.service.list.editService')
+    add: $t('page.task.list.addTask'),
+    edit: $t('page.task.list.editTask')
   };
   return titles[props.operateType];
 });
@@ -76,33 +158,40 @@ const title = computed(() => {
 async function handleSubmit() {
   await validate();
   // request
-  if (props.operateType === 'add') {
-    const res = await fetchServiceAdd(model);
-    if (res.code !== 200) {
-      res.message && message.error(res.message);
-      return;
-    }
-  } else {
-    const res = await fetchServiceUpdate(model);
-    if (res.code !== 200) {
-      res.message && message.error(res.message);
-      return;
-    }
+  const res = await fetchTaskEdit(model);
+  if (res.code !== 200) {
+    res.msg && message.error(res.msg);
+    return;
   }
+
   message.success($t('common.updateSuccess'));
   closeDrawer();
   emit('submitted');
 }
 
-const model: ServiceUpdateHTTPInput = reactive(createDefaultModel());
-function createDefaultModel(): ServiceUpdateHTTPInput {
+const updateValue = (command: string, params: string) => {
+  model.command = command;
+  model.params = params;
+};
+
+const model: TaskEditHTTPInput = reactive(createDefaultModel());
+function createDefaultModel(): TaskEditHTTPInput {
   return {
+    command: '',
+    count: 0,
+    delay: 0,
     id: null,
-    serviceName: '',
-    serviceDesc: '',
-    rule: '',
-    urlRewrite: '',
-    needHttps: 0
+    name: '',
+    params: '',
+    policy: TaskPolicy.Single,
+    protocol: TaskProtocol.Shell,
+    remark: '',
+    retry_interval: 0,
+    retry_times: 0,
+    spec: '',
+    status: TaskStatus.Enabled,
+    tag: '',
+    timeout: 0
   };
 }
 
@@ -113,14 +202,9 @@ async function handleUpdateModelWhenEdit() {
   }
 
   if (props.operateType === 'edit' && props.dataId) {
-    fetchServiceGet(props.dataId).then((res) => {
+    fetchTaskView(props.dataId).then((res) => {
       if (res.code === 200) {
-        model.id = res.data.info.id;
-        model.serviceName = res.data.info.serviceName;
-        model.serviceDesc = res.data.info.serviceDesc;
-        model.needHttps = res.data.httpRule.needHttps;
-        model.rule = res.data.httpRule.rule;
-        model.urlRewrite = res.data.httpRule.urlRewrite;
+        Object.assign(model, res.data);
       }
     });
   }

@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-stretch gap-16px overflow-hidden <sm:overflow-auto">
     <NCard
-      :title="$t('page.service.list.title')"
+      :title="$t('page.task.list.title')"
       :bordered="false"
       size="small"
       class="sm:flex-1 sm:overflow-hidden rd-8px shadow-sm"
