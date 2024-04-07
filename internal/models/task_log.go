@@ -19,10 +19,6 @@ type TaskLog struct {
 	Result     string              `json:"result" gorm:"type:mediumtext"`                       // 执行结果
 }
 
-func (t *TaskLog) TableName() string {
-	return "task_log"
-}
-
 // Create 创建任务日志
 func (t *TaskLog) Create() (uint, error) {
 	result := global.GormDB.Create(t)
