@@ -1,4 +1,4 @@
-import type { TaskPolicy, TaskProtocol, TaskStatus } from '@/enum/task';
+import type { TaskPolicy, TaskProtocol } from '@/enum/task';
 
 export interface TaskEditHTTPInput {
   command: string;
@@ -13,7 +13,6 @@ export interface TaskEditHTTPInput {
   retry_interval: number;
   retry_times: number;
   spec: string;
-  status: TaskStatus;
   tag: string;
   timeout: number;
 }
@@ -51,22 +50,26 @@ export interface QueryTask {
 
 export interface TaskOptionInput {
   id: number;
-  op: string;
+  op: 'start' | 'stop' | 'run' | 'delete';
 }
 
 export interface QueryTaskLog {
   pageNo: number;
   pageSize: number;
-  taskId: number;
+  taskId?: number;
 }
 
 export interface TaskLogItemOutput {
   id: number;
+  taskId: number;
+  taskName: string;
   result: string;
-  retry_times: number;
+  protocol: number;
+  retryTimes: number;
   status: number;
-  task_id: number;
-  total_time: number;
+  startTime: string;
+  endTime: string;
+  totalTime: number;
 }
 
 export interface TaskLogOutput {

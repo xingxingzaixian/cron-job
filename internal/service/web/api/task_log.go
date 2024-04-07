@@ -48,9 +48,13 @@ func (s *TaskLogApi) GetTaskLogList(ctx *gin.Context) {
 		result = append(result, schemas.TaskLogItemOutput{
 			ID:         v.ID,
 			TaskId:     v.TaskId,
+			TaskName:   v.TaskName,
+			Protocol:   v.Protocol,
 			RetryTimes: v.RetryTimes,
 			Status:     v.Status,
 			Result:     v.Result,
+			StartTime:  v.CreatedAt.Format("2006-01-02 15:04:05"),
+			EndTime:    v.UpdatedAt.Format("2006-01-02 15:04:05"),
 			TotalTime:  v.UpdatedAt.Unix() - v.CreatedAt.Unix(),
 		})
 	}

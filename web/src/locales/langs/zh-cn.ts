@@ -17,7 +17,12 @@ const local = {
     operate: '操作',
     update: '更新',
     updateSuccess: '更新成功',
-    updateFailed: '更新失败'
+    updateFailed: '更新失败',
+    log: '日志',
+    search: '搜索',
+    reset: '重置',
+    save: '保存',
+    close: '关闭'
   },
   route: {
     login: '登陆',
@@ -54,7 +59,13 @@ const local = {
         retry_interval: '重试间隔时间',
         delay: '延时启动(秒)',
         remark: '备注',
+        runTask: '运行',
+        startTask: '启动',
+        startDesc: '启动任务运行',
+        stopTask: '停止',
+        runDesc: '运行一次任务',
         params: '请求参数',
+        count: '执行次数',
         addTask: '新增任务',
         editTask: '编辑任务',
         form: {
@@ -75,14 +86,28 @@ const local = {
         }
       },
       log: {
-        originUrl: '源地址',
-        proxyUrl: '代理地址',
-        serviceName: '服务名称'
+        taskId: '任务ID',
+        taskName: '任务名称',
+        protocol: '执行方式',
+        retryTimes: '重试次数',
+        runTime: '运行时长(秒)',
+        runStatus: '运行状态',
+        runResult: '运行结果',
+
+        failure: '失败',
+        success: '成功',
+        running: '运行中',
+        timeout: '超时',
+
+        title: '任务执行结果',
+        command: '任务命令',
+        result: '执行结果'
       }
     }
   },
   task: {
     protocol: {
+      all: '全部',
       http: 'HTTP',
       shell: 'Shell',
       grpc: 'Grpc'
@@ -96,11 +121,26 @@ const local = {
     },
     policy: {
       multi: '并行策略',
-      once: '单词策略',
-      single: '单利策略',
+      once: '单次策略',
+      single: '单例策略',
       times: '多次策略'
     },
-    runPolicy: '执行策略'
+    runPolicy: '执行策略',
+    message: {
+      runSuccess: '任务运行成功',
+      runFailed: '任务运行失败',
+      startSuccess: '任务启动成功',
+      startFailed: '任务启动失败',
+      stopSuccess: '任务停止成功',
+      stopFailed: '任务停止失败',
+      addSuccess: '任务新增成功',
+      addFailed: '任务新增失败',
+      editSuccess: '任务编辑成功',
+      editFailed: '任务编辑失败',
+      deleteSuccess: '任务删除成功',
+      deleteFailed: '任务删除失败',
+      confirmDelete: '确认删除该任务吗？'
+    }
   },
   http: {
     header: '请求头',

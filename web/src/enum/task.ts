@@ -6,8 +6,8 @@ export enum TaskProtocol {
 
 export enum TaskPolicy {
   Multi = 1, // 并行策略
-  Once = 2, // 单词策略
-  Single = 3, // 单利策略
+  Once = 2, // 单次策略
+  Single = 3, // 单例策略
   Times = 4 // 多次策略
 }
 

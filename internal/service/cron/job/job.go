@@ -5,6 +5,7 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/handler"
+	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcron"
 	"go.uber.org/zap"
@@ -107,8 +108,11 @@ func afterExecJob(taskModel *models.Task, taskResult global.TaskResult, taskLogI
 }
 
 func createTaskLog(taskModel *models.Task, status global.TaskStatus) (insertId uint, err error) {
+	fmt.Printf("1111111111111111111111: %+v\n", taskModel)
 	taskLogModel := new(models.TaskLog)
 	taskLogModel.TaskId = taskModel.ID
+	taskLogModel.TaskName = taskModel.Name
+	taskLogModel.Protocol = taskModel.Protocol
 	taskLogModel.RetryTimes = taskModel.RetryTimes
 	taskLogModel.Status = status
 	insertId, err = taskLogModel.Create()

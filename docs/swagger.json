@@ -620,16 +620,32 @@
         "schemas.TaskLogItemOutput": {
             "type": "object",
             "properties": {
+                "endTime": {
+                    "description": "结束时间",
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
+                },
+                "protocol": {
+                    "description": "任务协议",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskProtocol"
+                        }
+                    ]
                 },
                 "result": {
                     "description": "执行结果",
                     "type": "string"
                 },
-                "retry_times": {
+                "retryTimes": {
                     "description": "任务重试次数",
                     "type": "integer"
+                },
+                "startTime": {
+                    "description": "开始时间",
+                    "type": "string"
                 },
                 "status": {
                     "description": "状态 0:执行失败 1:执行中  2:执行完毕 3:任务取消(上次任务未执行完成) 4:异步执行",
@@ -639,11 +655,15 @@
                         }
                     ]
                 },
-                "task_id": {
+                "taskId": {
                     "description": "任务id",
                     "type": "integer"
                 },
-                "total_time": {
+                "taskName": {
+                    "description": "任务名称",
+                    "type": "string"
+                },
+                "totalTime": {
                     "description": "执行总时长",
                     "type": "integer"
                 }

@@ -169,7 +169,6 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 			"retry_interval": params.RetryInterval,
 			"tag":            params.Tag,
 			"remark":         params.Remark,
-			"status":         params.Status,
 		})
 		if err != nil {
 			tx.Rollback()
@@ -202,17 +201,11 @@ func (s *TaskApi) EditTask(ctx *gin.Context) {
 		task.RetryInterval = params.RetryInterval
 		task.Tag = params.Tag
 		task.Remark = params.Remark
-		task.Status = params.Status
 		_, err := task.Create()
 		if err != nil {
 			tx.Rollback()
 			schemas.ResponseError(ctx, schemas.TaskCreateError, err)
 			return
-		}
-
-		if task.Status == global.TaskStatusEnabled {
-			// 添加任务到调度进程中
-			taskManager.TaskManager.AddTask(task)
 		}
 	}
 

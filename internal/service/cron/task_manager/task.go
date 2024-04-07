@@ -61,14 +61,18 @@ func (t *tTaskManager) RunTask(taskModel *models.Task) {
 
 func (t *tTaskManager) StartTask(taskModel *models.Task) {
 	cronName := strconv.Itoa(int(taskModel.ID))
-	if t.cron.Search(cronName) == nil {
+	if t.cron.Search(cronName) != nil {
+		zap.S().Infof("启动定时任务-%d", taskModel.ID)
 		t.cron.Start(cronName)
+	} else {
+		t.AddTask(taskModel)
 	}
 }
 
 func (t *tTaskManager) StopTask(taskModel *models.Task) {
 	cronName := strconv.Itoa(int(taskModel.ID))
 	if t.cron.Search(cronName) != nil {
+		zap.S().Infof("停止定时任务-%d", taskModel.ID)
 		t.cron.Stop(cronName)
 	}
 }
@@ -81,7 +85,7 @@ func (t *tTaskManager) AddTask(taskModel *models.Task) error {
 	}
 
 	cronName := strconv.Itoa(int(taskModel.ID))
-
+	zap.S().Infof("添加定时任务-%d", taskModel.ID, taskModel.Name, taskModel.Policy)
 	var err error
 	var cronJob *gcron.Entry
 	switch taskModel.Policy {
@@ -129,6 +133,7 @@ func (t *tTaskManager) AddTask(taskModel *models.Task) error {
 func (t *tTaskManager) RemoveTask(taskModel *models.Task) {
 	cronName := strconv.Itoa(int(taskModel.ID))
 	if t.cron.Search(cronName) != nil {
+		zap.S().Infof("删除定时任务-%d", taskModel.ID)
 		t.cron.Remove(cronName)
 	}
 }
