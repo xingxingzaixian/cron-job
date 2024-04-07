@@ -11,22 +11,13 @@
         <NFormItem :label="$t('page.task.list.spec')" path="spec">
           <NInput v-model:value="model.spec" :placeholder="$t('page.task.list.form.specDesc')" />
         </NFormItem>
-        <NGrid x-gap="12" :cols="2">
-          <NGridItem>
-            <NFormItem :label="$t('page.task.list.protocol')" path="protocol">
-              <NSelect
-                v-model:value="model.protocol"
-                :options="protocolOptions"
-                :placeholder="$t('page.task.list.form.protocol')"
-              />
-            </NFormItem>
-          </NGridItem>
-          <NGridItem>
-            <NFormItem :label="$t('page.task.list.status')" path="status">
-              <NSwitch v-model:value="status" />
-            </NFormItem>
-          </NGridItem>
-        </NGrid>
+        <NFormItem :label="$t('page.task.list.protocol')" path="protocol">
+          <NSelect
+            v-model:value="model.protocol"
+            :options="protocolOptions"
+            :placeholder="$t('page.task.list.form.protocol')"
+          />
+        </NFormItem>
         <NFormItem v-if="model.protocol === 2" :label="$t('page.task.list.command')" path="command">
           <NInput v-model:value="model.command" :placeholder="$t('page.task.list.form.command')" type="textarea" />
         </NFormItem>
@@ -36,13 +27,22 @@
         </NFormItem>
 
         <NDivider>{{ $t('task.runPolicy') }}</NDivider>
-        <NFormItem :label="$t('page.task.list.policy')" path="policy">
-          <NSelect
-            v-model:value="model.policy"
-            :options="policyOptions"
-            :placeholder="$t('page.task.list.form.policy')"
-          />
-        </NFormItem>
+        <NGrid x-gap="12" :cols="2">
+          <NGridItem>
+            <NFormItem :label="$t('page.task.list.policy')" path="policy">
+              <NSelect
+                v-model:value="model.policy"
+                :options="policyOptions"
+                :placeholder="$t('page.task.list.form.policy')"
+              />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
+            <NFormItem v-show="model.policy === TaskPolicy.Times" :label="$t('page.task.list.count')" path="count">
+              <NInputNumber v-model:value="model.count" />
+            </NFormItem>
+          </NGridItem>
+        </NGrid>
         <NGrid x-gap="12" :cols="2">
           <NGridItem>
             <NFormItem :label="$t('page.task.list.delay')" path="delay">
@@ -71,7 +71,7 @@
       <template #footer>
         <NSpace :size="16">
           <NButton @click="closeDrawer">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
+          <NButton type="primary" :loading="loading" @click="handleSubmit">{{ $t('common.confirm') }}</NButton>
         </NSpace>
       </template>
     </NDrawerContent>
@@ -86,7 +86,7 @@ import { computed, reactive, watch, ref } from 'vue';
 import type { TaskEditHTTPInput } from '@/api/task/types';
 import { fetchTaskView, fetchTaskEdit } from '@/api/task';
 import HttpVue from './http.vue';
-import { TaskPolicy, TaskProtocol, TaskStatus } from '@/enum/task';
+import { TaskPolicy, TaskProtocol } from '@/enum/task';
 import { useForm } from '@/hooks';
 
 defineOptions({
@@ -105,7 +105,7 @@ interface Emits {
 }
 const emit = defineEmits<Emits>();
 export type OperateType = 'add' | 'edit';
-
+const loading = ref<boolean>(false);
 const visible = defineModel<boolean>('visible', {
   default: false
 });
@@ -146,7 +146,6 @@ const policyOptions: SelectOption[] = [
   }
 ];
 const rules: FormRules = {};
-const status = ref<boolean>(false);
 const title = computed(() => {
   const titles: Record<OperateType, string> = {
     add: $t('page.task.list.addTask'),
@@ -158,7 +157,9 @@ const title = computed(() => {
 async function handleSubmit() {
   await validate();
   // request
+  loading.value = true;
   const res = await fetchTaskEdit(model);
+  loading.value = false;
   if (res.code !== 200) {
     res.msg && message.error(res.msg);
     return;
@@ -189,7 +190,6 @@ function createDefaultModel(): TaskEditHTTPInput {
     retry_interval: 0,
     retry_times: 0,
     spec: '',
-    status: TaskStatus.Enabled,
     tag: '',
     timeout: 0
   };

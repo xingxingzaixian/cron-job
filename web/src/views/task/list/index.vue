@@ -1,5 +1,6 @@
 <template>
   <div class="flex flex-col items-stretch gap-16px overflow-hidden <sm:overflow-auto">
+    <TableSearch />
     <NCard
       :title="$t('page.task.list.title')"
       :bordered="false"
@@ -43,12 +44,14 @@ import { ref } from 'vue';
 import { $t } from '@/locales';
 import { message } from '@/utils/message';
 import { useBoolean, useTable } from '@/hooks';
+import TableSearch from './modules/task-search.vue';
 import TableHeaderOperation from '@/components/custom/TableHeaderOperation.vue';
 import TaskOperateDrawer, { type OperateType } from './modules/task-operate-drawer.vue';
-import { fetchTaskList } from '@/api/task';
-import type { SearchTaskResponse, QueryTask } from '@/api/task/types';
-import { NButton, NPopconfirm } from 'naive-ui';
+import { fetchTaskList, fetchTaskOp } from '@/api/task';
+import type { SearchTaskResponse, QueryTask, TaskItemOutput } from '@/api/task/types';
+import { NButton, NPopconfirm, NSwitch } from 'naive-ui';
 import { TaskProtocol, TaskStatus } from '@/enum/task';
+import router from '@/router';
 
 defineOptions({ name: 'TaskList' });
 
@@ -69,7 +72,7 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
     const { list = [], total = 0 } = res.data || {};
 
     return {
-      data: list,
+      data: list || [],
       pageNum: pagination.page,
       pageSize: pagination.pageSize,
       total
@@ -110,7 +113,7 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
     {
       key: 'protocol',
       title: $t('page.task.list.protocol'),
-      minWidth: 100,
+      minWidth: 40,
       render: (row: any) => (
         <div>
           {row.protocol === TaskProtocol.HTTP ? (
@@ -126,20 +129,13 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
     {
       key: 'status',
       title: $t('page.task.list.status'),
-      minWidth: 100,
+      minWidth: 40,
       render: (row: any) => (
         <div>
-          {row.status === TaskStatus.Disabled ? (
-            <span>{$t('task.status.disabled')}</span>
-          ) : row.status === TaskStatus.Enabled ? (
-            <span>{$t('task.status.enabled')}</span>
-          ) : row.status === TaskStatus.Failure ? (
-            <span>{$t('task.status.failure')}</span>
-          ) : row.status === TaskStatus.Running ? (
-            <span>{$t('task.status.running')}</span>
-          ) : (
-            <span>{$t('task.status.finish')}</span>
-          )}
+          <NSwitch
+            value={row.status !== TaskStatus.Disabled}
+            on-update:value={(val: boolean) => handleEnable(val, row)}
+          />
         </div>
       )
     },
@@ -147,9 +143,9 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
       key: 'operate',
       title: $t('common.operate'),
       align: 'center',
-      width: 130,
+      width: 200,
       render: (row: any) => (
-        <div class="flex-center gap-8px">
+        <div class="flex items-center justify-center gap-8px">
           <NButton type="primary" ghost size="small" class="mr-4px" onClick={() => handleEdit(row.id)}>
             {$t('common.edit')}
           </NButton>
@@ -157,12 +153,25 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
             {{
               default: () => $t('common.confirmDelete'),
               trigger: () => (
-                <NButton type="error" ghost size="small">
+                <NButton type="error" ghost size="small" class="mr-4px">
                   {$t('common.delete')}
                 </NButton>
               )
             }}
           </NPopconfirm>
+          <NPopconfirm onPositiveClick={() => handleRun(row.id)}>
+            {{
+              default: () => $t('page.task.list.runDesc'),
+              trigger: () => (
+                <NButton type="info" ghost size="small">
+                  {$t('page.task.list.runTask')}
+                </NButton>
+              )
+            }}
+          </NPopconfirm>
+          <NButton ghost size="small" class="mr-4px" onClick={() => handleLog(row.id)}>
+            {$t('common.log')}
+          </NButton>
         </div>
       )
     }
@@ -170,8 +179,6 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
 });
 
 async function handleBatchDelete() {
-  // request
-  console.log(checkedRowKeys.value);
   message.success($t('common.deleteSuccess'));
 
   checkedRowKeys.value = [];
@@ -186,11 +193,39 @@ function handleEdit(id: number) {
 }
 
 async function handleDelete(id: number) {
-  // request
-  console.log(id);
-  message.success($t('common.deleteSuccess'));
+  const res = await fetchTaskOp({ id, op: 'delete' });
+  if (res.code === 200) {
+    message.success($t('task.message.deleteSuccess'));
+    getData();
+  } else {
+    message.error($t('task.message.deleteFailed'));
+  }
+}
 
-  getData();
+async function handleRun(id: number) {
+  await fetchTaskOp({ id, op: 'run' });
+}
+
+async function handleEnable(val: boolean, row: TaskItemOutput) {
+  const res = await fetchTaskOp({ id: row.id, op: val ? 'start' : 'stop' });
+  if (res.code === 200) {
+    if (val) {
+      message.success($t('task.message.startSuccess'));
+    } else {
+      message.success($t('task.message.stopSuccess'));
+    }
+    row.status = val ? TaskStatus.Enabled : TaskStatus.Disabled;
+  } else {
+    if (val) {
+      message.success($t('task.message.startFailed'));
+    } else {
+      message.success($t('task.message.stopFailed'));
+    }
+  }
+}
+
+async function handleLog(id: number) {
+  router.push({ name: 'TaskLog', query: { id } });
 }
 
 const operateType = ref<OperateType>('add');

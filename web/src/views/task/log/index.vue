@@ -18,32 +18,39 @@
         class="sm:h-full"
       />
     </NCard>
+
+    <LogInfo v-model:show="showModal" :task-item="taskItem" />
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="tsx" setup>
 import { $t } from '@/locales';
+import { ref } from 'vue';
+import LogInfo from './modules/info.vue';
 import { useTable } from '@/hooks';
-import { fetchServiceLogList } from '@/api/service';
-import type { ServiceRequestLogList, ServiceSearchParam } from '@/api/service/types';
+import { fetchTaskLogList, fetchTaskLogQuery } from '@/api/task';
+import type { TaskLogOutput, TaskLogItemOutput, QueryTaskLog } from '@/api/task/types';
+import { useRoute } from 'vue-router';
+import { TaskProtocol, TaskStatus } from '@/enum/task';
 
 defineOptions({ name: 'ServiceLog' });
 
-const { columns, data, loading, pagination, updateSearchParams, getData } = useTable<
-  ServiceRequestLogList,
-  ServiceSearchParam
->({
-  apiFn: fetchServiceLogList,
+const route = useRoute();
+const showModal = ref<boolean>(false);
+const taskId = Number(route.query.id) || 0;
+const taskItem = ref<TaskLogItemOutput | null>(null);
+const { columns, data, loading, pagination, updateSearchParams, getData } = useTable<TaskLogOutput, QueryTaskLog>({
+  apiFn: fetchTaskLogList,
   apiParams: {
     pageNo: 1,
     pageSize: 10,
-    info: ''
+    taskId
   },
   transformer: (res: any) => {
     const { list = [], total = 0 } = res.data || {};
 
     return {
-      data: list,
+      data: list || [],
       pageNum: pagination.page,
       pageSize: pagination.pageSize,
       total
@@ -67,22 +74,88 @@ const { columns, data, loading, pagination, updateSearchParams, getData } = useT
       width: 64
     },
     {
-      key: 'serviceName',
-      title: $t('page.service.log.serviceName'),
+      key: 'taskId',
+      title: $t('page.task.log.taskId'),
       minWidth: 100
     },
     {
-      key: 'originUrl',
-      title: $t('page.service.log.originUrl'),
+      key: 'taskName',
+      title: $t('page.task.log.taskName'),
       minWidth: 100
     },
     {
-      key: 'proxyUrl',
-      title: $t('page.service.log.proxyUrl'),
+      key: 'protocol',
+      title: $t('page.task.log.protocol'),
+      minWidth: 100,
+      render: (row: any) => (
+        <div>
+          {row.protocol === TaskProtocol.HTTP ? (
+            <span>HTTP</span>
+          ) : row.protocol === TaskProtocol.Shell ? (
+            <span>Shell</span>
+          ) : (
+            <span>Grpc</span>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'retryTimes',
+      title: $t('page.task.log.retryTimes'),
       minWidth: 100
+    },
+    {
+      key: 'totalTime',
+      title: $t('page.task.log.runTime'),
+      minWidth: 100
+    },
+    {
+      key: 'status',
+      title: $t('page.task.log.runStatus'),
+      minWidth: 100,
+      render: (row: any) => (
+        <div>
+          {row.status === TaskStatus.Failure ? (
+            <NTag type="error" size="small">
+              {$t('page.task.log.failure')}
+            </NTag>
+          ) : row.status === TaskStatus.Running ? (
+            <NTag type="warning" size="small">
+              {$t('page.task.log.running')}
+            </NTag>
+          ) : row.status === TaskStatus.Finish ? (
+            <NTag type="success" size="small">
+              {$t('page.task.log.success')}
+            </NTag>
+          ) : (
+            <NTag type="info" size="small">
+              {$t('page.task.log.timeout')}
+            </NTag>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'operate',
+      title: $t('page.task.log.runResult'),
+      minWidth: 100,
+      render: (row: any) => (
+        <div>
+          <NButton type="primary" ghost size="small" onClick={() => handleView(row)}>
+            {$t('page.task.log.runResult')}
+          </NButton>
+        </div>
+      )
     }
   ]
 });
+
+const handleView = async (item: TaskLogItemOutput) => {
+  if (item) {
+    taskItem.value = item;
+    showModal.value = true;
+  }
+};
 </script>
 
 <style scoped></style>
