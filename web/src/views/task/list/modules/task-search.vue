@@ -8,7 +8,7 @@
         <NFormItemGi span="24 s:12 m:6" :label="$t('page.task.list.tag')" path="tag" class="pr-24px">
           <NInput v-model:value="model.tag" :placeholder="$t('page.task.list.tag')" />
         </NFormItemGi>
-        <NFormItemGi span="24 s:12 m:6" :label="$t('page.task.list.protocol')" path="protocol" class="pr-24px w-md">
+        <NFormItemGi span="24 s:12 m:6" :label="$t('page.task.list.protocol')" path="protocol" class="pr-24px">
           <NSelect
             v-model:value="model.protocol"
             :placeholder="$t('page.task.list.protocol')"
@@ -16,7 +16,7 @@
             clearable
           />
         </NFormItemGi>
-        <NFormItemGi span="24 s:12" class="pr-24px">
+        <NFormItemGi span="24 s:12 m:6" class="pr-24px">
           <NSpace class="w-full" justify="end">
             <NButton @click="reset">
               <template #icon>
@@ -44,13 +44,14 @@ import { useForm } from '@/hooks';
 import type { QueryTask } from '@/api/task/types';
 import type { SelectOption } from 'naive-ui';
 
+type SearchTask = Omit<QueryTask, 'pageNo' | 'pageSize'>;
 const emit = defineEmits<{
   (e: 'reset'): void;
-  (e: 'search', searchParams: QueryTask): void;
+  (e: 'search', searchParams: SearchTask): void;
 }>();
 
 const { formRef, validate, restoreValidation } = useForm();
-const model = reactive<QueryTask>({
+const model = reactive<SearchTask>({
   name: '',
   tag: '',
   protocol: 0

@@ -57,6 +57,8 @@ export interface QueryTaskLog {
   pageNo: number;
   pageSize: number;
   taskId?: number;
+  taskName?: string;
+  status?: number;
 }
 
 export interface TaskLogItemOutput {

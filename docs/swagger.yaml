@@ -406,7 +406,14 @@ paths:
       - description: 任务ID
         in: query
         name: taskId
-        required: true
+        type: integer
+      - description: 任务名称
+        in: query
+        name: taskName
+        type: string
+      - description: 任务状态
+        in: query
+        name: status
         type: integer
       produces:
       - application/json

@@ -48,7 +48,7 @@
 
 <script lang="tsx" setup>
 import { $t } from '@/locales';
-import { reactive, watch, ref, nextTick } from 'vue';
+import { reactive, watch, ref } from 'vue';
 import type { SelectOption } from 'naive-ui';
 import type { HttpPro, HttpParams } from '@/types/task';
 import { createReusableTemplate } from '@vueuse/core';

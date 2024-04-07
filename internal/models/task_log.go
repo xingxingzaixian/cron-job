@@ -19,6 +19,10 @@ type TaskLog struct {
 	Result     string              `json:"result" gorm:"type:mediumtext"`                       // 执行结果
 }
 
+func (t *TaskLog) TableName() string {
+	return "task_log"
+}
+
 // Create 创建任务日志
 func (t *TaskLog) Create() (uint, error) {
 	result := global.GormDB.Create(t)
@@ -41,6 +45,14 @@ func (t *TaskLog) PageList(tx *gorm.DB, params *schemas.TaskLogListInput) (taskL
 	query := tx.Model(t)
 	if params.TaskID > 0 {
 		query = query.Where("task_id = ?", params.TaskID)
+	}
+
+	if params.TaskName != "" {
+		query = query.Where("task_name like ?", "%"+params.TaskName+"%")
+	}
+
+	if params.Status > -1 {
+		query = query.Where("status = ?", params.Status)
 	}
 
 	offset := (params.PageNo - 1) * params.PageSize

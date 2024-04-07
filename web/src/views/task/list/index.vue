@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-stretch gap-16px overflow-hidden <sm:overflow-auto">
-    <TableSearch />
+    <TableSearch @search="search" @reset="reset" />
     <NCard
       :title="$t('page.task.list.title')"
       :bordered="false"
@@ -59,124 +59,125 @@ const checkedRowKeys = ref<string[]>([]);
 const dataId = ref<number>(0);
 const { bool: drawerVisible, setTrue: openDrawer } = useBoolean();
 
-const { columns, filteredColumns, data, loading, pagination, updateSearchParams, getData } = useTable<
-  SearchTaskResponse,
-  QueryTask
->({
-  apiFn: fetchTaskList,
-  apiParams: {
-    pageNo: 1,
-    pageSize: 15
-  },
-  transformer: (res: any) => {
-    const { list = [], total = 0 } = res.data || {};
+const { columns, filteredColumns, data, loading, pagination, updateSearchParams, resetSearchParams, getData } =
+  useTable<SearchTaskResponse, QueryTask>({
+    apiFn: fetchTaskList,
+    apiParams: {
+      pageNo: 1,
+      pageSize: 15,
+      name: '',
+      tag: '',
+      protocol: 0
+    },
+    transformer: (res: any) => {
+      const { list = [], total = 0 } = res.data || {};
 
-    return {
-      data: list || [],
-      pageNum: pagination.page,
-      pageSize: pagination.pageSize,
-      total
-    };
-  },
-  onPaginationChanged(pg) {
-    const { page, pageSize } = pg;
+      return {
+        data: list || [],
+        pageNum: pagination.page,
+        pageSize: pagination.pageSize,
+        total
+      };
+    },
+    onPaginationChanged(pg) {
+      const { page, pageSize } = pg;
 
-    updateSearchParams({
-      pageNo: page,
-      pageSize: pageSize
-    });
+      updateSearchParams({
+        pageNo: page,
+        pageSize: pageSize
+      });
 
-    getData();
-  },
-  columns: () => [
-    {
-      key: 'id',
-      title: '任务ID',
-      align: 'center',
-      width: 100
+      getData();
     },
-    {
-      key: 'name',
-      title: $t('page.task.list.name'),
-      minWidth: 100
-    },
-    {
-      key: 'tag',
-      title: $t('page.task.list.tag'),
-      minWidth: 100
-    },
-    {
-      key: 'spec',
-      title: $t('page.task.list.spec'),
-      minWidth: 100
-    },
-    {
-      key: 'protocol',
-      title: $t('page.task.list.protocol'),
-      minWidth: 40,
-      render: (row: any) => (
-        <div>
-          {row.protocol === TaskProtocol.HTTP ? (
-            <span>HTTP</span>
-          ) : row.protocol === TaskProtocol.Shell ? (
-            <span>Shell</span>
-          ) : (
-            <span>Grpc</span>
-          )}
-        </div>
-      )
-    },
-    {
-      key: 'status',
-      title: $t('page.task.list.status'),
-      minWidth: 40,
-      render: (row: any) => (
-        <div>
-          <NSwitch
-            value={row.status !== TaskStatus.Disabled}
-            on-update:value={(val: boolean) => handleEnable(val, row)}
-          />
-        </div>
-      )
-    },
-    {
-      key: 'operate',
-      title: $t('common.operate'),
-      align: 'center',
-      width: 200,
-      render: (row: any) => (
-        <div class="flex items-center justify-center gap-8px">
-          <NButton type="primary" ghost size="small" class="mr-4px" onClick={() => handleEdit(row.id)}>
-            {$t('common.edit')}
-          </NButton>
-          <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-            {{
-              default: () => $t('common.confirmDelete'),
-              trigger: () => (
-                <NButton type="error" ghost size="small" class="mr-4px">
-                  {$t('common.delete')}
-                </NButton>
-              )
-            }}
-          </NPopconfirm>
-          <NPopconfirm onPositiveClick={() => handleRun(row.id)}>
-            {{
-              default: () => $t('page.task.list.runDesc'),
-              trigger: () => (
-                <NButton type="info" ghost size="small">
-                  {$t('page.task.list.runTask')}
-                </NButton>
-              )
-            }}
-          </NPopconfirm>
-          <NButton ghost size="small" class="mr-4px" onClick={() => handleLog(row.id)}>
-            {$t('common.log')}
-          </NButton>
-        </div>
-      )
-    }
-  ]
-});
+    columns: () => [
+      {
+        key: 'id',
+        title: '任务ID',
+        align: 'center',
+        width: 100
+      },
+      {
+        key: 'name',
+        title: $t('page.task.list.name'),
+        minWidth: 100
+      },
+      {
+        key: 'tag',
+        title: $t('page.task.list.tag'),
+        minWidth: 100
+      },
+      {
+        key: 'spec',
+        title: $t('page.task.list.spec'),
+        minWidth: 100
+      },
+      {
+        key: 'protocol',
+        title: $t('page.task.list.protocol'),
+        minWidth: 40,
+        render: (row: any) => (
+          <div>
+            {row.protocol === TaskProtocol.HTTP ? (
+              <span>HTTP</span>
+            ) : row.protocol === TaskProtocol.Shell ? (
+              <span>Shell</span>
+            ) : (
+              <span>Grpc</span>
+            )}
+          </div>
+        )
+      },
+      {
+        key: 'status',
+        title: $t('page.task.list.status'),
+        minWidth: 40,
+        render: (row: any) => (
+          <div>
+            <NSwitch
+              value={row.status !== TaskStatus.Disabled}
+              on-update:value={(val: boolean) => handleEnable(val, row)}
+            />
+          </div>
+        )
+      },
+      {
+        key: 'operate',
+        title: $t('common.operate'),
+        align: 'center',
+        width: 200,
+        render: (row: any) => (
+          <div class="flex items-center justify-center gap-8px">
+            <NButton type="primary" ghost size="small" class="mr-4px" onClick={() => handleEdit(row.id)}>
+              {$t('common.edit')}
+            </NButton>
+            <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
+              {{
+                default: () => $t('common.confirmDelete'),
+                trigger: () => (
+                  <NButton type="error" ghost size="small" class="mr-4px">
+                    {$t('common.delete')}
+                  </NButton>
+                )
+              }}
+            </NPopconfirm>
+            <NPopconfirm onPositiveClick={() => handleRun(row.id)}>
+              {{
+                default: () => $t('page.task.list.runDesc'),
+                trigger: () => (
+                  <NButton type="info" ghost size="small">
+                    {$t('page.task.list.runTask')}
+                  </NButton>
+                )
+              }}
+            </NPopconfirm>
+            <NButton ghost size="small" class="mr-4px" onClick={() => handleLog(row.id)}>
+              {$t('common.log')}
+            </NButton>
+          </div>
+        )
+      }
+    ]
+  });
 
 async function handleBatchDelete() {
   message.success($t('common.deleteSuccess'));
@@ -227,6 +228,21 @@ async function handleEnable(val: boolean, row: TaskItemOutput) {
 async function handleLog(id: number) {
   router.push({ name: 'TaskLog', query: { id } });
 }
+
+const search = (model: Omit<QueryTask, 'pageNo' | 'pageSize'>) => {
+  updateSearchParams({
+    pageNo: 1,
+    pageSize: 15,
+    ...model
+  });
+
+  getData();
+};
+
+const reset = () => {
+  resetSearchParams();
+  getData();
+};
 
 const operateType = ref<OperateType>('add');
 function handleAdd() {

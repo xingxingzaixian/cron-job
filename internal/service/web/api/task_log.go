@@ -26,7 +26,9 @@ func TaskLogRegister(group *gin.RouterGroup) {
 // @Produce json
 // @Param pageNo query int true "页数"
 // @Param pageSize query int true "每页条数"
-// @Param taskId query int true "任务ID"
+// @Param taskId query int false "任务ID"
+// @Param taskName query string false "任务名称"
+// @Param status query int false "任务状态"
 // @Success 200 {object} schemas.Response{data=schemas.TaskLogOutput} "success"
 // @Router /api/taskLog/list [get]
 func (s *TaskLogApi) GetTaskLogList(ctx *gin.Context) {

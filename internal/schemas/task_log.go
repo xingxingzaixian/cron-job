@@ -7,7 +7,9 @@ import (
 
 type TaskLogListInput struct {
 	FormPage
-	TaskID int `json:"taskId" form:"taskId" comment:"任务id" example:"1"`
+	TaskID   int               `json:"taskId" form:"taskId" comment:"任务id" example:"1"`
+	TaskName string            `json:"taskName" form:"taskName" comment:"任务名称" example:"" `
+	Status   global.TaskStatus `json:"status" form:"status" comment:"任务状态" example:"" `
 }
 
 func (param *TaskLogListInput) BindValidParam(c *gin.Context) error {

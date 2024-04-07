@@ -1,5 +1,6 @@
 <template>
   <div class="flex flex-col items-stretch gap-16px overflow-hidden <sm:overflow-auto">
+    <TaskLogSearch @search="search" @reset="reset" />
     <NCard
       :title="$t('page.task.list.title')"
       :bordered="false"
@@ -28,6 +29,7 @@ import { $t } from '@/locales';
 import { ref } from 'vue';
 import LogInfo from './modules/info.vue';
 import { useTable } from '@/hooks';
+import TaskLogSearch from './modules/task-log-search.vue';
 import { fetchTaskLogList, fetchTaskLogQuery } from '@/api/task';
 import type { TaskLogOutput, TaskLogItemOutput, QueryTaskLog } from '@/api/task/types';
 import { useRoute } from 'vue-router';
@@ -39,12 +41,17 @@ const route = useRoute();
 const showModal = ref<boolean>(false);
 const taskId = Number(route.query.id) || 0;
 const taskItem = ref<TaskLogItemOutput | null>(null);
-const { columns, data, loading, pagination, updateSearchParams, getData } = useTable<TaskLogOutput, QueryTaskLog>({
+const { columns, data, loading, pagination, updateSearchParams, resetSearchParams, getData } = useTable<
+  TaskLogOutput,
+  QueryTaskLog
+>({
   apiFn: fetchTaskLogList,
   apiParams: {
     pageNo: 1,
     pageSize: 10,
-    taskId
+    taskId,
+    taskName: '',
+    status: -1
   },
   transformer: (res: any) => {
     const { list = [], total = 0 } = res.data || {};
@@ -67,12 +74,6 @@ const { columns, data, loading, pagination, updateSearchParams, getData } = useT
     getData();
   },
   columns: () => [
-    {
-      key: 'id',
-      title: 'ID',
-      align: 'center',
-      width: 64
-    },
     {
       key: 'taskId',
       title: $t('page.task.log.taskId'),
@@ -155,6 +156,21 @@ const handleView = async (item: TaskLogItemOutput) => {
     taskItem.value = item;
     showModal.value = true;
   }
+};
+
+const search = (model: Omit<QueryTask, 'pageNo' | 'pageSize'>) => {
+  updateSearchParams({
+    pageNo: 1,
+    pageSize: 15,
+    ...model
+  });
+
+  getData();
+};
+
+const reset = () => {
+  resetSearchParams();
+  getData();
 };
 </script>
 

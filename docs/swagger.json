@@ -271,8 +271,19 @@
                         "type": "integer",
                         "description": "任务ID",
                         "name": "taskId",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "taskName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "任务状态",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
