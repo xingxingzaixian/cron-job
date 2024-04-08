@@ -57,7 +57,7 @@ const useTable = <T, P extends BaseData & {}>(config: TableConfig<T, P>) => {
     page: apiParams?.pageNo || 1,
     pageSize: apiParams?.pageSize || 15,
     showSizePicker: true,
-    pageSizes: [10, 15, 20, 25, 30],
+    pageSizes: [15, 30, 50, 100],
     // Fix Naive Pagination's outdated API
     onUpdatePage: async (page: number) => {
       pagination.page = page;

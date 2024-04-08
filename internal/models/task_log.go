@@ -69,3 +69,11 @@ func (t *TaskLog) FindOne(tx *gorm.DB, taskLogModel g.Map) error {
 	}
 	return nil
 }
+
+func (t *TaskLog) Delete(tx *gorm.DB, ids []uint) error {
+	result := tx.Unscoped().Where("id in (?)", ids).Delete(t)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

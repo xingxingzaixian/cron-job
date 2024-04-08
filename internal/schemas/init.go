@@ -117,4 +117,5 @@ const (
 	TaskParamInvalid
 	TaskLogParamInvalid
 	TaskLogListInvalid
+	TaskLogDeleteInvalid
 )

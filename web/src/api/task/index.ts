@@ -50,3 +50,12 @@ export const fetchTaskLogQuery = (id: number) => {
     url: `/api/taskLog/query?id=${id}`
   });
 };
+
+export const fetchTaskLogDelete = (ids: number[]) => {
+  return apiHttp.delete<HttpResult<boolean>>({
+    url: '/api/taskLog/delete',
+    data: {
+      ids
+    }
+  });
+};

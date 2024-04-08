@@ -14,6 +14,7 @@ func TaskLogRegister(group *gin.RouterGroup) {
 	service := &TaskLogApi{}
 	group.GET("/list", service.GetTaskLogList)
 	group.GET("/query", service.GetTaskLog)
+	group.DELETE("/delete", service.DeleteTaskLog)
 }
 
 // GetTaskLogList godoc
@@ -98,4 +99,31 @@ func (s *TaskLogApi) GetTaskLog(ctx *gin.Context) {
 		Result:     taskLog.Result,
 		TotalTime:  taskLog.UpdatedAt.Unix() - taskLog.CreatedAt.Unix(),
 	})
+}
+
+// DeleteTaskLog godoc
+// @Summary 删除执行日志
+// @Description 删除执行日志
+// @Tags 任务日志管理
+// @Security ApiKeyAuth
+// @ID /api/taskLog/delete
+// @Accept json
+// @Produce json
+// @Param ids body schemas.TaskLogDelete true "任务日志ID"
+// @Success 200 {object} schemas.Response{data=bool} "success"
+// @Router /api/taskLog/delete [delete]
+func (t *TaskLogApi) DeleteTaskLog(ctx *gin.Context) {
+	params := schemas.TaskLogDelete{}
+	if err := params.BindValidParam(ctx); err != nil {
+		schemas.ResponseError(ctx, schemas.TaskLogParamInvalid, err)
+		return
+	}
+
+	taskLog := &models.TaskLog{}
+	if err := taskLog.Delete(global.GormDB, params.IDs); err != nil {
+		schemas.ResponseError(ctx, schemas.TaskLogDeleteInvalid, err)
+		return
+	}
+
+	schemas.ResponseSuccess(ctx, true)
 }

@@ -193,6 +193,15 @@ definitions:
     - protocol
     - spec
     type: object
+  schemas.TaskLogDelete:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - ids
+    type: object
   schemas.TaskLogItemOutput:
     properties:
       endTime:
@@ -386,6 +395,36 @@ paths:
       summary: 任务信息
       tags:
       - 任务管理
+  /api/taskLog/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除执行日志
+      operationId: /api/taskLog/delete
+      parameters:
+      - description: 任务日志ID
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.TaskLogDelete'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 删除执行日志
+      tags:
+      - 任务日志管理
   /api/taskLog/list:
     get:
       consumes:

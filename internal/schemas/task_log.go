@@ -41,3 +41,11 @@ type TaskLogOutput struct {
 	Total int64               `json:"total" comment:"总数"`
 	List  []TaskLogItemOutput `json:"list" comment:"列表"`
 }
+
+type TaskLogDelete struct {
+	IDs []uint `json:"ids" form:"ids" comment:"任务日志id" validate:"required"`
+}
+
+func (param *TaskLogDelete) BindValidParam(c *gin.Context) error {
+	return DefaultGetValidParams(c, param)
+}

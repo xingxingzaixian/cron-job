@@ -7,6 +7,19 @@
       size="small"
       class="sm:flex-1 sm:overflow-hidden rd-8px shadow-sm"
     >
+      <template #header-extra>
+        <NPopconfirm @positive-click="batchDelete">
+          <template #trigger>
+            <NButton size="small" ghost type="error">
+              <template #icon>
+                <icon-ic-round-delete />
+              </template>
+              {{ $t('common.batchDelete') }}
+            </NButton>
+          </template>
+          {{ $t('common.confirmDelete') }}
+        </NPopconfirm>
+      </template>
       <NDataTable
         :columns="columns"
         :data="data"
@@ -16,6 +29,7 @@
         remote
         :pagination="pagination"
         :row-key="(item: any) => item.id"
+        @update:checked-row-keys="handleCheck"
         class="sm:h-full"
       />
     </NCard>
@@ -30,17 +44,20 @@ import { ref } from 'vue';
 import LogInfo from './modules/info.vue';
 import { useTable } from '@/hooks';
 import TaskLogSearch from './modules/task-log-search.vue';
-import { fetchTaskLogList } from '@/api/task';
+import { fetchTaskLogList, fetchTaskLogDelete } from '@/api/task';
 import type { TaskLogOutput, TaskLogItemOutput, QueryTaskLog } from '@/api/task/types';
 import { useRoute } from 'vue-router';
 import { TaskProtocol, TaskStatus } from '@/enum/task';
 import { NTag, NButton } from 'naive-ui';
+import type { DataTableRowKey } from 'naive-ui';
+import { message } from '@/utils/message';
 
 defineOptions({ name: 'ServiceLog' });
 
 const route = useRoute();
 const showModal = ref<boolean>(false);
 const taskId = Number(route.query.id) || 0;
+let checkedRowKeys: DataTableRowKey[] = [];
 const taskItem = ref<TaskLogItemOutput | null>(null);
 const { columns, data, loading, pagination, updateSearchParams, resetSearchParams, getData } = useTable<
   TaskLogOutput,
@@ -75,6 +92,9 @@ const { columns, data, loading, pagination, updateSearchParams, resetSearchParam
     getData();
   },
   columns: () => [
+    {
+      type: 'selection'
+    },
     {
       key: 'id',
       title: 'ID',
@@ -183,6 +203,17 @@ const search = (model: Omit<QueryTaskLog, 'pageNo' | 'pageSize'>) => {
 const reset = () => {
   resetSearchParams();
   getData();
+};
+
+const handleCheck = (rowKeys: DataTableRowKey[]) => {
+  checkedRowKeys = rowKeys;
+};
+
+const batchDelete = async () => {
+  await fetchTaskLogDelete(checkedRowKeys as number[]);
+  message.success($t('common.deleteSuccess'));
+
+  reset();
 };
 </script>
 

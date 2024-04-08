@@ -244,6 +244,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/taskLog/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "删除执行日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务日志管理"
+                ],
+                "summary": "删除执行日志",
+                "operationId": "/api/taskLog/delete",
+                "parameters": [
+                    {
+                        "description": "任务日志ID",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.TaskLogDelete"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/taskLog/list": {
             "get": {
                 "security": [
@@ -636,6 +688,20 @@ const docTemplate = `{
                     "type": "integer",
                     "default": 0,
                     "example": 0
+                }
+            }
+        },
+        "schemas.TaskLogDelete": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
