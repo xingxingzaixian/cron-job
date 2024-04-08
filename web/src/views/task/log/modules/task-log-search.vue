@@ -6,7 +6,7 @@
           <NInput v-model:value="model.taskName" :placeholder="$t('page.task.list.name')" />
         </NFormItemGi>
         <NFormItemGi span="24 s:12 m:6" :label="$t('page.task.log.taskId')" path="taskId" class="pr-24px">
-          <NInput v-model:value="model.taskId" :placeholder="$t('page.task.log.taskId')" />
+          <NInputNumber v-model:value="model.taskId" :placeholder="$t('page.task.log.taskId')" />
         </NFormItemGi>
         <NFormItemGi span="24 s:12 m:6" :label="$t('page.task.list.status')" path="status" class="pr-24px">
           <NSelect
@@ -43,7 +43,6 @@ import { reactive } from 'vue';
 import { useForm } from '@/hooks';
 import type { QueryTaskLog } from '@/api/task/types';
 import type { SelectOption } from 'naive-ui';
-import type { TaskStatus } from '@/enum/task';
 
 type SearchTask = Omit<QueryTaskLog, 'pageNo' | 'pageSize'>;
 const emit = defineEmits<{
@@ -53,7 +52,7 @@ const emit = defineEmits<{
 
 const { formRef, validate, restoreValidation } = useForm();
 const model = reactive<SearchTask>({
-  taskId: '',
+  taskId: 0,
   taskName: '',
   status: -1
 });

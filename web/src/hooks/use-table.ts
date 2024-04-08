@@ -54,8 +54,8 @@ const useTable = <T, P extends BaseData & {}>(config: TableConfig<T, P>) => {
   const searchParams = reactive<NonNullable<P>>({ ...apiParams } as any);
 
   const pagination = reactive({
-    page: 1,
-    pageSize: 10,
+    page: apiParams?.pageNo || 1,
+    pageSize: apiParams?.pageSize || 15,
     showSizePicker: true,
     pageSizes: [10, 15, 20, 25, 30],
     // Fix Naive Pagination's outdated API

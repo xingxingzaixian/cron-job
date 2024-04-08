@@ -30,10 +30,11 @@ import { ref } from 'vue';
 import LogInfo from './modules/info.vue';
 import { useTable } from '@/hooks';
 import TaskLogSearch from './modules/task-log-search.vue';
-import { fetchTaskLogList, fetchTaskLogQuery } from '@/api/task';
+import { fetchTaskLogList } from '@/api/task';
 import type { TaskLogOutput, TaskLogItemOutput, QueryTaskLog } from '@/api/task/types';
 import { useRoute } from 'vue-router';
 import { TaskProtocol, TaskStatus } from '@/enum/task';
+import { NTag, NButton } from 'naive-ui';
 
 defineOptions({ name: 'ServiceLog' });
 
@@ -48,7 +49,7 @@ const { columns, data, loading, pagination, updateSearchParams, resetSearchParam
   apiFn: fetchTaskLogList,
   apiParams: {
     pageNo: 1,
-    pageSize: 10,
+    pageSize: 15,
     taskId,
     taskName: '',
     status: -1
@@ -74,6 +75,12 @@ const { columns, data, loading, pagination, updateSearchParams, resetSearchParam
     getData();
   },
   columns: () => [
+    {
+      key: 'id',
+      title: 'ID',
+      align: 'center',
+      width: 100
+    },
     {
       key: 'taskId',
       title: $t('page.task.log.taskId'),
@@ -108,6 +115,11 @@ const { columns, data, loading, pagination, updateSearchParams, resetSearchParam
     {
       key: 'totalTime',
       title: $t('page.task.log.runTime'),
+      minWidth: 100
+    },
+    {
+      key: 'startTime',
+      title: $t('page.task.log.startTime'),
       minWidth: 100
     },
     {
@@ -158,7 +170,7 @@ const handleView = async (item: TaskLogItemOutput) => {
   }
 };
 
-const search = (model: Omit<QueryTask, 'pageNo' | 'pageSize'>) => {
+const search = (model: Omit<QueryTaskLog, 'pageNo' | 'pageSize'>) => {
   updateSearchParams({
     pageNo: 1,
     pageSize: 15,

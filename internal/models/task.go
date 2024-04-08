@@ -64,12 +64,14 @@ func (t *Task) PageList(tx *gorm.DB, params *schemas.SearchTaskParmas) (tasks []
 		query = query.Where("protocol = ?", params.Protocol)
 	}
 
+	query.Count(&count)
+
 	offset := (params.PageNo - 1) * params.PageSize
 	result := query.Limit(params.PageSize).Offset(offset).Order("id desc").Find(&tasks)
 	if result.Error != nil {
 		return
 	}
-	query.Count(&count)
+
 	return
 }
 

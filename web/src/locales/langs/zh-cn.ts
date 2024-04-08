@@ -91,6 +91,7 @@ const local = {
         protocol: '执行方式',
         retryTimes: '重试次数',
         runTime: '运行时长(秒)',
+        startTime: '开始时间',
         runStatus: '运行状态',
         runResult: '运行结果',
 

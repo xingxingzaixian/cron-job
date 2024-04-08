@@ -51,12 +51,14 @@ func (t *TaskLog) PageList(tx *gorm.DB, params *schemas.TaskLogListInput) (taskL
 		query = query.Where("status = ?", params.Status)
 	}
 
+	query.Count(&count)
+
 	offset := (params.PageNo - 1) * params.PageSize
 	result := query.Limit(params.PageSize).Offset(offset).Order("id desc").Find(&taskLogs)
 	if result.Error != nil {
 		return
 	}
-	query.Count(&count)
+
 	return
 }
 

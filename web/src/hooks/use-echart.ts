@@ -1,5 +1,5 @@
 import * as echarts from 'echarts';
-import { onUnmounted, ref, computed, onMounted, watch, nextTick } from 'vue';
+import { onUnmounted, computed, onMounted, watch, nextTick } from 'vue';
 import useThemeStore from '@/store/modules/theme';
 import { useResizeObserver } from '@vueuse/core';
 import { templateRef } from '@vueuse/core';
