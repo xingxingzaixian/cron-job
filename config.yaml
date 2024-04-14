@@ -19,4 +19,8 @@ db:
   name: "cronJob"
   user: "root"
   password: "aA111111"
-  prefix: "cron_"
+  prefix: "sched_"
+
+jwt:
+  secret: "8iHt1gOv0gPcX6Q8z0VvVd9FyMk9FmPz"
+  expires: 7200
