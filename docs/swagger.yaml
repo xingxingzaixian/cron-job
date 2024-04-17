@@ -257,6 +257,33 @@ definitions:
     - id
     - op
     type: object
+  schemas.UserEditInput:
+    properties:
+      email:
+        example: ""
+        type: string
+      id:
+        example: 1
+        type: integer
+      nickname:
+        example: ""
+        type: string
+      password:
+        example: ""
+        type: string
+      username:
+        example: ""
+        type: string
+    type: object
+  schemas.UserList:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/schemas.UserEditInput'
+        type: array
+      total:
+        type: integer
+    type: object
 info:
   contact: {}
 paths:
@@ -500,4 +527,101 @@ paths:
       summary: 任务执行日志
       tags:
       - 任务日志管理
+  /api/user/edit:
+    post:
+      consumes:
+      - application/json
+      description: 新增/修改用户
+      operationId: /api/user/edit
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.UserEditInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 新增/修改用户
+      tags:
+      - 用户管理
+  /api/user/list:
+    get:
+      consumes:
+      - application/json
+      description: 查询用户列表
+      operationId: /api/user/list
+      parameters:
+      - description: 页数
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: 用户昵称
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.UserList'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 查询用户列表
+      tags:
+      - 用户管理
+  /api/user/view:
+    get:
+      consumes:
+      - application/json
+      description: 用户信息
+      operationId: /api/user/view
+      parameters:
+      - description: 用户ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.UserEditInput'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 用户信息
+      tags:
+      - 用户管理
 swagger: "2.0"

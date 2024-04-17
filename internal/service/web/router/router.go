@@ -36,6 +36,11 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	router.StaticFS("/admin", http.FS(webFs))
 
 	apiRouter := router.Group("/api")
+	loginRouter := apiRouter.Group("/")
+	{
+		api.LoginRegister(loginRouter)
+	}
+
 	taskRouter := apiRouter.Group("/task")
 	{
 		api.TaskRegister(taskRouter)
@@ -44,6 +49,11 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	taskLogRouter := apiRouter.Group("/taskLog")
 	{
 		api.TaskLogRegister(taskLogRouter)
+	}
+
+	userRouter := apiRouter.Group("/user")
+	{
+		api.UserRegister(userRouter)
 	}
 	return router
 }

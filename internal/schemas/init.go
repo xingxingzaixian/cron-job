@@ -118,4 +118,14 @@ const (
 	TaskLogParamInvalid
 	TaskLogListInvalid
 	TaskLogDeleteInvalid
+
+	UserSearchParamInvalid
+	UserSearchListInvalid
+	UserEditParamInvalid
+	UserNotExist
+	UserPasswordError
+	UserUpdateFailed
+	UserCreateFailed
+
+	LoginParamInvalid
 )
