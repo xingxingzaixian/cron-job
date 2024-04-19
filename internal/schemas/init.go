@@ -126,6 +126,7 @@ const (
 	UserPasswordError
 	UserUpdateFailed
 	UserCreateFailed
+	UserDeleteFailed
 
 	LoginParamInvalid
 )

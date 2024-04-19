@@ -52,6 +52,28 @@ definitions:
     - TaskStatusFinish
     - TaskStatusCancel
     - TaskStatusTimeout
+  schemas.DelUserParams:
+    properties:
+      id:
+        type: integer
+    type: object
+  schemas.LoginInput:
+    properties:
+      password:
+        type: string
+      userName:
+        type: string
+    required:
+    - password
+    - userName
+    type: object
+  schemas.LoginOutput:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/schemas.UserEditInput'
+    type: object
   schemas.Response:
     properties:
       code:
@@ -257,6 +279,17 @@ definitions:
     - id
     - op
     type: object
+  schemas.UpdatePasswordInput:
+    properties:
+      confirmPassword:
+        type: string
+      newPass:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   schemas.UserEditInput:
     properties:
       email:
@@ -287,6 +320,36 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: 登陆
+      operationId: /api/login
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.LoginOutput'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 登陆
+      tags:
+      - 登陆
   /api/task/edit:
     post:
       consumes:
@@ -527,6 +590,36 @@ paths:
       summary: 任务执行日志
       tags:
       - 任务日志管理
+  /api/user/del:
+    post:
+      consumes:
+      - application/json
+      description: 删除用户
+      operationId: /api/user/del
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.DelUserParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 删除用户
+      tags:
+      - 用户管理
   /api/user/edit:
     post:
       consumes:
@@ -593,6 +686,36 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 查询用户列表
+      tags:
+      - 用户管理
+  /api/user/update-password:
+    post:
+      consumes:
+      - application/json
+      description: 更新密码
+      operationId: /api/user/update-password
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.UpdatePasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 更新密码
       tags:
       - 用户管理
   /api/user/view:

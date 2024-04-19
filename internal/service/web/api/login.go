@@ -15,9 +15,19 @@ type LoginApi struct{}
 func LoginRegister(group *gin.RouterGroup) {
 	service := &LoginApi{}
 	group.POST("/login", service.Login)
-	group.POST("/logout", service.Logout)
 }
 
+// Login godoc
+// @Summary 登陆
+// @Description 登陆
+// @Tags 登陆
+// @Security ApiKeyAuth
+// @ID /api/login
+// @Accept json
+// @Produce json
+// @Param data body schemas.LoginInput true "body"
+// @Success 200 {object} schemas.Response{data=schemas.LoginOutput} "success"
+// @Router /api/login [post]
 func (service *LoginApi) Login(ctx *gin.Context) {
 	params := &schemas.LoginInput{}
 	if err := params.BindValidParam(ctx); err != nil {

@@ -4,18 +4,24 @@ import (
 	"cronJob/internal/schemas"
 	"errors"
 	"github.com/gogf/gf/v2/frame/g"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
-	UserName string `gorm:"size:64;not null;unique" json:"username" comment:"账号名"`
-	NickName string `gorm:"size:64;not null" json:"nickname" comment:"用户名"`
+	UserName string `gorm:"size:64;not null;unique;column:username" json:"username" comment:"账号名"`
+	NickName string `gorm:"size:64;not null;column:nickname" json:"nickname" comment:"用户名"`
 	Password string `gorm:"size:128;not null" json:"password" comment:"密码"`
 	Email    string `gorm:"size:64" json:"email"`
 }
 
 func (u *User) Create(tx *gorm.DB) (uint, error) {
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return 0, err
+	}
+	u.Password = string(hashPassword)
 	result := tx.Create(u)
 	if result.Error != nil {
 		return 0, result.Error
@@ -25,6 +31,27 @@ func (u *User) Create(tx *gorm.DB) (uint, error) {
 
 func (u *User) Update(tx *gorm.DB, id uint, data g.Map) (int64, error) {
 	result := tx.Model(u).Where("id = ?", id).Updates(data)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return result.RowsAffected, nil
+}
+
+func (u *User) UpdatePassword(tx *gorm.DB, password string) (int64, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return 0, err
+	}
+	u.Password = string(hashedPassword)
+	result := tx.Model(u).Where("id = ?", u.ID).Update("password", password)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return result.RowsAffected, nil
+}
+
+func (u *User) Delete(tx *gorm.DB, id uint) (int64, error) {
+	result := tx.Unscoped().Where("id = ?", id).Delete(u)
 	if result.Error != nil {
 		return 0, result.Error
 	}
@@ -62,4 +89,9 @@ func (u *User) FindOne(tx *gorm.DB, userModel g.Map) error {
 		return errors.New("用户不存在")
 	}
 	return nil
+}
+
+func (u *User) CheckPassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	return err == nil
 }

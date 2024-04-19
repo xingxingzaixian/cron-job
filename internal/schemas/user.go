@@ -28,3 +28,22 @@ type SearchUserParams struct {
 func (param *SearchUserParams) BindValidParam(c *gin.Context) error {
 	return DefaultGetValidParams(c, param)
 }
+
+type DelUserParams struct {
+	ID uint `json:"id" form:"id" comment:"用户ID"`
+}
+
+func (param *DelUserParams) BindValidParam(c *gin.Context) error {
+	return DefaultGetValidParams(c, param)
+}
+
+type UpdatePasswordInput struct {
+	Password        string `json:"password" form:"password" comment:"密码"`
+	NewPass         string `json:"newPass" form:"newPass" comment:"新密码"`
+	ConfirmPassword string `json:"confirmPassword" form:"confirmPassword" comment:"确认密码"`
+	UserName        string `json:"username" form:"username" comment:"账号名"`
+}
+
+func (param *UpdatePasswordInput) BindValidParam(c *gin.Context) error {
+	return DefaultGetValidParams(c, param)
+}
