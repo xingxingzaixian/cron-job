@@ -15,13 +15,13 @@ type LoginApi struct{}
 func LoginRegister(group *gin.RouterGroup) {
 	service := &LoginApi{}
 	group.POST("/login", service.Login)
+	group.GET("/init", service.Init)
 }
 
 // Login godoc
 // @Summary 登陆
 // @Description 登陆
 // @Tags 登陆
-// @Security ApiKeyAuth
 // @ID /api/login
 // @Accept json
 // @Produce json
@@ -62,10 +62,44 @@ func (service *LoginApi) Login(ctx *gin.Context) {
 			NickName: user.NickName,
 			Email:    user.Email,
 			ID:       user.ID,
+			Role:     user.Role.ID,
 		},
 	})
 }
 
-func (service *LoginApi) Logout(ctx *gin.Context) {
+func (service *LoginApi) Init(ctx *gin.Context) {
+	tx := global.GormDB.Begin()
+	role1 := &models.Role{}
+	role1.Name = "管理员"
+	role1.Key = "admin"
+	role1.Status = 1
+	role1.IsSuper = true
+	if _, err := role1.Create(tx); err != nil {
+		tx.Rollback()
+		schemas.ResponseError(ctx, schemas.RoleCreateFailed, err)
+		return
+	}
 
+	role2 := &models.Role{}
+	role2.Name = "普通成员"
+	role2.Key = "default"
+	role2.Status = 1
+	role2.IsSuper = false
+	if _, err := role2.Create(tx); err != nil {
+		tx.Rollback()
+		schemas.ResponseError(ctx, schemas.RoleCreateFailed, err)
+		return
+	}
+
+	user := &models.User{}
+	user.NickName = "admin"
+	user.UserName = "admin"
+	user.Password = "admin"
+	user.Role = *role1
+	user.Email = "admin@qq.com"
+	if _, err := user.Create(tx); err != nil {
+		tx.Rollback()
+	}
+	tx.Commit()
+	schemas.ResponseSuccess(ctx, nil)
 }

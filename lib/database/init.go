@@ -41,6 +41,6 @@ func InitDB(prefix string) {
 		panic(err)
 	}
 
-	db.AutoMigrate(&models.Task{}, &models.TaskLog{}, &models.User{})
+	db.AutoMigrate(&models.Task{}, &models.TaskLog{}, &models.User{}, &models.Role{})
 	global.GormDB = db
 }

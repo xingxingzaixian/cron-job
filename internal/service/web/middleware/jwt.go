@@ -2,6 +2,7 @@ package middleware
 
 import (
 	jwt2 "cronJob/lib/jwt"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -21,6 +22,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[1] == "" {
+			fmt.Println(22222, parts)
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
 				"message": "Unauthorized",
@@ -31,6 +33,7 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 
 		claims, err := jwt2.ParseToken(parts[1])
 		if err != nil {
+			fmt.Println(33333, parts[1], err.Error())
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
 				"message": "Unauthorized",

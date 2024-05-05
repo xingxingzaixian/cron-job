@@ -55,6 +55,7 @@ func (u *UserApi) GetList(c *gin.Context) {
 			UserName: item.UserName,
 			NickName: item.NickName,
 			Email:    item.Email,
+			Role:     item.Role.ID,
 		})
 	}
 
@@ -102,6 +103,15 @@ func (u *UserApi) EditUser(c *gin.Context) {
 		user.NickName = params.NickName
 		user.Email = params.Email
 		user.Password = params.Password
+
+		// 设置默认角色
+		role := models.Role{}
+		if err := role.FindOne(global.GormDB, g.Map{"id": params.Role}); err != nil {
+			tx.Rollback()
+			schemas.ResponseError(c, schemas.RoleNotExist, err)
+			return
+		}
+		user.Role = role
 		_, err := user.Create(tx)
 		if err != nil {
 			tx.Rollback()

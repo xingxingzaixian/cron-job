@@ -3,6 +3,7 @@ package router
 import (
 	"cronJob/docs"
 	"cronJob/internal/service/web/api"
+	middleware2 "cronJob/internal/service/web/middleware"
 	"cronJob/web"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,7 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 		api.LoginRegister(loginRouter)
 	}
 
+	apiRouter.Use(middleware2.JwtAuthMiddleware())
 	taskRouter := apiRouter.Group("/task")
 	{
 		api.TaskRegister(taskRouter)
@@ -54,6 +56,11 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	userRouter := apiRouter.Group("/user")
 	{
 		api.UserRegister(userRouter)
+	}
+
+	roleRouter := apiRouter.Group("/role")
+	{
+		api.RoleRegister(roleRouter)
 	}
 	return router
 }

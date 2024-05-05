@@ -13,7 +13,7 @@ type CustomClaims struct {
 
 // GenToken 生成token
 func GenToken(username string) (string, error) {
-	expires := viper.GetInt("expires")
+	expires := viper.GetInt("jwt.expires")
 	claims := CustomClaims{
 		username,
 		jwt.RegisteredClaims{

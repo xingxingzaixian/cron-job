@@ -13,7 +13,8 @@ type User struct {
 	UserName string `gorm:"size:64;not null;unique;column:username" json:"username" comment:"账号名"`
 	NickName string `gorm:"size:64;not null;column:nickname" json:"nickname" comment:"用户名"`
 	Password string `gorm:"size:128;not null" json:"password" comment:"密码"`
-	Email    string `gorm:"size:64" json:"email"`
+	Email    string `gorm:"size:64" json:"email" comment:"邮箱"`
+	Role     Role   `gorm:"foreignkey:id" comment:"角色ID"`
 }
 
 func (u *User) Create(tx *gorm.DB) (uint, error) {
@@ -59,7 +60,7 @@ func (u *User) Delete(tx *gorm.DB, id uint) (int64, error) {
 }
 
 func (u *User) PageList(tx *gorm.DB, params *schemas.SearchUserParams) (users []User, count int64, err error) {
-	query := tx.Model(u)
+	query := tx.Model(u).Preload("Role")
 	if params.Name != "" {
 		query = query.Where("nickname like ?", "%"+params.Name+"%")
 	}
@@ -84,7 +85,7 @@ func (u *User) Find(tx *gorm.DB, userModel g.Map) (list []User, err error) {
 }
 
 func (u *User) FindOne(tx *gorm.DB, userModel g.Map) error {
-	result := tx.Where(userModel).First(u)
+	result := tx.Where(userModel).Preload("Role").First(u)
 	if result.RowsAffected == 0 {
 		return errors.New("用户不存在")
 	}

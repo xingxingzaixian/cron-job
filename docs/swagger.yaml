@@ -82,6 +82,31 @@ definitions:
       message:
         type: string
     type: object
+  schemas.RoleItem:
+    properties:
+      id:
+        example: 1
+        type: integer
+      is_super:
+        type: boolean
+      key:
+        example: ""
+        type: string
+      name:
+        example: ""
+        type: string
+      status:
+        type: integer
+    type: object
+  schemas.RoleList:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/schemas.RoleItem'
+        type: array
+      total:
+        type: integer
+    type: object
   schemas.SearchTaskResponse:
     properties:
       list:
@@ -304,6 +329,8 @@ definitions:
       password:
         example: ""
         type: string
+      role:
+        type: integer
       username:
         example: ""
         type: string
@@ -350,6 +377,29 @@ paths:
       summary: 登陆
       tags:
       - 登陆
+  /api/role/list:
+    get:
+      consumes:
+      - application/json
+      description: 查询角色列表
+      operationId: /api/role/list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.RoleList'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 查询角色列表
+      tags:
+      - 用户管理
   /api/task/edit:
     post:
       consumes:

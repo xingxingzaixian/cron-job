@@ -56,6 +56,47 @@
                 }
             }
         },
+        "/api/role/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "查询角色列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "查询角色列表",
+                "operationId": "/api/role/list",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.RoleList"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/task/edit": {
             "post": {
                 "security": [
@@ -843,6 +884,43 @@
                 }
             }
         },
+        "schemas.RoleItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_super": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string",
+                    "example": ""
+                },
+                "name": {
+                    "type": "string",
+                    "example": ""
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schemas.RoleList": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.RoleItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "schemas.SearchTaskResponse": {
             "type": "object",
             "properties": {
@@ -1167,6 +1245,9 @@
                 "password": {
                     "type": "string",
                     "example": ""
+                },
+                "role": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string",

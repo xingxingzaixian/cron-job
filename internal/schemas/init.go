@@ -128,5 +128,9 @@ const (
 	UserCreateFailed
 	UserDeleteFailed
 
+	RoleCreateFailed
+	RoleListFailed
+	RoleNotExist
+
 	LoginParamInvalid
 )

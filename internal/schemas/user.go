@@ -8,6 +8,7 @@ type UserEditInput struct {
 	NickName string `json:"nickname" form:"nickname" comment:"用户名" example:""`
 	Password string `json:"password" form:"password" comment:"密码" example:""`
 	Email    string `json:"email" form:"email" comment:"邮箱" example:""`
+	Role     uint   `json:"role" form:"role" comment:"角色ID"`
 }
 
 func (param *UserEditInput) BindValidParam(c *gin.Context) error {
