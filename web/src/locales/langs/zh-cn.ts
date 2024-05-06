@@ -44,6 +44,11 @@ const local = {
     title: 'CronJob 任务管理系统'
   },
   page: {
+    login: {
+      accout: '账号',
+      pass: '密码',
+      submit: '登录'
+    },
     task: {
       list: {
         title: '任务列表',
