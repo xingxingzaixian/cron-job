@@ -8,7 +8,6 @@ const routes: AppRouteRecordRaw[] = [
     component: BaseLayout,
     meta: {
       title: 'route.task',
-      ignoreAuth: true,
       icon: 'eos-icons:service-plan'
     },
     redirect: '/task/list',
@@ -19,7 +18,6 @@ const routes: AppRouteRecordRaw[] = [
         component: () => import('@/views/task/list'),
         meta: {
           title: 'route.task_list',
-          ignoreAuth: true,
           icon: 'ic:baseline-format-list-bulleted'
         }
       },
@@ -29,7 +27,6 @@ const routes: AppRouteRecordRaw[] = [
         component: () => import('@/views/task/log'),
         meta: {
           title: 'route.task_log',
-          ignoreAuth: true,
           icon: 'material-symbols-light:nest-clock-farsight-analog-outline-rounded'
         }
       }

@@ -123,6 +123,7 @@ const (
 	UserSearchListInvalid
 	UserEditParamInvalid
 	UserNotExist
+	UserNotLogin
 	UserPasswordError
 	UserUpdateFailed
 	UserCreateFailed

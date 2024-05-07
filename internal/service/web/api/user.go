@@ -18,6 +18,7 @@ func UserRegister(group *gin.RouterGroup) {
 	group.GET("/view", service.GetUser)
 	group.POST("/del", service.DelUser)
 	group.POST("/update-password", service.UpdatePassword)
+	group.GET("/info", service.GetMyInfo)
 }
 
 // GetList godoc
@@ -120,6 +121,38 @@ func (u *UserApi) EditUser(c *gin.Context) {
 	}
 	tx.Commit()
 	schemas.ResponseSuccess(c, nil)
+}
+
+// GetMyInfo godoc
+// @Summary 我的信息
+// @Description 我的信息
+// @Tags 用户管理
+// @Security ApiKeyAuth
+// @ID /api/user/info
+// @Accept json
+// @Produce json
+// @Success 200 {object} schemas.Response{data=schemas.UserEditInput} "success"
+// @Router /api/user/info [get]
+func (u *UserApi) GetMyInfo(ctx *gin.Context) {
+	username, ok := ctx.Get("username")
+	if !ok {
+		schemas.ResponseError(ctx, schemas.UserNotLogin, errors.New("用户未登录"))
+		return
+	}
+
+	user := &models.User{}
+	if err := user.FindOne(global.GormDB, g.Map{"username": username}); err != nil {
+		schemas.ResponseError(ctx, schemas.UserNotExist, err)
+		return
+	}
+
+	schemas.ResponseSuccess(ctx, &schemas.UserEditInput{
+		ID:       user.ID,
+		UserName: user.UserName,
+		NickName: user.NickName,
+		Email:    user.Email,
+		Role:     user.Role.ID,
+	})
 }
 
 // GetUser godoc

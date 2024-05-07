@@ -47,7 +47,8 @@ const local = {
     login: {
       accout: '账号',
       pass: '密码',
-      submit: '登录'
+      submit: '登录',
+      failed: '用户或密码错误'
     },
     task: {
       list: {

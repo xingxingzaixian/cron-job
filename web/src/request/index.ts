@@ -15,13 +15,13 @@ class AxiosHttp {
 
   // 请求拦截
   private httpHookRequest(): void {
-    const userStore = useUserStore();
     this.axiosInstance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         // 将 Token 添加到 header 中
+        const userStore = useUserStore();
         const token: string | undefined = userStore.userToken;
         if (token && config.headers) {
-          config.headers['authorization'] = token;
+          config.headers['authorization'] = `Bearer ${token}`;
         }
         return config;
       },

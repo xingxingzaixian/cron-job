@@ -5,7 +5,7 @@ import apiHttp from '@/request';
 // 获取页面数据
 export const fetchLoginApi = async (data: LoginInput): Promise<HttpResult<LoginOutput>> => {
   return apiHttp.post<HttpResult<LoginOutput>>({
-    url: '/api/user/login',
+    url: '/api/login',
     data
   });
 };

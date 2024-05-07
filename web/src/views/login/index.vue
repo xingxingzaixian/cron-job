@@ -12,7 +12,7 @@
       <form class="login-form">
         <input v-model="form.userName" type="text" name="username" :placeholder="$t('page.login.accout')" />
         <input v-model="form.password" type="password" name="password" :placeholder="$t('page.login.pass')" />
-        <button type="submit" @click="onSubmit">{{ $t('page.login.submit') }}</button>
+        <button @click="onSubmit">{{ $t('page.login.submit') }}</button>
       </form>
     </div>
   </div>
@@ -40,7 +40,7 @@ const onSubmit = () => {
         name: 'Task'
       });
     } else {
-      message.error($t(''));
+      message.error($t('page.login.failed'));
     }
   });
 };
@@ -101,7 +101,7 @@ input[name='password'] {
   border-radius: 0 0 5px 5px;
 }
 
-button[type='submit'] {
+button {
   margin-top: 25px;
   width: 215px;
   height: 44px;

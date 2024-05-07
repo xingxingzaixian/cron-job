@@ -24,6 +24,7 @@ const userStore = defineStore('user-store', () => {
   });
 
   const Login = async (form: LoginInput): Promise<HttpResult<LoginOutput | UserEditInput>> => {
+    console.log(1111111, form);
     const res = await fetchLoginApi(form);
     if (res.code === 200) {
       // TODO: 获取用户信息
@@ -33,11 +34,12 @@ const userStore = defineStore('user-store', () => {
     return res;
   };
 
-  const getUserInfo = async (): Promise<void> => {
-    const res = await fetchUserInfo();
-    if (res.code === 200) {
-      user.value = res.data;
-    }
+  const getUserInfo = () => {
+    fetchUserInfo().then((res) => {
+      if (res.code === 200) {
+        user.value = res.data;
+      }
+    });
   };
 
   return {

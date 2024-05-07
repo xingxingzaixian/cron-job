@@ -372,8 +372,6 @@ paths:
                 data:
                   $ref: '#/definitions/schemas.LoginOutput'
               type: object
-      security:
-      - ApiKeyAuth: []
       summary: 登陆
       tags:
       - 登陆
@@ -698,6 +696,29 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 新增/修改用户
+      tags:
+      - 用户管理
+  /api/user/info:
+    get:
+      consumes:
+      - application/json
+      description: 我的信息
+      operationId: /api/user/info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.UserEditInput'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 我的信息
       tags:
       - 用户管理
   /api/user/list:

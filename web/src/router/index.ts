@@ -74,6 +74,8 @@ class RouteView {
       if (!userStore.isLoggedIn) {
         this.toLogin(to, next);
         return;
+      } else {
+        userStore.getUserInfo();
       }
       next();
     });
