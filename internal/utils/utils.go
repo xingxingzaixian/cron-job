@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+// Result 用于ExecShell函数的结果传递
+type Result struct {
+	output string
+	err    error
+}
+
 // 生成长度为length的随机字符串
 func RandString(length int64) string {
 	sources := []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")

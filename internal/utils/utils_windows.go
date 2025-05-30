@@ -1,12 +1,16 @@
+//go:build windows
+// +build windows
+
 package utils
 
 import (
 	"context"
 	"errors"
-	"github.com/gogf/gf/v2/encoding/gcharset"
 	"os/exec"
 	"strconv"
 	"syscall"
+
+	"github.com/gogf/gf/v2/encoding/gcharset"
 )
 
 // 执行shell命令，可设置执行超时时间
