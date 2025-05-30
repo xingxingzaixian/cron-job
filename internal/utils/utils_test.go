@@ -68,12 +68,12 @@ func TestExecShellTimeout(t *testing.T) {
 func TestConvertEncodingWindows(t *testing.T) {
 	// 这个测试只在Windows上运行
 	if runtime.GOOS != "windows" {
-		t.Skip("ConvertEncoding is Windows-specific")
+		t.Skip("convertEncoding is Windows-specific")
 	}
 
 	// 测试UTF-8字符串（应该保持不变）
 	input := "Hello World"
-	output := ConvertEncoding(input)
+	output := convertEncoding(input)
 
 	if output != input {
 		t.Errorf("Expected %s, got %s", input, output)
