@@ -1,5 +1,6 @@
 @import './reset.css';
 @import './transition.css';
+@import './management-page.css';
 
 html,
 body,
@@ -16,4 +17,24 @@ html {
   line-height: 1;
   padding: 0 14px;
 }
+
+/* 全局按钮样式 */
+.n-button--primary-type {
+  color: white !important;
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  border: none !important;
+}
+
+.n-button--primary-type:hover {
+  background: linear-gradient(135deg, #5a6fd8, #6a4190) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+/* 表格行悬停效果 */
+.n-data-table-tbody .n-data-table-tr:hover {
+  background-color: rgba(102, 126, 234, 0.05) !important;
+}
+
 

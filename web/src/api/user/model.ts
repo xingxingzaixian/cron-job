@@ -37,7 +37,8 @@ export interface DelUserParams {
 }
 
 export interface UpdatePasswordInput {
-  oldPass: string;
+  password: string;
   newPass: string;
   confirmPassword: string;
+  username: string;
 }

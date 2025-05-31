@@ -1,5 +1,5 @@
 <template>
-  <div class="task-log-management">
+  <div class="management-container">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
@@ -34,13 +34,9 @@
       </div>
     </div>
 
-    <!-- 搜索区域 -->
-    <n-card :bordered="false" class="search-card">
-      <TaskLogSearch @search="search" @reset="reset" />
-    </n-card>
-
     <!-- 数据表格 -->
-    <n-card :bordered="false" class="table-card">
+    <n-card :bordered="false" class="glass-card table-card">
+      <TaskLogSearch @search="search" @reset="reset" />
       <NDataTable
         :columns="columns"
         :data="data"
@@ -50,8 +46,8 @@
         remote
         :pagination="pagination"
         :row-key="(item: any) => item.id"
+        class="data-table"
         @update:checked-row-keys="handleCheck"
-        class="log-table"
       />
     </n-card>
 
@@ -239,158 +235,46 @@ const batchDelete = async () => {
 </script>
 
 <style scoped>
-/* 登录页面风格的渐变背景色彩 */
-.task-log-management {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 24px;
-}
+/* 任务日志页面特定样式 */
+/* 大部分样式已提取到 management-page.css 公共样式文件中 */
 
-/* 页面头部 */
-.page-header {
-  margin-bottom: 24px;
-}
-
+/* 头部布局优化 */
 .header-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 24px 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .header-left {
-  flex: 1;
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.title-icon {
-  margin-right: 12px;
-  color: #667eea;
-}
-
-.page-description {
-  margin: 0;
-  color: #64748b;
-  font-size: 14px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.delete-btn {
-  border-radius: 12px;
-  padding: 0 24px;
-  height: 44px;
-  font-weight: 500;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
-  transition: all 0.3s ease;
-}
-
-.delete-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-}
-
-/* 搜索卡片 */
-.search-card {
-  margin-bottom: 24px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-/* 表格卡片 */
-.table-card {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.log-table {
-  border-radius: 12px;
+  flex-shrink: 0;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
-  .task-log-management {
-    padding: 16px;
-  }
-
+@media (max-width: 1200px) {
   .header-content {
     flex-direction: column;
+    align-items: stretch;
     gap: 16px;
-    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    gap: 12px;
   }
 
   .page-title {
-    font-size: 24px;
+    font-size: 20px;
   }
-}
 
-/* 动画效果 */
-.search-card,
-.table-card {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.page-header {
-  animation: fadeInDown 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+  .page-description {
+    font-size: 13px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 表格行悬停效果 */
-:deep(.n-data-table-tbody .n-data-table-tr:hover) {
-  background-color: rgba(102, 126, 234, 0.05);
-}
-
-/* 按钮样式优化 */
-:deep(.n-button--primary-type) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-}
-
-:deep(.n-button--primary-type:hover) {
-  background: linear-gradient(135deg, #5a6fd8, #6a4190);
 }
 </style>

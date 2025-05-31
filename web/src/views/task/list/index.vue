@@ -1,5 +1,5 @@
 <template>
-  <div class="task-management">
+  <div class="management-container">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
@@ -15,7 +15,7 @@
           <p class="page-description">管理定时任务、监控执行状态和查看运行日志</p>
         </div>
         <div class="header-actions">
-          <n-button type="primary" size="large" @click="handleAdd" class="add-btn">
+          <n-button type="primary" size="large" class="add-btn" @click="handleAdd">
             <template #icon>
               <n-icon>
                 <svg viewBox="0 0 24 24">
@@ -29,13 +29,8 @@
       </div>
     </div>
 
-    <!-- 搜索区域 -->
-    <n-card :bordered="false" class="search-card">
-      <TableSearch @search="search" @reset="reset" />
-    </n-card>
-
     <!-- 数据表格 -->
-    <n-card :bordered="false" class="table-card">
+    <n-card :bordered="false" class="glass-card table-card">
       <template #header-extra>
         <TableHeaderOperation
           v-model:columns="filteredColumns"
@@ -46,6 +41,7 @@
           @refresh="getData"
         />
       </template>
+      <TableSearch @search="search" @reset="reset" />
       <NDataTable
         v-model:checked-row-keys="checkedRowKeys"
         :columns="columns"
@@ -56,20 +52,23 @@
         remote
         :pagination="pagination"
         :row-key="(item: any) => item.id"
-        class="task-table"
-      />
-      <TaskOperateDrawer
-        v-model:visible="drawerVisible"
-        :operate-type="operateType"
-        :dataId="dataId"
-        @submitted="getData"
+        class="data-table"
+        :max-height="tableHeight"
       />
     </n-card>
+
+    <!-- 抽屉组件 -->
+    <TaskOperateDrawer
+      v-model:visible="drawerVisible"
+      :operate-type="operateType"
+      :dataId="dataId"
+      @submitted="getData"
+    />
   </div>
 </template>
 
 <script lang="tsx" setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { $t } from '@/locales';
 import { message } from '@/utils/message';
 import { useBoolean, useTable } from '@/hooks';
@@ -278,163 +277,70 @@ function handleAdd() {
   operateType.value = 'add';
   openDrawer();
 }
+
+// 动态计算表格高度
+const windowHeight = ref(window.innerHeight);
+
+const tableHeight = computed(() => {
+  // 减去页面头部(120px) + 卡片头部(60px) + 搜索区域(80px) + 分页器(60px) + 边距(40px)
+  return windowHeight.value - 360;
+});
+
+// 监听窗口大小变化
+const handleResize = () => {
+  windowHeight.value = window.innerHeight;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
 </script>
 
 <style scoped>
-/* 登录页面风格的渐变背景色彩 */
-.task-management {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 24px;
-}
+/* 任务列表页面特定样式 */
+/* 大部分样式已提取到 management-page.css 公共样式文件中 */
 
-/* 页面头部 */
-.page-header {
-  margin-bottom: 24px;
-}
-
+/* 头部布局优化 */
 .header-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 24px 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .header-left {
-  flex: 1;
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.title-icon {
-  margin-right: 12px;
-  color: #667eea;
-}
-
-.page-description {
-  margin: 0;
-  color: #64748b;
-  font-size: 14px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.add-btn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-  border-radius: 12px;
-  padding: 0 24px;
-  height: 44px;
-  font-weight: 500;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-}
-
-.add-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-/* 搜索卡片 */
-.search-card {
-  margin-bottom: 24px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-/* 表格卡片 */
-.table-card {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.task-table {
-  border-radius: 12px;
+  flex-shrink: 0;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
-  .task-management {
-    padding: 16px;
-  }
-
+@media (max-width: 1200px) {
   .header-content {
     flex-direction: column;
+    align-items: stretch;
     gap: 16px;
-    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    gap: 12px;
   }
 
   .page-title {
-    font-size: 24px;
+    font-size: 20px;
   }
-}
 
-/* 动画效果 */
-.search-card,
-.table-card {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.page-header {
-  animation: fadeInDown 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+  .page-description {
+    font-size: 13px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 表格行悬停效果 */
-:deep(.n-data-table-tbody .n-data-table-tr:hover) {
-  background-color: rgba(102, 126, 234, 0.05);
-}
-
-/* 按钮样式优化 */
-:deep(.n-button--primary-type) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-}
-
-:deep(.n-button--primary-type:hover) {
-  background: linear-gradient(135deg, #5a6fd8, #6a4190);
 }
 </style>

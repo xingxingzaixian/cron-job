@@ -6,24 +6,24 @@
     preset="dialog"
     style="width: 80%; min-width: 1000px"
   >
-    <NCard :bordered="true" :embedded="true" :title="$t('page.task.log.command')" class="mb-4">
+    <NCard bordered embedded :title="$t('page.task.log.command')" class="mb-4">
       <VueJsonPretty
         :data="request"
         :deep="1"
-        :show-key-value-space="true"
-        :show-line="true"
-        :show-double-quotes="true"
-        :show-line-numbers="true"
+        show-key-value-space
+        show-line
+        show-double-quotes
+        show-line-numbers
       />
     </NCard>
 
-    <NCard :bordered="true" :embedded="true" :title="$t('page.task.log.result')">
+    <NCard bordered embedded :title="$t('page.task.log.result')">
       <VueJsonPretty
         :data="result"
         :deep="1"
-        :show-key-value-space="true"
-        :show-line="true"
-        :show-double-quotes="true"
+        show-key-value-space
+        show-line
+        show-double-quotes
       />
     </NCard>
   </NModal>
@@ -43,9 +43,7 @@ const props = defineProps<{
   taskItem: TaskLogItemOutput | null;
 }>();
 
-const emits = defineEmits<{
-  (e: 'update:show', value: boolean): void;
-}>();
+const emits = defineEmits<(e: 'update:show', value: boolean) => void>();
 
 const updateValue = (value: boolean) => {
   emits('update:show', value);

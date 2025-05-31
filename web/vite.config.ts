@@ -63,9 +63,15 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       extensions: ['.vue', '.ts', '.js', '.jsx', '.tsx']
     },
     server: {
-      https: false,
       host: true,
-      port: Number(VITE_APP_PORT)
+      port: Number(VITE_APP_PORT),
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8210',
+          changeOrigin: true,
+          ws: true
+        }
+      }
     },
     build: {
       target: 'es2015',

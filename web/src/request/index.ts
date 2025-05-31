@@ -3,14 +3,35 @@ import Axios from 'axios';
 import type { InternalAxiosRequestConfig, AxiosRequestConfig, AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { defaultConfig } from './types';
 import useUserStore from '@/store/modules/user';
+import { FORBIDDEN_URL, LOGIN_URL } from '@/enum';
 
 class AxiosHttp {
   private axiosInstance: AxiosInstance;
 
-  constructor() {
+  public constructor() {
     this.axiosInstance = Axios.create(defaultConfig);
     this.httpHookRequest();
     this.httpHookResponse();
+  }
+
+  public get<T = any>(config: AxiosRequestConfig): Promise<T> {
+    return this.request({ ...config, method: 'GET' });
+  }
+
+  public post<T = any>(config: AxiosRequestConfig): Promise<T> {
+    return this.request({ ...config, method: 'POST' });
+  }
+
+  public put<T = any>(config: AxiosRequestConfig): Promise<T> {
+    return this.request({ ...config, method: 'PUT' });
+  }
+
+  public patch<T = any>(config: AxiosRequestConfig): Promise<T> {
+    return this.request({ ...config, method: 'PATCH' });
+  }
+
+  public delete<T = any>(config: AxiosRequestConfig): Promise<T> {
+    return this.request({ ...config, method: 'DELETE' });
   }
 
   // 请求拦截
@@ -49,40 +70,25 @@ class AxiosHttp {
   }
 
   // 异常请求处理
-  static errorHandler(status: number, message?: string): void {
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  private static errorHandler(status: number, message?: string): void {
     switch (status) {
       case 401: {
         // 未登录
+        const userStore = useUserStore();
+        userStore.logout();
+        window.location.href = LOGIN_URL;
         break;
       }
       case 403: {
         // 没有权限
+        window.location.href = FORBIDDEN_URL;
         break;
       }
       default: {
-        console.log(message);
+        console.error('请求错误:', message);
       }
     }
-  }
-
-  public get<T = any>(config: AxiosRequestConfig): Promise<T> {
-    return this.request({ ...config, method: 'GET' });
-  }
-
-  public post<T = any>(config: AxiosRequestConfig): Promise<T> {
-    return this.request({ ...config, method: 'POST' });
-  }
-
-  public put<T = any>(config: AxiosRequestConfig): Promise<T> {
-    return this.request({ ...config, method: 'PUT' });
-  }
-
-  public patch<T = any>(config: AxiosRequestConfig): Promise<T> {
-    return this.request({ ...config, method: 'PATCH' });
-  }
-
-  public delete<T = any>(config: AxiosRequestConfig): Promise<T> {
-    return this.request({ ...config, method: 'DELETE' });
   }
 
   private request<T = any>(config: AxiosRequestConfig): Promise<T> {
@@ -101,3 +107,5 @@ class AxiosHttp {
 
 const http = new AxiosHttp();
 export default http;
+
+

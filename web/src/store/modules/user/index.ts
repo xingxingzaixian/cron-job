@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import store from '../../index';
 import type { LoginInput, LoginOutput, UserEditInput } from '@/api/user/model';
 import { fetchLoginApi, fetchUserInfo } from '@/api/user';
-import { HttpResult } from '@/types/api';
+import type { HttpResult } from '@/types/api';
 
 const userStore = defineStore('user-store', () => {
   const id = ref<number>(-1);

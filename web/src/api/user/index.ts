@@ -3,7 +3,6 @@ import type {
   LoginInput,
   LoginOutput,
   UserEditInput,
-  RoleList,
   UserList,
   SearchUserParams,
   DelUserParams,
@@ -23,13 +22,6 @@ export const fetchLoginApi = async (data: LoginInput): Promise<HttpResult<LoginO
 export const fetchUserInfo = async (): Promise<HttpResult<UserEditInput>> => {
   return apiHttp.get<HttpResult<UserEditInput>>({
     url: '/api/user/info'
-  });
-};
-
-// 获取角色列表
-export const fetchRoleList = async (): Promise<HttpResult<RoleList>> => {
-  return apiHttp.get<HttpResult<RoleList>>({
-    url: '/api/role/list'
   });
 };
 

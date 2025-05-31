@@ -42,5 +42,3 @@ const naiveDateLocale = computed(() => {
     </n-message-provider>
   </n-config-provider>
 </template>
-
-<style scoped></style>

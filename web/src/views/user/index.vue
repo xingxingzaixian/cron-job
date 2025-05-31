@@ -1,5 +1,5 @@
 <template>
-  <div class="user-management">
+  <div class="management-container">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
@@ -15,7 +15,7 @@
           <p class="page-description">管理系统用户信息和账户状态</p>
         </div>
         <div class="header-actions">
-          <n-button type="primary" size="large" @click="handleAdd" class="add-btn">
+          <n-button type="primary" size="large" class="add-btn" @click="handleAdd">
             <template #icon>
               <n-icon>
                 <svg viewBox="0 0 24 24">
@@ -29,74 +29,17 @@
       </div>
     </div>
 
-    <!-- 搜索和筛选区域 -->
-    <n-card :bordered="false" class="search-card">
-      <n-form inline :label-width="80" class="search-form">
-        <n-form-item label="用户名">
-          <n-input
-            v-model:value="searchForm.username"
-            placeholder="请输入用户名"
-            clearable
-            @keydown.enter="handleSearch"
-            class="search-input"
-          />
-        </n-form-item>
-        <n-form-item label="昵称">
-          <n-input
-            v-model:value="searchForm.name"
-            placeholder="请输入昵称"
-            clearable
-            @keydown.enter="handleSearch"
-            class="search-input"
-          />
-        </n-form-item>
-        <n-form-item label="邮箱">
-          <n-input
-            v-model:value="searchForm.email"
-            placeholder="请输入邮箱"
-            clearable
-            @keydown.enter="handleSearch"
-            class="search-input"
-          />
-        </n-form-item>
-        <n-form-item>
-          <n-space>
-            <n-button type="primary" @click="handleSearch" :loading="loading">
-              <template #icon>
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                  </svg>
-                </n-icon>
-              </template>
-              搜索
-            </n-button>
-            <n-button @click="handleReset">
-              <template #icon>
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                  </svg>
-                </n-icon>
-              </template>
-              重置
-            </n-button>
-          </n-space>
-        </n-form-item>
-      </n-form>
-    </n-card>
-
     <!-- 数据表格 -->
-    <n-card :bordered="false" class="table-card">
+    <n-card :bordered="false" class="glass-card table-card">
       <n-data-table
         :columns="columns"
         :data="userList"
         :loading="loading"
         :pagination="pagination"
         :row-key="(row: any) => row.id"
+        class="data-table"
         @update:page="handlePageChange"
         @update:page-size="handlePageSizeChange"
-        class="user-table"
       />
     </n-card>
 
@@ -143,8 +86,8 @@
         label-width="auto"
         require-mark-placement="right-hanging"
       >
-        <n-form-item label="原密码" path="oldPass">
-          <n-input v-model:value="passwordForm.oldPass" type="password" placeholder="请输入原密码" />
+        <n-form-item label="原密码" path="password">
+          <n-input v-model:value="passwordForm.password" type="password" placeholder="请输入原密码" />
         </n-form-item>
         <n-form-item label="新密码" path="newPass">
           <n-input v-model:value="passwordForm.newPass" type="password" placeholder="请输入新密码" />
@@ -228,9 +171,10 @@ const formData = reactive<UserEditInput>({
 
 // 密码表单
 const passwordForm = reactive<UpdatePasswordInput>({
-  oldPass: '',
+  password: '',
   newPass: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  username: ''
 });
 
 // 表格列定义
@@ -456,9 +400,10 @@ const handleDelete = (row: UserEditInput) => {
 
 const handleChangePassword = (row: UserEditInput) => {
   Object.assign(passwordForm, {
-    oldPass: '',
+    password: '',
     newPass: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    username: row.username
   });
   showPasswordModal.value = true;
 };
@@ -491,173 +436,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 登录页面风格的渐变背景色彩 */
-.user-management {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 24px;
-}
+/* 用户管理页面特定样式 */
+/* 大部分样式已提取到 management-page.css 公共样式文件中 */
 
-/* 页面头部 */
-.page-header {
-  margin-bottom: 24px;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 24px 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.header-left {
-  flex: 1;
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.title-icon {
-  margin-right: 12px;
-  color: #667eea;
-}
-
-.page-description {
-  margin: 0;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.add-btn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-  border-radius: 12px;
-  padding: 0 24px;
-  height: 44px;
-  font-weight: 500;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-}
-
-.add-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-/* 搜索卡片 */
-.search-card {
-  margin-bottom: 24px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.search-form {
-  padding: 8px;
-}
-
-.search-input {
-  width: 200px;
-}
-
-/* 表格卡片 */
-.table-card {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.user-table {
-  border-radius: 12px;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .user-management {
-    padding: 16px;
-  }
-
-  .header-content {
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
-  }
-
-  .page-title {
-    font-size: 24px;
-  }
-
-  .search-input {
-    width: 100%;
-  }
-}
-
-/* 动画效果 */
-.search-card,
-.table-card {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.page-header {
-  animation: fadeInDown 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 表格行悬停效果 */
-:deep(.n-data-table-tbody .n-data-table-tr:hover) {
-  background-color: rgba(102, 126, 234, 0.05);
-}
-
-/* 按钮样式优化 */
-:deep(.n-button--primary-type) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-}
-
-:deep(.n-button--primary-type:hover) {
-  background: linear-gradient(135deg, #5a6fd8, #6a4190);
-}
 </style>
 
