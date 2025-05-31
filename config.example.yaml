@@ -1,0 +1,98 @@
+# 定时任务管理系统配置文件示例
+# 复制此文件为 config.yaml 并修改相应配置
+
+debug: "debug"  # 运行模式: debug, release
+
+http:
+  addr: ":8210"           # 监听地址
+  read_timeout: 10        # 读取超时时间(秒)
+  write_timeout: 10       # 写入超时时间(秒)
+  max_header_bytes: 20    # 最大请求头大小(MB)
+
+swagger:
+  title: "定时任务服务swagger API"
+  desc: "这是一个简单的定时任务执行系统"
+  host: "127.0.0.1:8210"
+  base_path: ""
+
+# CORS跨域配置
+cors:
+  # 允许的域名，多个用逗号分隔，* 表示允许所有域名（生产环境不建议使用）
+  allowed_origins: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8210,http://127.0.0.1:8210"
+
+# 数据库配置
+db:
+  engine: "mysql"
+  host: "127.0.0.1"       # 数据库主机
+  port: 3306              # 数据库端口
+  name: "cronJob"         # 数据库名
+  user: "root"            # 数据库用户名
+  password: "your_password_here"  # 数据库密码，建议使用环境变量 ${DB_PASSWORD}
+  prefix: "sched_"        # 表前缀
+  
+  # 连接池配置
+  max_idle_conns: 10      # 最大空闲连接数
+  max_open_conns: 100     # 最大打开连接数
+  conn_max_lifetime: 3600 # 连接最大生存时间(秒)
+
+# JWT配置
+jwt:
+  secret: "your_jwt_secret_here"  # JWT密钥，建议使用环境变量 ${JWT_SECRET}
+  expires: 7200                   # 过期时间(秒)
+
+# 任务执行配置
+task:
+  default_timeout: 300        # 默认超时时间(秒)
+  max_retry_times: 3          # 最大重试次数
+
+# 日志配置
+log:
+  level: "info"               # 日志级别: debug, info, warn, error
+  file_path: "logs/app.log"   # 日志文件路径
+  max_size: 100               # 单个日志文件最大大小(MB)
+  max_backups: 10             # 保留的日志文件数量
+  max_age: 30                 # 日志文件保留天数
+  compress: true              # 是否压缩旧日志文件
+
+# 安全配置
+security:
+  # 密码策略
+  password:
+    min_length: 8             # 最小长度
+    require_uppercase: true   # 是否需要大写字母
+    require_lowercase: true   # 是否需要小写字母
+    require_digit: true       # 是否需要数字
+    require_special: false    # 是否需要特殊字符
+  
+  # 登录限制
+  login:
+    max_attempts: 5           # 最大尝试次数
+    lockout_duration: 300     # 锁定时间(秒)
+  
+  # API限流
+  rate_limit:
+    enabled: true             # 是否启用限流
+    requests_per_minute: 100  # 每分钟请求数限制
+
+# 监控配置
+monitoring:
+  enabled: true               # 是否启用监控
+  metrics_path: "/metrics"    # 指标路径
+  health_check_path: "/health" # 健康检查路径
+
+# 通知配置
+notification:
+  # 邮件通知
+  email:
+    enabled: false            # 是否启用邮件通知
+    smtp_host: ""            # SMTP服务器
+    smtp_port: 587           # SMTP端口
+    username: ""             # 邮箱用户名
+    password: ""             # 邮箱密码，建议使用环境变量
+    from: ""                 # 发件人邮箱
+  
+  # Webhook通知
+  webhook:
+    enabled: false            # 是否启用Webhook通知
+    url: ""                  # Webhook URL
+    timeout: 10              # 超时时间(秒)

@@ -3,6 +3,7 @@ package models
 import (
 	"cronJob/internal/schemas"
 	"errors"
+
 	"github.com/gogf/gf/v2/frame/g"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -43,11 +44,12 @@ func (u *User) UpdatePassword(tx *gorm.DB, password string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	u.Password = string(hashedPassword)
-	result := tx.Model(u).Where("id = ?", u.ID).Update("password", password)
+	// 修复：应该更新为加密后的密码
+	result := tx.Model(u).Where("id = ?", u.ID).Update("password", string(hashedPassword))
 	if result.Error != nil {
 		return 0, result.Error
 	}
+	u.Password = string(hashedPassword)
 	return result.RowsAffected, nil
 }
 

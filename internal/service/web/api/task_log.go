@@ -4,6 +4,7 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/schemas"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gogf/gf/v2/frame/g"
 )
@@ -48,6 +49,22 @@ func (s *TaskLogApi) GetTaskLogList(ctx *gin.Context) {
 
 	var result []schemas.TaskLogItemOutput
 	for _, v := range taskLogs {
+		var startTime, endTime string
+		var totalTime int64
+
+		if v.StartTime != nil {
+			startTime = v.StartTime.Format("2006-01-02 15:04:05")
+		}
+		if v.EndTime != nil {
+			endTime = v.EndTime.Format("2006-01-02 15:04:05")
+		}
+		if v.Duration > 0 {
+			totalTime = v.Duration
+		} else if v.StartTime != nil && v.EndTime != nil {
+			// 如果Duration为0，从时间差计算
+			totalTime = v.EndTime.Sub(*v.StartTime).Milliseconds()
+		}
+
 		result = append(result, schemas.TaskLogItemOutput{
 			ID:         v.ID,
 			TaskId:     v.TaskId,
@@ -56,9 +73,9 @@ func (s *TaskLogApi) GetTaskLogList(ctx *gin.Context) {
 			RetryTimes: v.RetryTimes,
 			Status:     v.Status,
 			Result:     v.Result,
-			StartTime:  v.CreatedAt.Format("2006-01-02 15:04:05"),
-			EndTime:    v.UpdatedAt.Format("2006-01-02 15:04:05"),
-			TotalTime:  v.UpdatedAt.Unix() - v.CreatedAt.Unix(),
+			StartTime:  startTime,
+			EndTime:    endTime,
+			TotalTime:  totalTime,
 		})
 	}
 	schemas.ResponseSuccess(ctx, schemas.TaskLogOutput{
@@ -91,13 +108,33 @@ func (s *TaskLogApi) GetTaskLog(ctx *gin.Context) {
 		schemas.ResponseError(ctx, schemas.TaskLogListInvalid, err)
 		return
 	}
+	var startTime, endTime string
+	var totalTime int64
+
+	if taskLog.StartTime != nil {
+		startTime = taskLog.StartTime.Format("2006-01-02 15:04:05")
+	}
+	if taskLog.EndTime != nil {
+		endTime = taskLog.EndTime.Format("2006-01-02 15:04:05")
+	}
+	if taskLog.Duration > 0 {
+		totalTime = taskLog.Duration
+	} else if taskLog.StartTime != nil && taskLog.EndTime != nil {
+		// 如果Duration为0，从时间差计算
+		totalTime = taskLog.EndTime.Sub(*taskLog.StartTime).Milliseconds()
+	}
+
 	schemas.ResponseSuccess(ctx, schemas.TaskLogItemOutput{
 		ID:         taskLog.ID,
 		TaskId:     taskLog.TaskId,
+		TaskName:   taskLog.TaskName,
+		Protocol:   taskLog.Protocol,
 		RetryTimes: taskLog.RetryTimes,
 		Status:     taskLog.Status,
 		Result:     taskLog.Result,
-		TotalTime:  taskLog.UpdatedAt.Unix() - taskLog.CreatedAt.Unix(),
+		StartTime:  startTime,
+		EndTime:    endTime,
+		TotalTime:  totalTime,
 	})
 }
 

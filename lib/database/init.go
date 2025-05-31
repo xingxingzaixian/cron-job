@@ -3,12 +3,14 @@ package database
 import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"gorm.io/gorm/schema"
 	"log"
 	"os"
 	"time"
+
+	"github.com/spf13/viper"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 )
 
 type Database interface {
@@ -40,6 +42,17 @@ func InitDB(prefix string) {
 	if err != nil {
 		panic(err)
 	}
+
+	// 配置数据库连接池
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
+
+	// 设置连接池参数
+	sqlDB.SetMaxIdleConns(viper.GetInt("db.max_idle_conns"))
+	sqlDB.SetMaxOpenConns(viper.GetInt("db.max_open_conns"))
+	sqlDB.SetConnMaxLifetime(time.Duration(viper.GetInt("db.conn_max_lifetime")) * time.Second)
 
 	db.AutoMigrate(&models.Task{}, &models.TaskLog{}, &models.User{}, &models.Role{})
 	global.GormDB = db

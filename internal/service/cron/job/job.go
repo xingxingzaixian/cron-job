@@ -5,11 +5,11 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/handler"
-	"fmt"
+	"time"
+
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcron"
 	"go.uber.org/zap"
-	"time"
 )
 
 func createHandler(taskModel *models.Task) handler.Handler {
@@ -37,6 +37,7 @@ func CreateJob(taskModel models.Task) gcron.JobFunc {
 	}
 
 	return func(ctx context.Context) {
+		startTime := time.Now()
 		taskLogId := beforeExecJob(&taskModel)
 		if taskLogId <= 0 {
 			return
@@ -45,7 +46,7 @@ func CreateJob(taskModel models.Task) gcron.JobFunc {
 		zap.S().Infof("开始执行任务#%s#命令-%s", taskModel.Name, taskModel.Command)
 		taskResult := execJob(hdler, &taskModel, taskLogId)
 		zap.S().Infof("任务完成#%s#命令-%s", taskModel.Name, taskModel.Command)
-		afterExecJob(&taskModel, taskResult, taskLogId)
+		afterExecJob(&taskModel, taskResult, taskLogId, startTime)
 	}
 }
 
@@ -100,27 +101,31 @@ func execJob(handler handler.Handler, taskModel *models.Task, taskUniqueId uint)
 }
 
 // 任务执行后置操作
-func afterExecJob(taskModel *models.Task, taskResult global.TaskResult, taskLogId uint) {
-	_, err := updateTaskLog(taskLogId, taskResult)
+func afterExecJob(taskModel *models.Task, taskResult global.TaskResult, taskLogId uint, startTime time.Time) {
+	_, err := updateTaskLog(taskLogId, taskResult, startTime)
 	if err != nil {
 		zap.S().Error("任务结束#更新任务日志失败-", err)
 	}
 }
 
 func createTaskLog(taskModel *models.Task, status global.TaskStatus) (insertId uint, err error) {
-	fmt.Printf("1111111111111111111111: %+v\n", taskModel)
+	now := time.Now()
 	taskLogModel := new(models.TaskLog)
 	taskLogModel.TaskId = taskModel.ID
 	taskLogModel.TaskName = taskModel.Name
 	taskLogModel.Protocol = taskModel.Protocol
 	taskLogModel.RetryTimes = taskModel.RetryTimes
 	taskLogModel.Status = status
+	taskLogModel.StartTime = &now
 	insertId, err = taskLogModel.Create()
+	if err != nil {
+		zap.S().Errorf("创建任务日志失败: taskId=%d, error=%v", taskModel.ID, err)
+	}
 	return
 }
 
 // 更新任务日志
-func updateTaskLog(taskLogId uint, taskResult global.TaskResult) (int64, error) {
+func updateTaskLog(taskLogId uint, taskResult global.TaskResult, startTime time.Time) (int64, error) {
 	taskLogModel := new(models.TaskLog)
 	var status global.TaskStatus
 	var result string
@@ -132,9 +137,14 @@ func updateTaskLog(taskLogId uint, taskResult global.TaskResult) (int64, error) 
 		result = taskResult.Result
 	}
 
+	endTime := time.Now()
+	duration := endTime.Sub(startTime).Milliseconds()
+
 	return taskLogModel.Update(taskLogId, g.Map{
 		"retry_times": taskResult.RetryTimes,
 		"status":      status,
 		"result":      result,
+		"end_time":    endTime,
+		"duration":    duration,
 	})
 }

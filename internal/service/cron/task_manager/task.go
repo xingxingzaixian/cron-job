@@ -4,14 +4,15 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/job"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcron"
 	"github.com/gogf/gf/v2/os/gctx"
 	"go.uber.org/zap"
-	"strconv"
-	"sync"
-	"time"
 )
 
 var TaskManager = NewTaskManager()
@@ -81,11 +82,11 @@ func (t *tTaskManager) AddTask(taskModel *models.Task) error {
 	taskFunc := job.CreateJob(*taskModel)
 	if taskFunc == nil {
 		zap.S().Error("创建任务处理Job失败,不支持的任务协议#", taskModel.Protocol)
-		return gerror.Newf("创建任务处理Job失败,不支持的任务协议#", taskModel.Protocol)
+		return gerror.Newf("创建任务处理Job失败,不支持的任务协议#%v", taskModel.Protocol)
 	}
 
 	cronName := strconv.Itoa(int(taskModel.ID))
-	zap.S().Infof("添加定时任务-%d", taskModel.ID, taskModel.Name, taskModel.Policy)
+	zap.S().Infof("添加定时任务-%d, 名称:%s, 策略:%v", taskModel.ID, taskModel.Name, taskModel.Policy)
 	var err error
 	var cronJob *gcron.Entry
 	switch taskModel.Policy {
@@ -147,5 +148,8 @@ func (t *tTaskManager) UpdateTask(taskModel *models.Task) {
 }
 
 func (t *tTaskManager) WaitAndExit() {
-	t.cron.Stop()
+	if t.cron != nil {
+		t.cron.Stop()
+		zap.S().Info("定时任务调度器已停止")
+	}
 }
