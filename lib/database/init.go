@@ -2,19 +2,20 @@ package database
 
 import (
 	"cronJob/internal/global"
-	"cronJob/internal/models"
+	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 
 type Database interface {
-	Create(option *gorm.Config) *gorm.DB
+	Create(option *gorm.Config) (*gorm.DB, error)
 }
 
 func InitDB(prefix string) {
@@ -37,10 +38,26 @@ func InitDB(prefix string) {
 		},
 	}
 
-	sql := MySqlDB{}
-	db, err := sql.Create(&option)
+	// 使用工厂模式创建数据库实例
+	factory := &DatabaseFactory{}
+
+	// 验证配置
+	if err := factory.ValidateConfig(); err != nil {
+		panic(fmt.Sprintf("数据库配置验证失败: %v", err))
+	}
+
+	// 创建数据库实例
+	database, err := factory.CreateDatabase()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("创建数据库实例失败: %v", err))
+	}
+
+	// 显示连接信息
+	zap.S().Infof("正在连接数据库: %s", factory.GetConnectionInfo())
+
+	db, err := database.Create(&option)
+	if err != nil {
+		panic(fmt.Sprintf("数据库连接失败: %v", err))
 	}
 
 	// 配置数据库连接池
@@ -50,10 +67,44 @@ func InitDB(prefix string) {
 	}
 
 	// 设置连接池参数
-	sqlDB.SetMaxIdleConns(viper.GetInt("db.max_idle_conns"))
-	sqlDB.SetMaxOpenConns(viper.GetInt("db.max_open_conns"))
-	sqlDB.SetConnMaxLifetime(time.Duration(viper.GetInt("db.conn_max_lifetime")) * time.Second)
+	maxIdleConns := viper.GetInt("db.max_idle_conns")
+	maxOpenConns := viper.GetInt("db.max_open_conns")
+	connMaxLifetime := viper.GetInt("db.conn_max_lifetime")
 
-	db.AutoMigrate(&models.Task{}, &models.TaskLog{}, &models.User{}, &models.Role{})
+	if maxIdleConns <= 0 {
+		maxIdleConns = 10
+	}
+	if maxOpenConns <= 0 {
+		maxOpenConns = 100
+	}
+	if connMaxLifetime <= 0 {
+		connMaxLifetime = 3600
+	}
+
+	sqlDB.SetMaxIdleConns(maxIdleConns)
+	sqlDB.SetMaxOpenConns(maxOpenConns)
+	sqlDB.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Second)
+
+	zap.S().Infof("数据库连接池配置: MaxIdle=%d, MaxOpen=%d, MaxLifetime=%ds",
+		maxIdleConns, maxOpenConns, connMaxLifetime)
+
+	// 使用迁移管理器执行数据库迁移
+	migrationManager := NewMigrationManager(db)
+
+	// 检查数据库版本
+	if err := migrationManager.CheckDatabaseVersion(); err != nil {
+		zap.S().Warnf("检查数据库版本失败: %v", err)
+	}
+
+	// 执行自动迁移
+	if err := migrationManager.AutoMigrate(); err != nil {
+		panic(fmt.Sprintf("数据库迁移失败: %v", err))
+	}
+
+	// 创建初始数据
+	if err := migrationManager.CreateInitialData(); err != nil {
+		zap.S().Warnf("创建初始数据失败: %v", err)
+	}
+
 	global.GormDB = db
 }

@@ -30,7 +30,9 @@
 
 ### 环境要求
 - Go 1.21+
-- MySQL 5.7+
+- 数据库支持：
+  - MySQL 5.7+ / 8.0+
+  - PostgreSQL 12+
 - Node.js 16+ (前端开发)
 
 ### 安装部署
@@ -42,8 +44,15 @@
    ```
 
 2. **配置数据库**
+
+   **MySQL:**
    ```sql
    CREATE DATABASE cronJob CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   ```
+
+   **PostgreSQL:**
+   ```sql
+   CREATE DATABASE cronJob WITH ENCODING 'UTF8';
    ```
 
 3. **配置文件**
@@ -52,14 +61,47 @@
    # 编辑 config.yaml 配置数据库连接等信息
    ```
 
-4. **编译运行**
+   **MySQL配置示例:**
+   ```yaml
+   db:
+     engine: "mysql"
+     host: "127.0.0.1"
+     port: 3306
+     name: "cronJob"
+     user: "root"
+     password: "your_password"
+   ```
+
+   **PostgreSQL配置示例:**
+   ```yaml
+   db:
+     engine: "postgresql"
+     host: "127.0.0.1"
+     port: 5432
+     name: "cronJob"
+     user: "postgres"
+     password: "your_password"
+   ```
+
+4. **测试数据库连接**
+   ```bash
+   # 运行所有数据库测试
+   go test ./lib/database -v
+
+   # 或运行特定测试
+   go test ./lib/database -v -run TestDatabaseConnection
+   go test ./lib/database -v -run TestDatabaseFactory
+   go test ./lib/database -v -run TestDatabaseConfigValidation
+   ```
+
+5. **编译运行**
    ```bash
    go mod tidy
    go build -o cronJob main.go
    ./cronJob
    ```
 
-5. **访问系统**
+6. **访问系统**
    - 管理界面: http://localhost:8210/admin
    - API文档: http://localhost:8210/swagger/index.html
 

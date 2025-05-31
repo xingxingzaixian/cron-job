@@ -22,18 +22,32 @@ cors:
 
 # 数据库配置
 db:
+  # 数据库类型: mysql, postgresql (或 postgres)
   engine: "mysql"
   host: "127.0.0.1"       # 数据库主机
-  port: 3306              # 数据库端口
+  port: 3306              # 数据库端口 (MySQL: 3306, PostgreSQL: 5432)
   name: "cronJob"         # 数据库名
   user: "root"            # 数据库用户名
   password: "your_password_here"  # 数据库密码，建议使用环境变量 ${DB_PASSWORD}
   prefix: "sched_"        # 表前缀
-  
+
   # 连接池配置
   max_idle_conns: 10      # 最大空闲连接数
   max_open_conns: 100     # 最大打开连接数
   conn_max_lifetime: 3600 # 连接最大生存时间(秒)
+
+# PostgreSQL 配置示例
+# db:
+#   engine: "postgresql"
+#   host: "127.0.0.1"
+#   port: 5432
+#   name: "cronJob"
+#   user: "postgres"
+#   password: "your_password_here"
+#   prefix: "sched_"
+#   max_idle_conns: 10
+#   max_open_conns: 100
+#   conn_max_lifetime: 3600
 
 # JWT配置
 jwt:
