@@ -1,10 +1,9 @@
-import type { RouteRecordRaw, RouteLocationNormalized, NavigationGuardNext } from 'vue-router';
+import type { RouteRecordRaw, RouteLocationNormalized, NavigationGuardNext , Router, RouterHistory } from 'vue-router';
 import { useTitle } from '@vueuse/core';
 import { $t } from '@/locales';
-import { Router, createRouter, createWebHashHistory, RouterHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import { loadingBar } from '@/utils/message';
 import useUserStore from '@/store/modules/user';
-import { LOGIN_URL } from '@/enum';
 import type { AppRouteRecordRaw } from './types';
 
 class RouteView {
@@ -12,20 +11,30 @@ class RouteView {
   private router: Router | unknown = undefined;
   private staticRoutes: AppRouteRecordRaw[] = [];
 
-  constructor() {
+  public constructor() {
     this.createBasicRoutes();
     this.router = this.createRouter();
     this.beforeRouteChange();
     this.afterRouteChange();
   }
 
+  // 获取路由对象
+  public getRouter(): Router {
+    return this.router as Router;
+  }
+
+  public getRoutes() {
+    return this.staticRoutes;
+  }
+  
   // 根据环境变量中的配置生成路由模式
-  static createHistory = (): RouterHistory => {
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  private static createHistory = (): RouterHistory => {
     return createWebHashHistory();
   };
 
   // 动态获取 modules 目录下的所有 .ts 文件生成基础路由
-  createBasicRoutes = () => {
+  private createBasicRoutes = () => {
     const moduleFiles: { [key: string]: any } = import.meta.glob('./modules/**/*.ts', { eager: true });
     const routeModuleList: RouteRecordRaw[] = [];
     Object.keys(moduleFiles).forEach((key) => {
@@ -38,7 +47,7 @@ class RouteView {
   };
 
   // 创建路由对象
-  createRouter(): Router {
+  private createRouter(): Router {
     return createRouter({
       history: RouteView.createHistory(),
       routes: this.staticRoutes,
@@ -98,20 +107,11 @@ class RouteView {
 
   private toLogin(to: RouteLocationNormalized, next: NavigationGuardNext): void {
     next({
-      path: LOGIN_URL,
+      name: 'Login',
       query: {
         redirect: to.fullPath
       }
     });
-  }
-
-  // 获取路由对象
-  public getRouter(): Router {
-    return this.router as Router;
-  }
-
-  public getRoutes() {
-    return this.staticRoutes;
   }
 }
 
