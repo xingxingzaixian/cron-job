@@ -7,9 +7,10 @@ export interface UserEditInput {
   id?: number;
   username: string;
   nickname: string;
-  password: string;
+  password?: string;
   email?: string;
-  role: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface LoginOutput {
@@ -17,15 +18,26 @@ export interface LoginOutput {
   user: UserEditInput;
 }
 
-export interface RoleItem {
-  id: number;
-  is_super: number;
-  key: string;
-  name: string;
-  status: string;
+export interface UserList {
+  total: number;
+  list: UserEditInput[];
 }
 
-export interface RoleList {
-  total: number;
-  list: RoleItem[];
+export interface SearchUserParams {
+  pageNo: number;
+  pageSize: number;
+  name?: string;
+  username?: string;
+  email?: string;
+  id?: number;
+}
+
+export interface DelUserParams {
+  id: number;
+}
+
+export interface UpdatePasswordInput {
+  oldPass: string;
+  newPass: string;
+  confirmPassword: string;
 }

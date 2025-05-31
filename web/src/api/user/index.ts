@@ -1,8 +1,17 @@
-import { HttpResult } from '@/types/api';
-import type { LoginInput, LoginOutput, UserEditInput, RoleList } from './model';
+import type { HttpResult } from '@/types/api';
+import type {
+  LoginInput,
+  LoginOutput,
+  UserEditInput,
+  RoleList,
+  UserList,
+  SearchUserParams,
+  DelUserParams,
+  UpdatePasswordInput
+} from './model';
 import apiHttp from '@/request';
 
-// 获取页面数据
+// 登录
 export const fetchLoginApi = async (data: LoginInput): Promise<HttpResult<LoginOutput>> => {
   return apiHttp.post<HttpResult<LoginOutput>>({
     url: '/api/login',
@@ -10,14 +19,56 @@ export const fetchLoginApi = async (data: LoginInput): Promise<HttpResult<LoginO
   });
 };
 
+// 获取当前用户信息
 export const fetchUserInfo = async (): Promise<HttpResult<UserEditInput>> => {
   return apiHttp.get<HttpResult<UserEditInput>>({
     url: '/api/user/info'
   });
 };
 
+// 获取角色列表
 export const fetchRoleList = async (): Promise<HttpResult<RoleList>> => {
   return apiHttp.get<HttpResult<RoleList>>({
     url: '/api/role/list'
+  });
+};
+
+// 获取用户列表
+export const fetchUserList = async (params: SearchUserParams): Promise<HttpResult<UserList>> => {
+  return apiHttp.get<HttpResult<UserList>>({
+    url: '/api/user/list',
+    params
+  });
+};
+
+// 获取用户详情
+export const fetchUserDetail = async (id: number): Promise<HttpResult<UserEditInput>> => {
+  return apiHttp.get<HttpResult<UserEditInput>>({
+    url: '/api/user/view',
+    params: { id }
+  });
+};
+
+// 新增/编辑用户
+export const fetchUserEdit = async (data: UserEditInput): Promise<HttpResult<string>> => {
+  return apiHttp.post<HttpResult<string>>({
+    url: '/api/user/edit',
+    data
+  });
+};
+
+// 删除用户
+export const fetchUserDelete = async (data: DelUserParams): Promise<HttpResult<string>> => {
+  return apiHttp.post<HttpResult<string>>({
+    url: '/api/user/del',
+    data
+  });
+};
+
+// 更新密码
+export const fetchUpdatePassword = async (data: UpdatePasswordInput): Promise<HttpResult<string>> => {
+  return apiHttp.post<HttpResult<string>>({
+    url: '/api/user/update-password',
+    data
   });
 };

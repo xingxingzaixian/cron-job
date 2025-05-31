@@ -1,8 +1,8 @@
 <template>
-  <NSpace vertical>
+  <NSpace vertical class="w-full">
     <!-- define component: ParamsContent -->
     <DefineParamsContent v-slot="{ type, items }">
-      <div class="flex items-center align-middle" v-for="key in Object.keys(items)" :key="key">
+      <div v-for="key in Object.keys(items)" :key="key" class="flex items-center align-middle">
         <NInputGroup>
           <NInput :value="key" />
           <NInput :value="items[key]" />
@@ -33,20 +33,20 @@
       </NInputGroup>
     </NFormItem>
     <NFormItem :show-label="false">
-      <NTabs type="line" animated default-value="header" v-model:value="activedTab">
+      <NTabs v-model:value="activedTab" type="line" animated default-value="header">
         <NTabPane name="header" :tab="$t('http.header')">
           <ParamsContent :items="form.headers" type="headers" />
         </NTabPane>
         <NTabPane name="query" :tab="$t('http.query')"> <ParamsContent :items="form.query" type="query" /></NTabPane>
         <NTabPane v-if="model.method.toUpperCase() === 'POST'" name="data" :tab="$t('http.data')">
-          <ParamsContent :items="form.data" type="data"
-        /></NTabPane>
+          <ParamsContent :items="form.data" type="data" />
+        </NTabPane>
       </NTabs>
     </NFormItem>
   </NSpace>
 </template>
 
-<script lang="tsx" setup>
+<script setup lang="ts">
 import { $t } from '@/locales';
 import { reactive, watch, ref } from 'vue';
 import type { SelectOption } from 'naive-ui';
@@ -58,9 +58,7 @@ const props = defineProps<{
   params: string;
 }>();
 
-const emit = defineEmits<{
-  (e: 'update', command: string, params: string): void;
-}>();
+const emit = defineEmits<(e: 'update', command: string, params: string) => void>();
 
 interface ParamsContentProps {
   type: 'headers' | 'query' | 'data';
@@ -146,7 +144,6 @@ const onChange = () => {
 };
 
 const changeData = () => {
-  console.log(322323, model.url);
   if (!model.url.trim().startsWith('http://')) {
     model.url = `http://${model.url}`;
   }

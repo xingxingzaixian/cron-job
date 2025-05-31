@@ -110,17 +110,8 @@ func TestDatabaseConnection(t *testing.T) {
 	t.Logf("  - 使用中连接数: %d", stats.InUse)
 	t.Logf("  - 空闲连接数: %d", stats.Idle)
 
-	// 检查数据库版本
-	t.Log("5. 检查数据库版本...")
-	migrationManager := NewMigrationManager(gormDB)
-	if err := migrationManager.CheckDatabaseVersion(); err != nil {
-		t.Logf("检查数据库版本失败: %v", err)
-	} else {
-		t.Log("✓ 数据库版本检查完成")
-	}
-
 	// 测试基本查询
-	t.Log("6. 测试基本查询...")
+	t.Log("5. 测试基本查询...")
 	var result struct {
 		Count int
 	}
@@ -138,7 +129,7 @@ func TestDatabaseConnection(t *testing.T) {
 	t.Log("✓ 基本查询成功")
 
 	// 关闭连接
-	t.Log("7. 关闭数据库连接...")
+	t.Log("6. 关闭数据库连接...")
 	if err := sqlDB.Close(); err != nil {
 		t.Logf("关闭数据库连接失败: %v", err)
 	} else {

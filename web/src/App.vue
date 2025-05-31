@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { NConfigProvider, NGlobalStyle } from 'naive-ui';
+import { NConfigProvider, NGlobalStyle, NMessageProvider, NDialogProvider, NNotificationProvider } from 'naive-ui';
 import useAppStore from './store/modules/app';
 import useThemeStore from './store/modules/theme';
 import { naiveDateLocales, naiveLocales } from './locales';
@@ -33,7 +33,13 @@ const naiveDateLocale = computed(() => {
     class="h-full"
   >
     <n-global-style />
-    <RouterView class="bg-layout" />
+    <n-message-provider>
+      <n-dialog-provider>
+        <n-notification-provider>
+          <RouterView class="bg-layout" />
+        </n-notification-provider>
+      </n-dialog-provider>
+    </n-message-provider>
   </n-config-provider>
 </template>
 

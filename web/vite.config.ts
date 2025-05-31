@@ -60,7 +60,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
           replacement: resolve(__dirname, 'src') + '/'
         }
       ],
-      extensions: ['.ts', '.js', '.jsx', '.tsx']
+      extensions: ['.vue', '.ts', '.js', '.jsx', '.tsx']
     },
     server: {
       https: false,

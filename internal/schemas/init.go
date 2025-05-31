@@ -3,11 +3,12 @@ package schemas
 import (
 	"cronJob/internal/global"
 	"errors"
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	"net/http"
-	"strings"
 )
 
 type Validatable interface {
@@ -128,10 +129,6 @@ const (
 	UserUpdateFailed
 	UserCreateFailed
 	UserDeleteFailed
-
-	RoleCreateFailed
-	RoleListFailed
-	RoleNotExist
 
 	LoginParamInvalid
 )

@@ -5,6 +5,7 @@ import (
 	"cronJob/internal/models"
 	"cronJob/internal/schemas"
 	"errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gogf/gf/v2/frame/g"
 )
@@ -56,7 +57,6 @@ func (u *UserApi) GetList(c *gin.Context) {
 			UserName: item.UserName,
 			NickName: item.NickName,
 			Email:    item.Email,
-			Role:     item.Role.ID,
 		})
 	}
 
@@ -105,14 +105,6 @@ func (u *UserApi) EditUser(c *gin.Context) {
 		user.Email = params.Email
 		user.Password = params.Password
 
-		// 设置默认角色
-		role := models.Role{}
-		if err := role.FindOne(global.GormDB, g.Map{"id": params.Role}); err != nil {
-			tx.Rollback()
-			schemas.ResponseError(c, schemas.RoleNotExist, err)
-			return
-		}
-		user.Role = role
 		_, err := user.Create(tx)
 		if err != nil {
 			tx.Rollback()
@@ -151,7 +143,6 @@ func (u *UserApi) GetMyInfo(ctx *gin.Context) {
 		UserName: user.UserName,
 		NickName: user.NickName,
 		Email:    user.Email,
-		Role:     user.Role.ID,
 	})
 }
 

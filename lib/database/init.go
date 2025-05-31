@@ -2,6 +2,7 @@ package database
 
 import (
 	"cronJob/internal/global"
+	"cronJob/internal/models"
 	"fmt"
 	"log"
 	"os"
@@ -88,23 +89,6 @@ func InitDB(prefix string) {
 	zap.S().Infof("数据库连接池配置: MaxIdle=%d, MaxOpen=%d, MaxLifetime=%ds",
 		maxIdleConns, maxOpenConns, connMaxLifetime)
 
-	// 使用迁移管理器执行数据库迁移
-	migrationManager := NewMigrationManager(db)
-
-	// 检查数据库版本
-	if err := migrationManager.CheckDatabaseVersion(); err != nil {
-		zap.S().Warnf("检查数据库版本失败: %v", err)
-	}
-
-	// 执行自动迁移
-	if err := migrationManager.AutoMigrate(); err != nil {
-		panic(fmt.Sprintf("数据库迁移失败: %v", err))
-	}
-
-	// 创建初始数据
-	if err := migrationManager.CreateInitialData(); err != nil {
-		zap.S().Warnf("创建初始数据失败: %v", err)
-	}
-
+	db.AutoMigrate(&models.User{}, &models.Task{}, &models.TaskLog{})
 	global.GormDB = db
 }

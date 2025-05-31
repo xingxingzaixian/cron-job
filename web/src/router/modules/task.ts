@@ -15,7 +15,7 @@ const routes: AppRouteRecordRaw[] = [
       {
         path: '/task/list',
         name: 'TaskList',
-        component: () => import('@/views/task/list'),
+        component: () => import('@/views/task/list/index.vue'),
         meta: {
           title: 'route.task_list',
           icon: 'ic:baseline-format-list-bulleted'
@@ -24,7 +24,7 @@ const routes: AppRouteRecordRaw[] = [
       {
         path: '/task/log',
         name: 'TaskLog',
-        component: () => import('@/views/task/log'),
+        component: () => import('@/views/task/log/index.vue'),
         meta: {
           title: 'route.task_log',
           icon: 'material-symbols-light:nest-clock-farsight-analog-outline-rounded'

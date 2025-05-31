@@ -5,13 +5,14 @@ import (
 	"cronJob/internal/service/web/api"
 	middleware2 "cronJob/internal/service/web/middleware"
 	"cronJob/web"
+	"io/fs"
+	"net/http"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"io/fs"
-	"net/http"
 )
 
 func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
@@ -56,11 +57,6 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	userRouter := apiRouter.Group("/user")
 	{
 		api.UserRegister(userRouter)
-	}
-
-	roleRouter := apiRouter.Group("/role")
-	{
-		api.RoleRegister(roleRouter)
 	}
 	return router
 }

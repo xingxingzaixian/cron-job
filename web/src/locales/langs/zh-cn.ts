@@ -34,7 +34,9 @@ const local = {
     exception_500: '服务器错误',
     task_log: '日志',
     task_list: '列表',
-    task: '任务列表'
+    task: '任务列表',
+    user: '用户管理',
+    user_list: '用户列表'
   },
   icon: {
     fullscreenExit: '退出全屏',
@@ -109,6 +111,43 @@ const local = {
         title: '任务执行结果',
         command: '任务命令',
         result: '执行结果'
+      }
+    },
+    user: {
+      list: {
+        title: '用户管理',
+        username: '用户名',
+        nickname: '昵称',
+        email: '邮箱',
+        role: '角色',
+        status: '状态',
+        createTime: '创建时间',
+        updateTime: '更新时间',
+        addUser: '新增用户',
+        editUser: '编辑用户',
+        changePassword: '修改密码',
+        searchPlaceholder: '搜索用户昵称',
+        form: {
+          username: '用户名',
+          nickname: '昵称',
+          email: '邮箱',
+          password: '密码',
+          role: '角色',
+          oldPassword: '原密码',
+          newPassword: '新密码',
+          confirmPassword: '确认密码'
+        }
+      },
+      message: {
+        addSuccess: '用户新增成功',
+        addFailed: '用户新增失败',
+        editSuccess: '用户编辑成功',
+        editFailed: '用户编辑失败',
+        deleteSuccess: '用户删除成功',
+        deleteFailed: '用户删除失败',
+        passwordChangeSuccess: '密码修改成功',
+        passwordChangeFailed: '密码修改失败',
+        confirmDelete: '确认删除该用户吗？'
       }
     }
   },
