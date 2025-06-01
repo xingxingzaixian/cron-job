@@ -1,7 +1,7 @@
 export enum TaskProtocol {
   HTTP = 1,
   Shell = 2,
-  Grpc = 3
+  SSH = 3
 }
 
 export enum TaskPolicy {

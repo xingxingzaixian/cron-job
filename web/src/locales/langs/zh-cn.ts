@@ -22,7 +22,11 @@ const local = {
     search: '搜索',
     reset: '重置',
     save: '保存',
-    close: '关闭'
+    close: '关闭',
+    enable: '启用',
+    disable: '禁用',
+    addSuccess: '新增成功',
+    addFailed: '新增失败'
   },
   route: {
     login: '登陆',
@@ -85,12 +89,19 @@ const local = {
           status: '状态',
           policy: '策略',
           timeout: '超时时间',
+          timeoutUnit: '单位：秒',
           command: '执行命令',
+          config: '协议配置',
           retry_times: '重试次数',
           retry_interval: '重试间隔时间',
           delay: '延时时间(秒)',
           remark: '备注',
-          request: '请求地址'
+          request: '请求地址',
+          shellPlaceholder: '请输入Shell命令...',
+          policyMulti: '并行策略',
+          policyOnce: '单次策略',
+          policySingle: '单例策略',
+          policyTimes: '多次策略'
         }
       },
       log: {
@@ -156,7 +167,7 @@ const local = {
       all: '全部',
       http: 'HTTP',
       shell: 'Shell',
-      grpc: 'Grpc'
+      ssh: 'SSH'
     },
     status: {
       disabled: '禁用',
@@ -192,6 +203,34 @@ const local = {
     header: '请求头',
     query: '参数',
     data: '请求体'
+  },
+  ssh: {
+    connection: 'SSH连接',
+    connectionConfig: 'SSH连接配置',
+    host: '主机地址',
+    hostPlaceholder: '请输入服务器IP或域名',
+    port: '端口',
+    username: '用户名',
+    usernamePlaceholder: '请输入SSH用户名',
+    authType: '认证方式',
+    passwordAuth: '密码认证',
+    password: '密码',
+    passwordPlaceholder: '请输入SSH密码',
+    mode: '执行模式',
+    sequentialMode: '顺序执行',
+    scriptMode: '脚本执行',
+    commands: '执行命令',
+    commandsConfig: '命令配置',
+    commandsPlaceholder: '请输入要执行的命令，每行一个命令\n支持注释（以#开头）\n\n示例：\nwhoami\npwd\nls -la\n# 这是注释\ndf -h',
+    commandsHelp: '提示：每行一个命令，支持注释（#开头），空行会被忽略',
+    testConnection: '测试连接',
+    showExample: '加载示例',
+    configPreview: '配置预览',
+    fillRequiredFields: '请填写必填字段',
+    fillAuthInfo: '请填写认证信息（密码或私钥）',
+    connectionSuccess: 'SSH连接测试成功',
+    connectionFailed: 'SSH连接测试失败',
+    exampleLoaded: '示例配置已加载'
   }
 };
 
