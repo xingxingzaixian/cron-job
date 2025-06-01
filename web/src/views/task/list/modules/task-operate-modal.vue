@@ -287,8 +287,8 @@ async function handleSubmit() {
 async function getTaskData() {
   if (props.operateType === 'edit' && props.dataId) {
     try {
-      const data = await fetchTaskView(props.dataId);
-      Object.assign(model, data);
+      const res = await fetchTaskView(props.dataId);
+      Object.assign(model, res.data);
     } catch (error) {
       console.error('获取任务数据失败:', error);
     }

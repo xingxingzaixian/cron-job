@@ -60,11 +60,11 @@ func (h *SSHHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, err
 
 	// 创建SSH客户端
 	client := sshclient.NewSSHClient(&sshclient.SSHConfig{
-		Host:       sshConfig.Host,
-		Port:       sshConfig.Port,
-		Username:   sshConfig.Username,
-		Password:   sshConfig.Password,
-		Timeout:    global.SSHConnTimeout,
+		Host:     sshConfig.Host,
+		Port:     sshConfig.Port,
+		Username: sshConfig.Username,
+		Password: sshConfig.Password,
+		Timeout:  global.SSHConnTimeout,
 	})
 
 	// 建立连接
@@ -182,7 +182,7 @@ func (h *SSHHandler) executeSequentially(ctx context.Context, client *sshclient.
 	// 格式化输出结果
 	var results []string
 	for i, output := range outputs {
-		result := fmt.Sprintf("=== 命令 %d: %s ===\n%s", i+1, commands[i], strings.TrimSpace(output))
+		result := fmt.Sprintf("~# %d: %s \n%s", i+1, commands[i], strings.TrimSpace(output))
 		results = append(results, result)
 	}
 
@@ -212,11 +212,11 @@ func TestSSHConnection(config *SSHConfig, commands []string) error {
 	}
 
 	client := sshclient.NewSSHClient(&sshclient.SSHConfig{
-		Host:       config.Host,
-		Port:       config.Port,
-		Username:   config.Username,
-		Password:   config.Password,
-		Timeout:    global.SSHConnTimeout,
+		Host:     config.Host,
+		Port:     config.Port,
+		Username: config.Username,
+		Password: config.Password,
+		Timeout:  global.SSHConnTimeout,
 	})
 
 	if err := client.Connect(); err != nil {
@@ -240,7 +240,7 @@ func GetSSHConfigExample() (string, string) {
 		Port:     22,
 		Username: "root",
 		Password: "your_password", // 或者使用私钥认证
-		Mode: "sequential", // 或 "script"
+		Mode:     "sequential",    // 或 "script"
 	}
 
 	configData, _ := json.MarshalIndent(configExample, "", "  ")

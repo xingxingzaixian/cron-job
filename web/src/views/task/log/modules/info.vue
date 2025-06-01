@@ -10,12 +10,6 @@
     <NCard bordered embedded class="mb-4 command-card">
       <div class="command-header">
         <span class="command-type">{{ getProtocolName(props.taskItem?.protocol) }}</span>
-        <NButton size="small" quaternary @click="copyToClipboard(request, 'command')">
-          <template #icon>
-            <SvgIcon icon="material-symbols:content-copy" />
-          </template>
-          复制
-        </NButton>
       </div>
       <VueJsonPretty
         v-if="props.taskItem?.protocol === TaskProtocol.HTTP"
@@ -38,12 +32,6 @@
           <NBadge :type="getResultType()" :value="getResultStatus()" class="status-badge" />
           <span class="result-lines">{{ getLineCount() }} 行</span>
         </div>
-        <NButton size="small" quaternary @click="copyToClipboard(result, 'result')">
-          <template #icon>
-            <SvgIcon icon="material-symbols:content-copy" />
-          </template>
-          复制
-        </NButton>
       </div>
       <VueJsonPretty
         v-if="props.taskItem?.protocol === TaskProtocol.HTTP"
@@ -57,7 +45,7 @@
       <div v-else class="result-display">
         <div class="result-content-wrapper">
           <div class="line-numbers">
-            <div v-for="(line, index) in getResultLines()" :key="index" class="line-number">
+            <div v-for="(_line, index) in getResultLines()" :key="index" class="line-number">
               {{ index + 1 }}
             </div>
           </div>
@@ -80,6 +68,7 @@ import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import { message } from '@/utils/message';
 import SvgIcon from '@/components/custom/SvgIcon.vue';
+import { useClipboard } from '@vueuse/core';
 
 const props = defineProps<{
   show: boolean;
@@ -95,6 +84,9 @@ const updateValue = (value: boolean) => {
 const result = ref({});
 const request = ref({});
 
+// 使用 VueUse 的 useClipboard hook
+const { copy, text, isSupported } = useClipboard();
+
 // 获取协议名称
 const getProtocolName = (protocol?: number) => {
   switch (protocol) {
@@ -106,17 +98,6 @@ const getProtocolName = (protocol?: number) => {
       return 'SSH';
     default:
       return 'Unknown';
-  }
-};
-
-// 复制到剪贴板
-const copyToClipboard = async (content: any, type: string) => {
-  try {
-    const text = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-    await navigator.clipboard.writeText(text);
-    message.success(`${type === 'command' ? '命令' : '结果'}已复制到剪贴板`);
-  } catch (err) {
-    message.error('复制失败');
   }
 };
 
