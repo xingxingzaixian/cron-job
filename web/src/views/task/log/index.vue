@@ -139,7 +139,7 @@ const { columns, data, loading, pagination, updateSearchParams, resetSearchParam
           ) : row.protocol === TaskProtocol.Shell ? (
             <span>Shell</span>
           ) : (
-            <span>Grpc</span>
+            <span>Ssh</span>
           )}
         </div>
       )

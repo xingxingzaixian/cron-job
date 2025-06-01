@@ -25,14 +25,14 @@
     </DefineParamsContent>
     <!-- define component: ParamsContent -->
 
-    <NFormItem :label="$t('page.task.list.form.request')" path="request">
+    <NFormItem path="request" :show-label="false" :show-feedback="false">
       <NInputGroup>
         <NSelect :style="{ width: '27%' }" :value="model.method" :options="options" :on-update:value="onSelectChange" />
         <NInputGroupLabel>http://</NInputGroupLabel>
         <NInput v-model:value="model.url" :on-change="onChange" />
       </NInputGroup>
     </NFormItem>
-    <NFormItem :show-label="false">
+    <NFormItem :show-label="false" :show-feedback="false">
       <NTabs v-model:value="activedTab" type="line" animated default-value="header">
         <NTabPane name="header" :tab="$t('http.header')">
           <ParamsContent :items="form.headers" type="headers" />

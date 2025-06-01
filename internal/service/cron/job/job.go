@@ -17,10 +17,10 @@ func createHandler(taskModel *models.Task) handler.Handler {
 	switch taskModel.Protocol {
 	case global.TaskProtocolHttp:
 		h = new(handler.HTTPHandler)
-	case global.TaskProtocolGrpc:
-		h = new(handler.RPCHandler)
 	case global.TaskProtocolShell:
 		h = new(handler.SHELLHandler)
+	case global.TaskProtocolSSH:
+		h = new(handler.SSHHandler)
 	}
 
 	return h

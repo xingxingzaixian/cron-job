@@ -13,7 +13,7 @@ const (
 const (
 	TaskProtocolHttp  TaskProtocol = 1
 	TaskProtocolShell TaskProtocol = 2
-	TaskProtocolGrpc  TaskProtocol = 3
+	TaskProtocolSSH   TaskProtocol = 3
 )
 
 const (

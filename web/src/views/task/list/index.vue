@@ -57,9 +57,9 @@
       />
     </n-card>
 
-    <!-- 抽屉组件 -->
-    <TaskOperateDrawer
-      v-model:visible="drawerVisible"
+    <!-- 弹框组件 -->
+    <TaskOperateModal
+      v-model:visible="modalVisible"
       :operate-type="operateType"
       :dataId="dataId"
       @submitted="getData"
@@ -74,7 +74,7 @@ import { message } from '@/utils/message';
 import { useBoolean, useTable } from '@/hooks';
 import TableSearch from './modules/task-search.vue';
 import TableHeaderOperation from '@/components/custom/TableHeaderOperation.vue';
-import TaskOperateDrawer, { type OperateType } from './modules/task-operate-drawer.vue';
+import TaskOperateModal, { type OperateType } from './modules/task-operate-modal.vue';
 import { fetchTaskList, fetchTaskOp } from '@/api/task';
 import type { SearchTaskResponse, QueryTask, TaskItemOutput } from '@/api/task/types';
 import { NButton, NPopconfirm, NSwitch } from 'naive-ui';
@@ -85,7 +85,7 @@ defineOptions({ name: 'TaskList' });
 
 const checkedRowKeys = ref<string[]>([]);
 const dataId = ref<number>(0);
-const { bool: drawerVisible, setTrue: openDrawer } = useBoolean();
+const { bool: modalVisible, setTrue: openModal } = useBoolean();
 
 const { columns, filteredColumns, data, loading, pagination, updateSearchParams, resetSearchParams, getData } =
   useTable<SearchTaskResponse, QueryTask>({
@@ -122,22 +122,19 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
         key: 'id',
         title: '任务ID',
         align: 'center',
-        width: 100
+        width: 70,
       },
       {
         key: 'name',
         title: $t('page.task.list.name'),
-        minWidth: 100
       },
       {
         key: 'tag',
         title: $t('page.task.list.tag'),
-        minWidth: 100
       },
       {
         key: 'spec',
         title: $t('page.task.list.spec'),
-        minWidth: 100
       },
       {
         key: 'protocol',
@@ -150,7 +147,7 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
             ) : row.protocol === TaskProtocol.Shell ? (
               <span>Shell</span>
             ) : (
-              <span>Grpc</span>
+              <span>Ssh</span>
             )}
           </div>
         )
@@ -172,7 +169,7 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
         key: 'operate',
         title: $t('common.operate'),
         align: 'center',
-        width: 200,
+        width: 300,
         render: (row: any) => (
           <div class="flex items-center justify-center gap-8px">
             <NButton type="primary" ghost size="small" class="mr-4px" onClick={() => handleEdit(row.id)}>
@@ -218,7 +215,7 @@ async function handleBatchDelete() {
 function handleEdit(id: number) {
   operateType.value = 'edit';
   dataId.value = id;
-  openDrawer();
+  openModal();
 }
 
 async function handleDelete(id: number) {
@@ -275,7 +272,7 @@ const reset = () => {
 const operateType = ref<OperateType>('add');
 function handleAdd() {
   operateType.value = 'add';
-  openDrawer();
+  openModal();
 }
 
 // 动态计算表格高度
