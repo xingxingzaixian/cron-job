@@ -66,9 +66,6 @@ import { TaskProtocol } from '@/enum/task';
 import type { TaskLogItemOutput } from '@/api/task/types';
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
-import { message } from '@/utils/message';
-import SvgIcon from '@/components/custom/SvgIcon.vue';
-import { useClipboard } from '@vueuse/core';
 
 const props = defineProps<{
   show: boolean;
@@ -83,9 +80,6 @@ const updateValue = (value: boolean) => {
 
 const result = ref({});
 const request = ref({});
-
-// 使用 VueUse 的 useClipboard hook
-const { copy, text, isSupported } = useClipboard();
 
 // 获取协议名称
 const getProtocolName = (protocol?: number) => {
