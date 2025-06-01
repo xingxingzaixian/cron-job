@@ -121,6 +121,8 @@ func TestDatabaseConnection(t *testing.T) {
 		err = gormDB.Raw("SELECT 1 as count").Scan(&result).Error
 	case "postgresql", "postgres":
 		err = gormDB.Raw("SELECT 1 as count").Scan(&result).Error
+	case "sqlite", "sqlite3":
+		err = gormDB.Raw("SELECT 1 as count").Scan(&result).Error
 	}
 
 	if err != nil {
@@ -146,7 +148,7 @@ func TestDatabaseFactory(t *testing.T) {
 
 	// 测试支持的数据库引擎
 	engines := factory.GetSupportedEngines()
-	expectedEngines := []string{"mysql", "postgresql", "postgres"}
+	expectedEngines := []string{"mysql", "postgresql", "postgres", "sqlite", "sqlite3"}
 
 	if len(engines) != len(expectedEngines) {
 		t.Errorf("期望支持 %d 种数据库引擎，实际支持 %d 种", len(expectedEngines), len(engines))
@@ -174,6 +176,11 @@ func TestDatabaseFactory(t *testing.T) {
 	postgresPort := factory.GetDefaultPort("postgresql")
 	if postgresPort != 5432 {
 		t.Errorf("PostgreSQL默认端口期望为5432，实际为%d", postgresPort)
+	}
+
+	sqlitePort := factory.GetDefaultPort("sqlite")
+	if sqlitePort != 0 {
+		t.Errorf("SQLite默认端口期望为0，实际为%d", sqlitePort)
 	}
 
 	unknownPort := factory.GetDefaultPort("unknown")
@@ -247,4 +254,165 @@ func TestDatabaseConfigValidation(t *testing.T) {
 	if err := factory.ValidateConfig(); err != nil {
 		t.Errorf("期望有效配置验证通过，但验证失败: %v", err)
 	}
+}
+
+// TestSQLiteDatabase 测试SQLite数据库
+func TestSQLiteDatabase(t *testing.T) {
+	// 保存原始配置
+	originalEngine := viper.GetString("db.engine")
+	originalName := viper.GetString("db.name")
+	originalPath := viper.GetString("db.path")
+	originalDataDir := viper.GetString("db.data_dir")
+
+	// 恢复原始配置
+	defer func() {
+		viper.Set("db.engine", originalEngine)
+		viper.Set("db.name", originalName)
+		viper.Set("db.path", originalPath)
+		viper.Set("db.data_dir", originalDataDir)
+	}()
+
+	t.Log("=== SQLite 数据库测试 ===")
+
+	// 设置SQLite配置
+	viper.Set("db.engine", "sqlite")
+	viper.Set("db.name", "test_cronJob")
+	viper.Set("db.data_dir", "test_data")
+	viper.Set("db.prefix", "test_")
+
+	// 创建工厂
+	factory := &DatabaseFactory{}
+
+	// 验证配置
+	t.Log("1. 验证SQLite配置...")
+	if err := factory.ValidateConfig(); err != nil {
+		t.Fatalf("SQLite配置验证失败: %v", err)
+	}
+	t.Log("✓ SQLite配置验证通过")
+
+	// 创建数据库实例
+	t.Log("2. 创建SQLite数据库实例...")
+	db, err := factory.CreateDatabase()
+	if err != nil {
+		t.Fatalf("创建SQLite数据库实例失败: %v", err)
+	}
+	t.Log("✓ SQLite数据库实例创建成功")
+
+	// 检查类型
+	sqliteDB, ok := db.(*SQLiteDB)
+	if !ok {
+		t.Fatalf("期望得到SQLiteDB实例，实际得到: %T", db)
+	}
+
+	// 配置GORM
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			LogLevel:                  logger.Silent, // 静默模式，减少测试输出
+			IgnoreRecordNotFoundError: true,
+			Colorful:                  false,
+		})
+
+	option := gorm.Config{
+		Logger:                 newLogger,
+		PrepareStmt:            true,
+		SkipDefaultTransaction: true,
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   "test_",
+			SingularTable: true,
+		},
+	}
+
+	// 测试连接
+	t.Log("3. 测试SQLite数据库连接...")
+	gormDB, err := sqliteDB.Create(&option)
+	if err != nil {
+		t.Fatalf("SQLite数据库连接失败: %v", err)
+	}
+	t.Log("✓ SQLite数据库连接成功")
+
+	// 测试数据库信息
+	t.Log("4. 测试数据库信息...")
+	dbInfo := sqliteDB.GetDBInfo()
+	t.Logf("数据库信息: %+v", dbInfo)
+
+	if dbInfo["type"] != "sqlite" {
+		t.Errorf("期望数据库类型为sqlite，实际为: %v", dbInfo["type"])
+	}
+
+	// 检查数据库文件
+	t.Log("5. 检查数据库文件...")
+	if !sqliteDB.CheckDBFile() {
+		t.Error("数据库文件应该存在")
+	}
+
+	// 获取数据库大小
+	size, err := sqliteDB.GetDBSize()
+	if err != nil {
+		t.Errorf("获取数据库大小失败: %v", err)
+	} else {
+		t.Logf("数据库文件大小: %d 字节", size)
+	}
+
+	// 测试基本查询
+	t.Log("6. 测试基本查询...")
+	var result struct {
+		Count int
+	}
+	err = gormDB.Raw("SELECT 1 as count").Scan(&result).Error
+	if err != nil {
+		t.Fatalf("基本查询失败: %v", err)
+	}
+	if result.Count != 1 {
+		t.Errorf("期望查询结果为1，实际为: %d", result.Count)
+	}
+	t.Log("✓ 基本查询成功")
+
+	// 测试表创建
+	t.Log("7. 测试表创建...")
+	type TestTable struct {
+		ID   uint   `gorm:"primaryKey"`
+		Name string `gorm:"size:100"`
+	}
+
+	err = gormDB.AutoMigrate(&TestTable{})
+	if err != nil {
+		t.Fatalf("表创建失败: %v", err)
+	}
+	t.Log("✓ 表创建成功")
+
+	// 测试数据插入和查询
+	t.Log("8. 测试数据操作...")
+	testData := TestTable{Name: "test"}
+	err = gormDB.Create(&testData).Error
+	if err != nil {
+		t.Fatalf("数据插入失败: %v", err)
+	}
+
+	var retrievedData TestTable
+	err = gormDB.First(&retrievedData, "name = ?", "test").Error
+	if err != nil {
+		t.Fatalf("数据查询失败: %v", err)
+	}
+
+	if retrievedData.Name != "test" {
+		t.Errorf("期望查询到的名称为'test'，实际为: %s", retrievedData.Name)
+	}
+	t.Log("✓ 数据操作成功")
+
+	// 关闭连接
+	t.Log("9. 关闭数据库连接...")
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		t.Errorf("获取数据库连接失败: %v", err)
+	} else {
+		if err := sqlDB.Close(); err != nil {
+			t.Errorf("关闭数据库连接失败: %v", err)
+		} else {
+			t.Log("✓ 数据库连接已关闭")
+		}
+	}
+
+	t.Log("=== SQLite 数据库测试完成 ===")
+	t.Log("所有SQLite测试通过！")
 }
