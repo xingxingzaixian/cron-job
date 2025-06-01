@@ -54,7 +54,7 @@
 
 1. **克隆项目**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:xingxingzaixian/cron-job.git
    cd cron-job
    ```
 
@@ -423,9 +423,9 @@ uptime
 
 ## 📞 技术支持
 
-- 🐛 **问题反馈**: [GitHub Issues](https://github.com/your-repo/issues)
-- 📖 **文档**: [在线文档](https://your-docs-site.com)
-- 💬 **讨论**: [GitHub Discussions](https://github.com/your-repo/discussions)
+- 🐛 **问题反馈**: [GitHub Issues](https://github.com/xingxingzaixian/cron-job/issues)
+- 📖 **文档**: 
+- 💬 **讨论**: 
 
 ## 📄 许可证
 

@@ -101,7 +101,8 @@ const local = {
           policyMulti: '并行策略',
           policyOnce: '单次策略',
           policySingle: '单例策略',
-          policyTimes: '多次策略'
+          policyTimes: '多次策略',
+          count: '执行次数'
         }
       },
       log: {
