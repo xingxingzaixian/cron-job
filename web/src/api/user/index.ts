@@ -6,7 +6,8 @@ import type {
   UserList,
   SearchUserParams,
   DelUserParams,
-  UpdatePasswordInput
+  UpdatePasswordInput,
+  CheckAuthOutput
 } from './model';
 import apiHttp from '@/request';
 
@@ -62,5 +63,12 @@ export const fetchUpdatePassword = async (data: UpdatePasswordInput): Promise<Ht
   return apiHttp.post<HttpResult<string>>({
     url: '/api/user/update-password',
     data
+  });
+};
+
+// 获取是否启用认证
+export const fetchCheckAuth = async (): Promise<HttpResult<CheckAuthOutput>> => {
+  return apiHttp.get<HttpResult<CheckAuthOutput>>({
+    url: '/api/check-auth'
   });
 };

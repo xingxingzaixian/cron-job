@@ -19,6 +19,7 @@ function getGlobalMenuByBaseRoute(route: RouteLocationNormalizedLoaded) {
     label,
     i18nKey: title as string,
     routePath: path,
+    // eslint-disable-next-line no-constant-binary-expression
     order: Number(route.meta?.order) ?? 0,
     icon: SvgIconVNode({
       icon: (route.meta?.icon as string) ?? import.meta.env.VITE_APP_MENU_ICON,

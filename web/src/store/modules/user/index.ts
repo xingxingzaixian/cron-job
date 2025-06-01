@@ -1,8 +1,8 @@
 import { ref, computed, watch } from 'vue';
 import { defineStore } from 'pinia';
 import store from '../../index';
-import type { LoginInput, LoginOutput, UserEditInput } from '@/api/user/model';
-import { fetchLoginApi, fetchUserInfo } from '@/api/user';
+import type { LoginInput, LoginOutput, UserEditInput, CheckAuthOutput } from '@/api/user/model';
+import { fetchLoginApi, fetchUserInfo, fetchCheckAuth } from '@/api/user';
 import type { HttpResult } from '@/types/api';
 
 const userStore = defineStore('user-store', () => {
@@ -10,6 +10,7 @@ const userStore = defineStore('user-store', () => {
   const name = ref<string>('');
   const token = ref<string>('');
   const user = ref<UserEditInput | null>(null);
+  const authEnabled = ref<boolean>(true); // 默认启用认证
 
   const isLoggedIn = computed(() => {
     return token.value !== '';
@@ -65,6 +66,19 @@ const userStore = defineStore('user-store', () => {
     });
   };
 
+  const getCheckAuth = async (): Promise<CheckAuthOutput | null> => {
+    try {
+      const res = await fetchCheckAuth();
+      if (res.code === 200) {
+        authEnabled.value = res.data.authEnabled;
+        return res.data;
+      }
+    } catch (error) {
+      console.error('Failed to fetch check auth:', error);
+    }
+    return null;
+  };
+
   const logout = () => {
     token.value = '';
     user.value = null;
@@ -98,11 +112,13 @@ const userStore = defineStore('user-store', () => {
     name,
     token,
     user,
+    authEnabled,
     isLoggedIn,
     userToken,
     userInfo,
     Login,
     getUserInfo,
+    getCheckAuth,
     logout,
     initFromStorage
   };

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/spf13/viper"
 )
 
 type UserApi struct{}
@@ -36,6 +37,15 @@ func UserRegister(group *gin.RouterGroup) {
 // @Success 200 {object} schemas.Response{data=schemas.UserList} "success"
 // @Router /api/user/list [get]
 func (u *UserApi) GetList(c *gin.Context) {
+	// 检查是否启用认证，如果未启用则返回空列表
+	if !viper.GetBool("auth.enable") {
+		schemas.ResponseSuccess(c, schemas.UserList{
+			Total: 0,
+			List:  []*schemas.UserEditInput{},
+		})
+		return
+	}
+
 	params := &schemas.SearchUserParams{}
 	if err := params.BindValidParam(c); err != nil {
 		schemas.ResponseError(c, schemas.UserSearchParamInvalid, err)
@@ -75,6 +85,12 @@ func (u *UserApi) GetList(c *gin.Context) {
 // @Success 200 {object} schemas.Response{data=string} "success"
 // @Router /api/user/edit [post]
 func (u *UserApi) EditUser(c *gin.Context) {
+	// 检查是否启用认证，如果未启用则返回错误
+	if !viper.GetBool("auth.enable") {
+		schemas.ResponseError(c, schemas.UserEditParamInvalid, errors.New("用户管理功能已禁用"))
+		return
+	}
+
 	params := &schemas.UserEditInput{}
 	if err := params.BindValidParam(c); err != nil {
 		schemas.ResponseError(c, schemas.UserEditParamInvalid, err)
@@ -126,6 +142,17 @@ func (u *UserApi) EditUser(c *gin.Context) {
 // @Success 200 {object} schemas.Response{data=schemas.UserEditInput} "success"
 // @Router /api/user/info [get]
 func (u *UserApi) GetMyInfo(ctx *gin.Context) {
+	// 检查是否启用认证，如果未启用则返回默认用户信息
+	if !viper.GetBool("auth.enable") {
+		schemas.ResponseSuccess(ctx, &schemas.UserEditInput{
+			ID:       1,
+			UserName: "admin",
+			NickName: "系统管理员",
+			Email:    "admin@example.com",
+		})
+		return
+	}
+
 	username, ok := ctx.Get("username")
 	if !ok {
 		schemas.ResponseError(ctx, schemas.UserNotLogin, errors.New("用户未登录"))
@@ -158,6 +185,12 @@ func (u *UserApi) GetMyInfo(ctx *gin.Context) {
 // @Success 200 {object} schemas.Response{data=schemas.UserEditInput} "success"
 // @Router /api/user/view [get]
 func (u *UserApi) GetUser(c *gin.Context) {
+	// 检查是否启用认证，如果未启用则返回错误
+	if !viper.GetBool("auth.enable") {
+		schemas.ResponseError(c, schemas.UserNotExist, errors.New("用户管理功能已禁用"))
+		return
+	}
+
 	params := &schemas.SearchUserParams{}
 	if err := params.BindValidParam(c); err != nil {
 		schemas.ResponseError(c, schemas.UserSearchParamInvalid, err)
@@ -187,6 +220,12 @@ func (u *UserApi) GetUser(c *gin.Context) {
 // @Success 200 {object} schemas.Response{data=string} "success"
 // @Router /api/user/del [post]
 func (u *UserApi) DelUser(ctx *gin.Context) {
+	// 检查是否启用认证，如果未启用则返回错误
+	if !viper.GetBool("auth.enable") {
+		schemas.ResponseError(ctx, schemas.UserDeleteFailed, errors.New("用户管理功能已禁用"))
+		return
+	}
+
 	params := &schemas.DelUserParams{}
 	if err := params.BindValidParam(ctx); err != nil {
 		schemas.ResponseError(ctx, schemas.UserSearchParamInvalid, err)
@@ -216,6 +255,12 @@ func (u *UserApi) DelUser(ctx *gin.Context) {
 // @Success 200 {object} schemas.Response{data=string} "success"
 // @Router /api/user/update-password [post]
 func (u *UserApi) UpdatePassword(ctx *gin.Context) {
+	// 检查是否启用认证，如果未启用则返回错误
+	if !viper.GetBool("auth.enable") {
+		schemas.ResponseError(ctx, schemas.UserUpdateFailed, errors.New("用户管理功能已禁用"))
+		return
+	}
+
 	params := &schemas.UpdatePasswordInput{}
 	if err := params.BindValidParam(ctx); err != nil {
 		schemas.ResponseError(ctx, schemas.UserSearchParamInvalid, err)

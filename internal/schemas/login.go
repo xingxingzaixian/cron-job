@@ -15,3 +15,7 @@ type LoginOutput struct {
 	User  *UserEditInput `json:"user"`
 	Token string         `json:"token"`
 }
+
+type CheckAuthOutput struct {
+	AuthEnabled bool `json:"authEnabled" comment:"是否启用认证"`
+}

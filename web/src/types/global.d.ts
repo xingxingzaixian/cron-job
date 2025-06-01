@@ -8,7 +8,6 @@ interface ImportMetaEnv {
   readonly VITE_APP_TITLE: string;
   readonly VITE_APP_PORT: string;
   readonly VITE_APP_BASE_URL: string;
-  readonly VITE_APP_NO_AUTH: string;
   readonly VITE_ICON_LOCAL_PREFIX: string;
   readonly VITE_APP_MENU_ICON: string;
 }

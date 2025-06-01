@@ -1,4 +1,4 @@
-import type { RouteRecordRaw, RouteLocationNormalized, NavigationGuardNext , Router, RouterHistory } from 'vue-router';
+import type { RouteRecordRaw, RouteLocationNormalized, NavigationGuardNext, Router, RouterHistory } from 'vue-router';
 import { useTitle } from '@vueuse/core';
 import { $t } from '@/locales';
 import { createRouter, createWebHashHistory } from 'vue-router';
@@ -26,7 +26,7 @@ class RouteView {
   public getRoutes() {
     return this.staticRoutes;
   }
-  
+
   // 根据环境变量中的配置生成路由模式
   // eslint-disable-next-line @typescript-eslint/member-ordering
   private static createHistory = (): RouterHistory => {
@@ -64,19 +64,25 @@ class RouteView {
 
     const curRouter = this.router as Router;
     const userStore = useUserStore();
-    curRouter.beforeEach((to, _, next) => {
+    curRouter.beforeEach(async (to, _, next) => {
       loadingBar.start();
-
-      // 整个网站是否不需要登陆认证
-      if (import.meta.env.VITE_APP_NO_AUTH.toLowerCase() === 'true') {
-        next();
-        return;
-      }
 
       // 如果不需要登录认证，路由直接切换
       if (to.meta.ignoreAuth) {
         next();
         return;
+      }
+
+      // 获取是否启用认证，检查是否启用认证
+      try {
+        const checkAuth = await userStore.getCheckAuth();
+        if (checkAuth && !checkAuth.authEnabled) {
+          // 如果未启用认证，直接放行
+          next();
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to get check auth:', error);
       }
 
       // 如果没登录

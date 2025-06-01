@@ -43,7 +43,8 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 		api.LoginRegister(loginRouter)
 	}
 
-	apiRouter.Use(middleware2.JwtAuthMiddleware())
+	// 使用新的认证中间件，根据配置决定是否启用认证
+	apiRouter.Use(middleware2.AuthMiddleware())
 	taskRouter := apiRouter.Group("/task")
 	{
 		api.TaskRegister(taskRouter)

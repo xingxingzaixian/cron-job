@@ -10,6 +10,7 @@ import {
   getCacheRouteNames,
   updateLocaleOfGlobalMenus
 } from './shared';
+import useUserStore from '../user';
 
 const routeStore = defineStore('route-store', () => {
   /** Global menus */
@@ -29,7 +30,20 @@ const routeStore = defineStore('route-store', () => {
 
   async function initAuthRoute() {
     // 如果有动态路由，可以在这里请求服务接口返回动态路由
-    const routes = [...globalRouter.getRoutes()];
+    let routes = [...globalRouter.getRoutes()];
+
+    // 获取是否启用认证，如果未启用认证则过滤用户管理路由
+    try {
+      const userStore = useUserStore();
+      const checkAuth = await userStore.getCheckAuth();
+      if (checkAuth && !checkAuth.authEnabled) {
+        // 过滤掉用户管理相关的路由
+        routes = routes.filter(route => route.name !== 'User');
+      }
+    } catch (error) {
+      console.error('Failed to get check auth in route init:', error);
+    }
+
     // 1. 解析路由为菜单
     const menuList = parseRoutesToMenus(routes);
     cacheRoutes.value = getCacheRouteNames(routes);

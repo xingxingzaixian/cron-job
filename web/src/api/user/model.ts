@@ -42,3 +42,7 @@ export interface UpdatePasswordInput {
   confirmPassword: string;
   username: string;
 }
+
+export interface CheckAuthOutput {
+  authEnabled: boolean;
+}
