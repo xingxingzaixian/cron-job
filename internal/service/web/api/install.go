@@ -8,6 +8,7 @@ import (
 	taskManager "cronJob/internal/service/cron/task_manager"
 	"cronJob/lib/config"
 	"cronJob/lib/database"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -22,7 +23,6 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
-	"gorm.io/gorm/schema"
 )
 
 type InstallApi struct{}
@@ -140,7 +140,7 @@ func (s *InstallApi) Install(ctx *gin.Context) {
 		return
 	}
 
-	// 检查是否已安装（通过检查数据库是否已初始化）
+	// 检查是否已安装（在写入新配置之前检查）
 	if s.isSystemInstalled() {
 		schemas.ResponseError(ctx, schemas.InstallAlreadyInstalled, fmt.Errorf("系统已安装，请勿重复安装"))
 		return
@@ -169,7 +169,13 @@ func (s *InstallApi) Install(ctx *gin.Context) {
 		}
 	}
 
-	// 5. 安装完成，准备重启服务
+	// 5. 创建安装锁文件
+	if err := s.createInstallLock(); err != nil {
+		zap.S().Errorf("创建安装锁文件失败: %v", err)
+		// 不阻断安装流程，只记录错误
+	}
+
+	// 6. 安装完成，准备重启服务
 	schemas.ResponseSuccess(ctx, schemas.InstallOutput{
 		Success: true,
 		Message: "系统安装成功，服务器将在3秒后重启以应用新配置",
@@ -205,42 +211,13 @@ func (s *InstallApi) isDatabaseConfigured() bool {
 	return false
 }
 
-// 检查系统是否已安装（通过检查数据库表是否存在）
+// 检查系统是否已安装（通过检查install.lock文件）
 func (s *InstallApi) isSystemInstalled() bool {
-	// 如果数据库配置不存在，肯定没有安装
-	if !s.isDatabaseConfigured() {
-		return false
-	}
-
-	// 尝试连接数据库并检查表是否存在
-	factory := &database.DatabaseFactory{}
-	if err := factory.ValidateConfig(); err != nil {
-		return false
-	}
-
-	db, err := factory.CreateDatabase()
-	if err != nil {
-		return false
-	}
-
-	gormDB, err := db.Create(&gorm.Config{
-		NamingStrategy: schema.NamingStrategy{
-			TablePrefix:   viper.GetString("db.prefix"),
-			SingularTable: true,
-		},
-	})
-	if err != nil {
-		return false
-	}
-
-	defer func() {
-		if sqlDB, err := gormDB.DB(); err == nil {
-			sqlDB.Close()
-		}
-	}()
-
-	// 检查用户表是否存在
-	return gormDB.Migrator().HasTable(&models.User{})
+	// 检查install.lock文件是否存在
+	_, err := os.Stat("install.lock")
+	exists := !os.IsNotExist(err)
+	zap.S().Debugf("检查install.lock文件是否存在: %v", exists)
+	return exists
 }
 
 // 检查配置文件是否存在
@@ -373,15 +350,8 @@ func (s *InstallApi) initDatabase() error {
 	return nil
 }
 
-// 创建管理员用户
+// 创建或更新管理员用户
 func (s *InstallApi) createAdminUser(adminUser schemas.AdminUserInput) error {
-	user := &models.User{
-		UserName: adminUser.Username,
-		NickName: adminUser.Nickname,
-		Password: adminUser.Password,
-		Email:    adminUser.Email,
-	}
-
 	tx := global.GormDB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -389,13 +359,60 @@ func (s *InstallApi) createAdminUser(adminUser schemas.AdminUserInput) error {
 		}
 	}()
 
-	_, err := user.Create(tx)
-	if err != nil {
+	// 先查询用户是否已存在
+	var existingUser models.User
+	err := tx.Where("username = ?", adminUser.Username).First(&existingUser).Error
+	
+	if err == nil {
+		// 用户已存在，更新信息
+		zap.S().Infof("管理员用户 %s 已存在，更新用户信息", adminUser.Username)
+		existingUser.NickName = adminUser.Nickname
+		existingUser.Password = adminUser.Password
+		existingUser.Email = adminUser.Email
+		
+		if err := tx.Save(&existingUser).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("更新管理员用户失败: %v", err)
+		}
+		
+		zap.S().Infof("管理员用户 %s 更新成功", adminUser.Username)
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+		// 用户不存在，创建新用户
+		zap.S().Infof("创建新的管理员用户: %s", adminUser.Username)
+		user := &models.User{
+			UserName: adminUser.Username,
+			NickName: adminUser.Nickname,
+			Password: adminUser.Password,
+			Email:    adminUser.Email,
+		}
+		
+		_, err := user.Create(tx)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("创建管理员用户失败: %v", err)
+		}
+		
+		zap.S().Infof("管理员用户 %s 创建成功", adminUser.Username)
+	} else {
+		// 其他数据库错误
 		tx.Rollback()
-		return fmt.Errorf("创建管理员用户失败: %v", err)
+		return fmt.Errorf("查询管理员用户失败: %v", err)
 	}
 
 	tx.Commit()
+	return nil
+}
+
+// 创建安装锁文件
+func (s *InstallApi) createInstallLock() error {
+	lockContent := fmt.Sprintf("# 系统安装锁文件\n# 安装时间: %s\n# 请勿删除此文件，删除后系统将重新进入安装模式\n", time.Now().Format("2006-01-02 15:04:05"))
+
+	err := os.WriteFile("install.lock", []byte(lockContent), 0644)
+	if err != nil {
+		return fmt.Errorf("创建install.lock文件失败: %v", err)
+	}
+
+	zap.S().Info("安装锁文件创建成功: install.lock")
 	return nil
 }
 

@@ -81,34 +81,13 @@ func startServer(configFile string) {
 
 // 检查是否需要安装
 func checkNeedInstall() bool {
-	// 检查数据库配置是否存在
-	engine := viper.GetString("db.engine")
-	if engine == "" {
-		zap.S().Info("数据库未配置，进入安装模式")
+	// 检查install.lock文件是否存在
+	_, err := os.Stat("install.lock")
+	if os.IsNotExist(err) {
+		zap.S().Info("install.lock文件不存在，进入安装模式")
 		return true
 	}
 	
-	switch engine {
-	case "mysql", "postgresql", "postgres":
-		host := viper.GetString("db.host")
-		name := viper.GetString("db.name")
-		user := viper.GetString("db.user")
-		if host == "" || name == "" || user == "" {
-			zap.S().Info("数据库配置不完整，进入安装模式")
-			return true
-		}
-	case "sqlite", "sqlite3":
-		name := viper.GetString("db.name")
-		path := viper.GetString("db.path")
-		if name == "" && path == "" {
-			zap.S().Info("SQLite数据库配置不完整，进入安装模式")
-			return true
-		}
-	default:
-		zap.S().Info("不支持的数据库类型，进入安装模式")
-		return true
-	}
-	
-	zap.S().Info("数据库配置完整，正常启动")
+	zap.S().Info("install.lock文件存在，系统已安装，正常启动")
 	return false
 }
