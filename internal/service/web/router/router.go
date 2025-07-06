@@ -15,7 +15,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
+func InitRouter(installMode bool, middlewares ...gin.HandlerFunc) *gin.Engine {
 	docs.SwaggerInfo.Title = viper.GetString("swagger.title")
 	docs.SwaggerInfo.Description = viper.GetString("swagger.desc")
 	docs.SwaggerInfo.Version = "1.0"
@@ -38,6 +38,19 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 	router.StaticFS("/admin", http.FS(webFs))
 
 	apiRouter := router.Group("/api")
+	
+	// 安装相关路由（无需认证）
+	installRouter := apiRouter.Group("/install")
+	{
+		api.InstallRegister(installRouter)
+	}
+	
+	// 如果是安装模式，只注册安装相关的路由
+	if installMode {
+		return router
+	}
+	
+	// 正常模式下的路由
 	loginRouter := apiRouter.Group("/")
 	{
 		api.LoginRegister(loginRouter)

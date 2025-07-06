@@ -271,7 +271,7 @@ const passwordRules = {
   confirmPassword: [
     { required: true, message: '请确认新密码', trigger: 'blur' },
     {
-      validator: (rule: any, value: string) => {
+      validator: (_rule: any, value: string) => {
         return value === passwordForm.newPass;
       },
       message: '两次输入的密码不一致',
@@ -298,23 +298,7 @@ const loadUserList = async () => {
   }
 };
 
-const handleSearch = () => {
-  searchForm.pageNo = 1;
-  pagination.page = 1;
-  loadUserList();
-};
-
-const handleReset = () => {
-  Object.assign(searchForm, {
-    pageNo: 1,
-    pageSize: 10,
-    name: '',
-    username: '',
-    email: ''
-  });
-  pagination.page = 1;
-  loadUserList();
-};
+// 搜索和重置功能已移除，如需要可重新添加
 
 const handlePageChange = (page: number) => {
   searchForm.pageNo = page;

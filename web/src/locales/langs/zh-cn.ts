@@ -30,6 +30,7 @@ const local = {
   },
   route: {
     login: '登陆',
+    install: '系统安装',
     home: '首页',
     welcome: '欢迎访问 CronJob 任务管理系统',
     exception: '异常',

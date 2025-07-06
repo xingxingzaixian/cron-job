@@ -105,7 +105,7 @@ class AxiosHttp {
   }
 }
 
-const http = new AxiosHttp();
-export default http;
+const apiHttp = new AxiosHttp();
+export default apiHttp;
 
 

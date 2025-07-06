@@ -187,7 +187,10 @@ const model = reactive({
   command: '',
   params: '',
   remark: '',
-  status: TaskStatus.Enabled
+  status: TaskStatus.Enabled,
+  delay: 0,
+  retry_times: 0,
+  retry_interval: 0
 });
 
 const rules: FormRules = {
@@ -308,7 +311,10 @@ function resetForm() {
     command: '',
     params: '',
     remark: '',
-    status: TaskStatus.Enabled
+    status: TaskStatus.Enabled,
+    delay: 0,
+    retry_times: 0,
+    retry_interval: 0
   });
 }
 

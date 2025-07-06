@@ -67,6 +67,26 @@ class RouteView {
     curRouter.beforeEach(async (to, _, next) => {
       loadingBar.start();
 
+      // 检查安装状态（除了安装页面本身）
+      if (to.name !== 'Install') {
+        try {
+          const { checkInstall } = await import('@/api/install');
+          const { data } = await checkInstall();
+          if (!data.installed) {
+            // 未安装，跳转到安装页面
+            next({ name: 'Install' });
+            return;
+          }
+        } catch (error) {
+          console.error('检查安装状态失败:', error);
+          // 如果检查失败，假设需要安装
+          if (to.name !== 'Install') {
+            next({ name: 'Install' });
+            return;
+          }
+        }
+      }
+
       // 如果不需要登录认证，路由直接切换
       if (to.meta.ignoreAuth) {
         next();

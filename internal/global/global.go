@@ -1,6 +1,9 @@
 package global
 
-import "gorm.io/gorm"
+import (
+	"net/http"
+	"gorm.io/gorm"
+)
 
 const (
 	ValidatorKey  = "ValidatorKey"
@@ -8,5 +11,9 @@ const (
 )
 
 var (
-	GormDB *gorm.DB
+	GormDB         *gorm.DB
+	HttpSrvHandler *http.Server
+	// Install status flags
+	IsInstalled bool = false
+	InstallMode bool = false
 )

@@ -131,4 +131,12 @@ const (
 	UserDeleteFailed
 
 	LoginParamInvalid
+
+	// 安装相关
+	InstallParamInvalid
+	InstallAlreadyInstalled
+	InstallConfigWriteFailed
+	InstallDatabaseInitFailed
+	InstallCreateAdminFailed
+	DatabaseTestFailed
 )
