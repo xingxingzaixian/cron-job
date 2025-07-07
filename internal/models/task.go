@@ -11,9 +11,9 @@ import (
 
 type Task struct {
 	gorm.Model
-	Name          string              `gorm:"size:32;not null;index:idx_name" json:"name"`
+	Name          string              `gorm:"size:32;not null;index:idx_task_name" json:"name"`
 	Spec          string              `gorm:"size:64;not null" json:"spec"`
-	Protocol      global.TaskProtocol `gorm:"type:tinyint;not null;index:idx_protocol" json:"protocol"`
+	Protocol      global.TaskProtocol `gorm:"type:tinyint;not null;index:idx_task_protocol" json:"protocol"`
 	Command       string              `gorm:"size:512;not null" json:"command"`
 	Params        string              `gorm:"type:mediumtext" json:"params"`
 	Timeout       int                 `gorm:"type:mediumint;not null;default:0" json:"timeout"`
@@ -22,9 +22,9 @@ type Task struct {
 	Delay         int                 `gorm:"type:smallint;not null;default:0" json:"delay"`
 	RetryTimes    int8                `gorm:"type:tinyint;not null;default:0" json:"retry_times"`
 	RetryInterval int16               `gorm:"type:smallint;not null;default:0" json:"retry_interval"`
-	Tag           string              `gorm:"size:32;not null;default:'';index:idx_tag" json:"tag"`
+	Tag           string              `gorm:"size:32;not null;default:'';index:idx_task_tag" json:"tag"`
 	Remark        string              `gorm:"size:256;not null;default:''" json:"remark"`
-	Status        global.TaskStatus   `gorm:"type:tinyint;not null;default:0;index:idx_status" json:"status"`
+	Status        global.TaskStatus   `gorm:"type:tinyint;not null;default:0;index:idx_task_status" json:"status"`
 }
 
 func (t *Task) Create() (uint, error) {

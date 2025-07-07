@@ -3,9 +3,11 @@ package utils
 import (
 	"context"
 	"crypto/md5"
+	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"math/rand"
+	"fmt"
+	math_rand "math/rand"
 	"os"
 	"os/exec"
 	"runtime"
@@ -13,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gcharset"
+	"go.uber.org/zap"
 )
 
 // Result 用于ExecShell函数的结果传递
@@ -25,7 +28,7 @@ type Result struct {
 func RandString(length int64) string {
 	sources := []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	var result []byte
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := math_rand.New(math_rand.NewSource(time.Now().UnixNano()))
 	sourceLength := len(sources)
 	var i int64 = 0
 	for ; i < length; i++ {
@@ -45,7 +48,7 @@ func Md5(str string) string {
 
 // 生成0-max之间随机数
 func RandNumber(max int) int {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := math_rand.New(math_rand.NewSource(time.Now().UnixNano()))
 
 	return r.Intn(max)
 }
@@ -122,4 +125,18 @@ func convertEncoding(outputGBK string) string {
 		return outputGBK
 	}
 	return outputUTF8
+}
+
+// GenerateRandomJWTSecret 生成随机的JWT密钥
+func GenerateRandomJWTSecret() string {
+	// 生成64字节的随机数据
+	bytes := make([]byte, 64)
+	if _, err := rand.Read(bytes); err != nil {
+		// 如果随机数生成失败，使用时间戳作为后备方案
+		zap.S().Warnf("生成随机JWT密钥失败，使用时间戳作为后备方案: %v", err)
+		return fmt.Sprintf("jwt_secret_fallback_%d", time.Now().UnixNano())
+	}
+
+	// 将字节转换为十六进制字符串
+	return hex.EncodeToString(bytes)
 }

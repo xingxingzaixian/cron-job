@@ -6,6 +6,7 @@ import (
 	"cronJob/internal/models"
 	"cronJob/internal/schemas"
 	taskManager "cronJob/internal/service/cron/task_manager"
+	"cronJob/internal/utils"
 	"cronJob/lib/config"
 	"cronJob/lib/database"
 	"errors"
@@ -18,7 +19,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -269,7 +269,7 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 	}
 
 	configData["cors"] = map[string]interface{}{
-		"allowed_origins": "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8210,http://127.0.0.1:8210",
+		"allowed_origins": "http://localhost:8210,http://127.0.0.1:8210",
 	}
 
 	// 数据库配置
@@ -312,7 +312,7 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 
 	// JWT配置
 	configData["jwt"] = map[string]interface{}{
-		"secret":  "your_jwt_secret_here_" + fmt.Sprintf("%d", g.NewVar(nil).Int64()),
+		"secret":  utils.GenerateRandomJWTSecret(),
 		"expires": 7200,
 	}
 
@@ -362,19 +362,19 @@ func (s *InstallApi) createAdminUser(adminUser schemas.AdminUserInput) error {
 	// 先查询用户是否已存在
 	var existingUser models.User
 	err := tx.Where("username = ?", adminUser.Username).First(&existingUser).Error
-	
+
 	if err == nil {
 		// 用户已存在，更新信息
 		zap.S().Infof("管理员用户 %s 已存在，更新用户信息", adminUser.Username)
 		existingUser.NickName = adminUser.Nickname
 		existingUser.Password = adminUser.Password
 		existingUser.Email = adminUser.Email
-		
+
 		if err := tx.Save(&existingUser).Error; err != nil {
 			tx.Rollback()
 			return fmt.Errorf("更新管理员用户失败: %v", err)
 		}
-		
+
 		zap.S().Infof("管理员用户 %s 更新成功", adminUser.Username)
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		// 用户不存在，创建新用户
@@ -385,13 +385,13 @@ func (s *InstallApi) createAdminUser(adminUser schemas.AdminUserInput) error {
 			Password: adminUser.Password,
 			Email:    adminUser.Email,
 		}
-		
+
 		_, err := user.Create(tx)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("创建管理员用户失败: %v", err)
 		}
-		
+
 		zap.S().Infof("管理员用户 %s 创建成功", adminUser.Username)
 	} else {
 		// 其他数据库错误

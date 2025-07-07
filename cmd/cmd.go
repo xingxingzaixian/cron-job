@@ -8,12 +8,13 @@ import (
 	"cronJob/lib/database"
 	"cronJob/lib/logger"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var AppVersion = "1.0.0"
@@ -51,12 +52,12 @@ func startServer(configFile string) {
 	needInstall := checkNeedInstall()
 	global.InstallMode = needInstall
 	global.IsInstalled = !needInstall
-	
+
 	// 3. 如果不需要安装，则初始化数据库和定时任务
 	if !needInstall {
 		// 初始化数据库
 		database.InitDB(viper.GetString("db.prefix"))
-		
+
 		// 启动定时任务调度
 		go func() {
 			task.CronServerRun()
@@ -87,7 +88,7 @@ func checkNeedInstall() bool {
 		zap.S().Info("install.lock文件不存在，进入安装模式")
 		return true
 	}
-	
+
 	zap.S().Info("install.lock文件存在，系统已安装，正常启动")
 	return false
 }
