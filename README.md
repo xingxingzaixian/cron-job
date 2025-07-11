@@ -1,432 +1,533 @@
-# 定时任务管理平台
+# CronJob 定时任务管理系统
 
-基于 Golang 实现的高性能定时任务管理平台，支持秒级任务调度和分布式执行。
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go Version](https://img.shields.io/badge/Go-1.22+-brightgreen.svg)](https://golang.org)
+[![Vue Version](https://img.shields.io/badge/Vue-3.4+-brightgreen.svg)](https://vuejs.org)
 
-## ✨ 特点
+CronJob 是一个基于 Go 语言开发的现代化定时任务管理系统，提供了直观的 Web 管理界面，支持多种任务执行方式和灵活的调度策略。
 
-- 🚀 **高性能**: 资源占用少，支持高并发任务执行
-- ⏰ **秒级调度**: 支持秒级定时任务配置，精确到秒
-- 📦 **部署简单**: 单二进制文件部署，仅需 YAML 配置文件
-- 🎨 **管理界面**: 集成现代化前端管理页面，支持响应式设计
-- 🔧 **多协议支持**: 支持 HTTP、Shell、SSH 任务类型
-- 🗄️ **多数据库支持**: 支持 MySQL、PostgreSQL、SQLite 三种数据库
-- 🔒 **安全可靠**: JWT 认证、CORS 配置、输入验证，支持可选认证模式
-- 📊 **监控完善**: 任务执行日志、状态监控、性能指标，支持多行日志优化显示
-- 🔄 **容错机制**: 任务重试、超时控制、异常恢复
-- 🌐 **跨平台支持**: 支持 Windows、Linux、macOS 多平台交叉编译
-- 🔐 **SSH 远程执行**: 支持密码和密钥认证，多命令执行模式
-- ⚙️ **灵活配置**: 前后端统一配置管理，支持环境变量覆盖
+## 🚀 核心特性
 
-# 界面
-![](images/1.png)
+### 任务管理
+- **多协议支持**：HTTP 请求、Shell 命令、SSH 远程执行
+- **灵活调度**：支持标准 Cron 表达式，精确到秒级
+- **执行策略**：并行、单次、单例、多次等多种执行策略
+- **任务分组**：通过标签对任务进行分类管理
+- **超时控制**：自定义任务执行超时时间
 
-![](images/2.png)
+### 监控与日志
+- **实时监控**：任务执行状态实时展示
+- **详细日志**：完整的任务执行日志记录
+- **重试机制**：自定义重试次数和间隔时间
+- **执行统计**：任务执行时长、成功率统计
 
-![](images/5.png)
+### 系统特性
+- **用户认证**：JWT 基础的用户身份验证
+- **权限管理**：基于角色的访问控制
+- **RESTful API**：完整的 API 接口文档
+- **响应式界面**：现代化的 Web 管理界面
+- **多数据库支持**：SQLite、MySQL、PostgreSQL
 
-![](images/3.png)
+## 🛠️ 技术栈
 
-![](images/4.png)
+### 后端技术
+- **Go 1.22+** - 核心开发语言
+- **Gin** - Web 框架
+- **GORM** - ORM 框架
+- **Cobra** - CLI 工具
+- **Viper** - 配置管理
+- **Zap** - 日志框架
+- **JWT** - 身份验证
+- **Swagger** - API 文档
 
-![](images/6.png)
+### 前端技术
+- **Vue 3** - 前端框架
+- **TypeScript** - 类型安全
+- **Vite** - 构建工具
+- **Naive UI** - 组件库
+- **Pinia** - 状态管理
+- **Vue Router** - 路由管理
 
-## 🏗️ 系统架构
+### 数据库支持
+- **SQLite** - 默认数据库（适合单机部署）
+- **MySQL 8.0+** - 生产环境推荐
+- **PostgreSQL 12+** - 高级功能支持
 
-系统采用前后端分离架构，支持多种数据库和执行器：
+## 📦 安装部署
 
-- **前端层**: Vue3 + Naive UI，提供现代化的用户界面
-- **后端层**: Gin Web框架，提供RESTful API服务
-- **业务层**: 任务管理、用户管理、日志管理等核心业务
-- **执行层**: 支持HTTP、Shell、SSH三种任务执行器
-- **数据层**: 支持MySQL、PostgreSQL、SQLite三种数据库
+### 方式一：二进制部署（推荐）
 
-## 🚀 快速开始
-
-### 环境要求
-- Go 1.21+
-- 数据库支持（任选其一）：
-  - MySQL 5.7+ / 8.0+
-  - PostgreSQL 12+
-  - SQLite 3.x（无需额外安装，适合轻量级部署）
-- Node.js 16+ 和 pnpm（前端开发）
-
-### 安装部署
-
-1. **克隆项目**
-   ```bash
-   git clone git@github.com:xingxingzaixian/cron-job.git
-   cd cron-job
-   ```
-
-2. **配置数据库**
-
-   **MySQL:**
-   ```sql
-   CREATE DATABASE cronJob CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
-
-   **PostgreSQL:**
-   ```sql
-   CREATE DATABASE cronJob WITH ENCODING 'UTF8';
-   ```
-
-   **SQLite:**
-   ```bash
-   # SQLite 无需手动创建数据库，系统会自动创建
-   # 默认数据库文件位置：./data/cronJob.db
-   ```
-
-3. **配置文件**
-   ```bash
-   cp config.example.yaml config.yaml
-   # 编辑 config.yaml 配置数据库连接等信息
-   ```
-
-   **MySQL配置示例:**
-   ```yaml
-   db:
-     engine: "mysql"
-     host: "127.0.0.1"
-     port: 3306
-     name: "cronJob"
-     user: "root"
-     password: "your_password"
-   ```
-
-   **PostgreSQL配置示例:**
-   ```yaml
-   db:
-     engine: "postgresql"
-     host: "127.0.0.1"
-     port: 5432
-     name: "cronJob"
-     user: "postgres"
-     password: "your_password"
-   ```
-
-   **SQLite配置示例:**
-   ```yaml
-   db:
-     engine: "sqlite"
-     # SQLite 特有配置
-     sqlite:
-       file_path: "./data/cronJob.db"  # 数据库文件路径
-       cache_size: -64000              # 缓存大小（KB）
-       synchronous: "NORMAL"           # 同步模式：OFF/NORMAL/FULL
-   ```
-
-4. **测试数据库连接**
-   ```bash
-   # 运行所有数据库测试
-   go test ./lib/database -v
-
-   # 或运行特定测试
-   go test ./lib/database -v -run TestDatabaseConnection
-   go test ./lib/database -v -run TestDatabaseFactory
-   go test ./lib/database -v -run TestDatabaseConfigValidation
-   ```
-
-5. **编译运行**
-   ```bash
-   go mod tidy
-   go build -o cronJob main.go
-   ./cronJob server
-   ```
-
-   **或使用 Makefile 构建:**
-   ```bash
-   # 构建当前平台
-   make build
-
-   # 交叉编译所有平台
-   make build-all
-
-   # 开发模式（包含前端构建）
-   make dev
-   ```
-
-6. **访问系统**
-   - 管理界面: http://localhost:8210/admin
-   - API文档: http://localhost:8210/swagger/index.html
-   - 默认管理员账号: admin/admin（启用认证时）
-
-### Docker 部署
-
-```dockerfile
-FROM golang:1.21-alpine AS builder
-WORKDIR /app
-COPY . .
-RUN go mod tidy && go build -o cronJob main.go
-
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates tzdata
-WORKDIR /root/
-COPY --from=builder /app/cronJob .
-COPY --from=builder /app/config.yaml .
-CMD ["./cronJob"]
+1. **下载最新版本**
+```bash
+# 从 GitHub Releases 下载对应平台的二进制文件
+wget https://github.com/your-org/cron-job/releases/download/v1.0.0/cronJob-linux-amd64-v1.0.0.tar.gz
+tar -xzf cronJob-linux-amd64-v1.0.0.tar.gz
+cd cronJob-linux-amd64-v1.0.0
 ```
 
-## 📖 使用指南
+2. **配置系统**
+```bash
+# 复制配置文件
+cp config.yaml config.yaml
+# 根据需要修改配置文件
+vim config.yaml
+```
 
-### 创建任务
+3. **启动服务**
+```bash
+# 直接启动
+./cronJob
 
-#### HTTP任务
+# 或使用启动脚本
+./start.sh
+```
+
+### 方式二：Docker 部署
+
+1. **使用 Docker Compose**
+```yaml
+version: '3.8'
+services:
+  cronjob:
+    image: cronjob:latest
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - GIN_MODE=release
+    restart: unless-stopped
+```
+
+2. **启动服务**
+```bash
+docker-compose up -d
+```
+
+### 方式三：源码编译
+
+1. **克隆项目**
+```bash
+git clone https://github.com/your-org/cron-job.git
+cd cron-job
+```
+
+2. **安装依赖**
+```bash
+# 安装 Go 依赖
+go mod download
+
+# 安装前端依赖
+cd web && pnpm install
+```
+
+3. **构建项目**
+```bash
+# 构建前端
+make frontend
+
+# 构建后端
+make build
+
+# 或者一键构建
+make all
+```
+
+## ⚙️ 配置说明
+
+### 配置文件结构
+```yaml
+# HTTP 服务配置
+http:
+  addr: :8200              # 监听地址
+  read_timeout: 10         # 读取超时（秒）
+  write_timeout: 10        # 写入超时（秒）
+  max_header_bytes: 20     # 最大头部字节数（MB）
+
+# 数据库配置
+db:
+  engine: sqlite           # 数据库引擎：sqlite/mysql/postgres
+  name: cronJob           # 数据库名称
+  data_dir: data          # 数据目录
+  prefix: sched_          # 表前缀
+  
+# 身份验证配置
+auth:
+  enable: true            # 是否启用认证
+  
+# JWT 配置
+jwt:
+  secret: your-secret-key # JWT 密钥
+  expires: 7200          # 过期时间（秒）
+
+# 跨域配置
+cors:
+  allowed_origins: "http://localhost:8200,http://127.0.0.1:8200"
+
+# Swagger 配置
+swagger:
+  title: "定时任务服务swagger API"
+  desc: "这是一个简单的定时任务执行系统"
+  host: "127.0.0.1:8200"
+  base_path: ""
+```
+
+### 数据库配置示例
+
+**MySQL 配置**
+```yaml
+db:
+  engine: mysql
+  host: localhost
+  port: 3306
+  name: cronjob
+  username: root
+  password: password
+  charset: utf8mb4
+  prefix: sched_
+```
+
+**PostgreSQL 配置**
+```yaml
+db:
+  engine: postgres
+  host: localhost
+  port: 5432
+  name: cronjob
+  username: postgres
+  password: password
+  sslmode: disable
+  prefix: sched_
+```
+
+## 🎯 快速开始
+
+### 1. 首次安装
+
+访问 `http://localhost:8200`，系统会自动进入安装模式：
+
+1. 配置数据库连接
+2. 创建管理员账户
+3. 完成初始化设置
+
+### 2. 登录系统
+
+使用创建的管理员账户登录系统。
+
+### 3. 创建任务
+
+#### HTTP 任务示例
 ```json
 {
-  "name": "API健康检查",
+  "name": "检查服务状态",
   "spec": "0 */5 * * * *",
   "protocol": 1,
-  "command": "{\"method\":\"GET\",\"url\":\"https://api.example.com/health\"}",
-  "timeout": 30
+  "command": "https://api.example.com/health",
+  "params": {
+    "method": "GET",
+    "headers": {
+      "User-Agent": "CronJob/1.0"
+    }
+  },
+  "timeout": 30,
+  "retry_times": 3,
+  "retry_interval": 10
 }
 ```
 
-#### Shell任务
+#### Shell 任务示例
 ```json
 {
   "name": "数据备份",
   "spec": "0 0 2 * * *",
   "protocol": 2,
-  "command": "mysqldump -u root -p database > backup.sql",
-  "timeout": 3600
+  "command": "/usr/local/bin/backup.sh",
+  "params": "--full --compress",
+  "timeout": 3600,
+  "retry_times": 2,
+  "retry_interval": 30
 }
 ```
 
-#### SSH任务
+#### SSH 任务示例
 ```json
 {
-  "name": "远程服务器维护",
-  "spec": "0 0 3 * * *",
+  "name": "远程服务重启",
+  "spec": "0 0 4 * * 0",
   "protocol": 3,
-  "command": "systemctl status nginx\ndf -h\nfree -m",
-  "params": "{\"host\":\"192.168.1.100\",\"port\":22,\"username\":\"admin\",\"password\":\"password\",\"mode\":\"sequential\"}",
-  "timeout": 300
+  "command": "systemctl restart nginx",
+  "params": {
+    "host": "192.168.1.100",
+    "port": 22,
+    "username": "admin",
+    "password": "password"
+  },
+  "timeout": 120
 }
 ```
 
-**SSH任务参数说明:**
-- `host`: 目标服务器地址
-- `port`: SSH端口（默认22）
-- `username`: 登录用户名
-- `password`: 登录密码
-- `mode`: 执行模式
-  - `sequential`: 顺序执行（默认），命令间共享会话上下文
-  - `script`: 脚本模式，将所有命令作为一个脚本执行
+## 📖 API 文档
 
-### Cron表达式说明
-```
-秒 分 时 日 月 周
-*  *  *  *  *  *
-```
+### 接口概览
 
-示例：
-- `0 0 12 * * *` - 每天中午12点
-- `0 */5 * * * *` - 每5分钟执行
-- `0 0 0 1 * *` - 每月1号零点
+系统提供完整的 RESTful API，支持所有 Web 界面功能：
 
-## 🔧 配置说明
+- **用户管理**：登录、注册、密码修改
+- **任务管理**：创建、编辑、删除、启用/禁用任务
+- **任务执行**：手动触发、停止任务
+- **日志查询**：任务执行日志查询和统计
+- **系统监控**：系统状态和性能指标
 
-### 核心配置
-- `http.addr`: 服务监听地址
-- `db.*`: 数据库连接配置
-- `auth.enable`: 是否启用用户认证（可选认证模式）
-- `jwt.*`: JWT认证配置
-- `cors.*`: 跨域配置
+### Swagger 文档
 
-### 认证配置
-```yaml
-# 认证配置
-auth:
-  # 是否启用用户认证功能，false时系统将跳过所有用户认证和用户管理功能
-  # 适用于只需要任务调度功能，不需要用户管理的场景
-  enable: true
+启动服务后，访问 `http://localhost:8200/swagger/index.html` 查看完整的 API 文档。
 
-# JWT配置（仅在启用认证时生效）
-jwt:
-  secret: "your_jwt_secret_here"  # JWT密钥，建议使用环境变量 ${JWT_SECRET}
-  expires: 7200                   # 过期时间(秒)
-```
+### 认证方式
 
-### 数据库配置
-支持通过环境变量覆盖配置：
-```bash
-export DB_PASSWORD="your_password"
-export JWT_SECRET="your_jwt_secret"
-```
-
-### 安全配置
-- 使用环境变量存储敏感信息
-- 配置CORS允许的域名
-- 设置合适的JWT过期时间
-- 支持禁用认证的轻量级部署模式
-
-## 🛡️ 安全特性
-
-- **可选认证模式**: 支持启用/禁用用户认证，适应不同部署场景
-- **JWT身份认证**: 安全的无状态认证机制
-- **输入参数验证**: 严格的参数校验和类型检查
-- **SQL注入防护**: 使用参数化查询防止SQL注入
-- **XSS攻击防护**: 前端输入过滤和输出编码
-- **CORS跨域控制**: 可配置的跨域访问策略
-- **密码强度验证**: 用户密码复杂度要求
-- **SSH连接安全**: 支持密码和密钥认证方式
-
-## 📊 监控指标
-
-- **任务执行统计**: 成功率、失败率、执行次数
-- **性能监控**: 任务执行耗时、系统资源使用
-- **日志管理**: 详细的执行日志，支持多行日志优化显示
-- **错误追踪**: 异常日志统计和错误分析
-- **实时状态**: 任务运行状态实时监控
-
-## 🚀 构建和部署
-
-### 跨平台构建
-项目支持多平台交叉编译：
+API 使用 JWT 令牌进行身份验证：
 
 ```bash
-# 使用 Makefile 构建所有平台
-make build-all
+# 获取令牌
+curl -X POST http://localhost:8200/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password"}'
 
-# 或使用构建脚本
-./build/build.sh --platforms "windows-amd64,linux-amd64,darwin-amd64"
-
-# Windows 批处理脚本
-./build/cross_build.bat
+# 使用令牌
+curl -X GET http://localhost:8200/api/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-支持的平台：
-- Windows (amd64)
-- Linux (amd64, arm64)
-- macOS (amd64, arm64)
+## 🔧 开发指南
 
-### 生产部署建议
+### 开发环境要求
 
-1. **数据库选择**:
-   - 轻量级部署: SQLite
-   - 中等规模: MySQL
-   - 大规模/高并发: PostgreSQL
+- Go 1.22+
+- Node.js 18+
+- pnpm
+- Git
 
-2. **认证模式**:
-   - 内网环境: 可禁用认证 (`auth.enable: false`)
-   - 公网环境: 启用认证 (`auth.enable: true`)
+### 开发环境搭建
 
-3. **性能优化**:
-   - 配置合适的数据库连接池
-   - 设置适当的任务超时时间
-   - 定期清理历史日志
-
-## 🔄 功能路线图
-
-### 已完成 ✅
-- ✅ 多数据库支持 (MySQL/PostgreSQL/SQLite)
-- ✅ SSH 远程任务执行
-- ✅ 可选认证模式
-- ✅ 跨平台构建支持
-- ✅ 用户管理和权限配置
-- ✅ 任务执行日志优化显示
-- ✅ 前后端配置统一管理
-
-### 开发中 🔄
-- 🔄 任务执行通知模块（邮件和webhook）
-- 🔄 分布式任务执行功能
-- 🔄 任务依赖关系支持
-
-### 计划中 📋
-- 📋 可视化任务流程图
-- 📋 集群部署支持
-- 📋 任务执行统计报表
-- 📋 API 限流和熔断
-- 📋 任务模板管理
-
-## 💡 使用示例
-
-### 场景1：轻量级内网部署
-```yaml
-# config.yaml
-auth:
-  enable: false  # 禁用认证，简化部署
-
-db:
-  engine: "sqlite"  # 使用SQLite，无需额外数据库
-  sqlite:
-    file_path: "./data/cronJob.db"
-```
-
-### 场景2：生产环境部署
-```yaml
-# config.yaml
-auth:
-  enable: true  # 启用认证
-
-db:
-  engine: "mysql"
-  host: "${DB_HOST}"
-  password: "${DB_PASSWORD}"  # 使用环境变量
-
-jwt:
-  secret: "${JWT_SECRET}"  # 使用环境变量
-```
-
-### 场景3：SSH批量服务器维护
-创建SSH任务，定期检查多台服务器状态：
+1. **克隆项目**
 ```bash
-# 命令字段（多行命令）
-systemctl status nginx
-df -h /
-free -m
-uptime
-
-# 参数字段（JSON格式）
-{
-  "host": "192.168.1.100",
-  "port": 22,
-  "username": "admin",
-  "password": "your_password",
-  "mode": "sequential"
-}
+git clone https://github.com/your-org/cron-job.git
+cd cron-job
 ```
 
-## ❓ 常见问题
+2. **安装依赖**
+```bash
+make deps
+```
 
-### Q: 如何选择数据库？
-**A:**
-- **SQLite**: 适合单机部署、数据量小于100万条记录的场景
-- **MySQL**: 适合中等规模部署、需要主从复制的场景
-- **PostgreSQL**: 适合大规模部署、需要复杂查询和高并发的场景
+3. **启动开发服务**
+```bash
+# 启动后端开发服务
+make dev
 
-### Q: 认证模式如何选择？
-**A:**
-- **启用认证** (`auth.enable: true`): 适合多用户环境、公网部署
-- **禁用认证** (`auth.enable: false`): 适合内网环境、单用户使用
+# 启动前端开发服务（新终端）
+cd web && pnpm dev
+```
 
-### Q: SSH任务执行失败怎么办？
-**A:**
-1. 检查网络连接和SSH服务状态
-2. 验证用户名密码是否正确
-3. 确认目标服务器SSH配置允许密码登录
-4. 检查命令语法和权限
+### 项目结构
 
-### Q: 如何备份数据？
-**A:**
-- **SQLite**: 直接复制数据库文件
-- **MySQL**: 使用 `mysqldump` 命令
-- **PostgreSQL**: 使用 `pg_dump` 命令
+```
+cron-job/
+├── cmd/                    # 命令行工具
+├── internal/              # 内部包
+│   ├── global/           # 全局常量和变量
+│   ├── models/           # 数据模型
+│   ├── schemas/          # 请求/响应结构
+│   ├── service/          # 业务逻辑
+│   └── utils/            # 工具函数
+├── lib/                   # 公共库
+├── web/                   # 前端代码
+│   ├── src/
+│   │   ├── api/          # API 接口
+│   │   ├── components/   # 组件
+│   │   ├── views/        # 页面
+│   │   └── utils/        # 工具函数
+│   └── dist/             # 构建产物
+├── docs/                  # 文档
+├── config.yaml           # 配置文件
+├── Dockerfile            # Docker 配置
+├── Makefile              # 构建脚本
+└── README.md             # 项目说明
+```
 
-### Q: 如何升级系统？
-**A:**
-1. 停止服务
-2. 备份数据库
-3. 替换二进制文件
-4. 检查配置文件兼容性
-5. 启动服务
+### 常用开发命令
 
-## 📞 技术支持
+```bash
+# 代码格式化
+make fmt
 
-- 🐛 **问题反馈**: [GitHub Issues](https://github.com/xingxingzaixian/cron-job/issues)
-- 📖 **文档**: 
-- 💬 **讨论**: 
+# 代码检查
+make lint
+
+# 运行测试
+make test
+
+# 构建项目
+make build
+
+# 清理构建文件
+make clean
+
+# 生成 API 文档
+make docs
+```
+
+## 🐳 Docker 部署
+
+### 构建镜像
+
+```bash
+# 构建镜像
+make docker
+
+# 或手动构建
+docker build -t cronjob:latest .
+```
+
+### 运行容器
+
+```bash
+# 简单运行
+docker run -p 8200:8200 cronjob:latest
+
+# 挂载配置和数据
+docker run -p 8200:8200 \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/logs:/app/logs \
+  cronjob:latest
+```
+
+### Docker Compose 部署
+
+```yaml
+version: '3.8'
+services:
+  cronjob:
+    image: cronjob:latest
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - GIN_MODE=release
+    restart: unless-stopped
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: cronjob
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+```
+
+## 📊 监控与运维
+
+### 日志管理
+
+系统使用结构化日志，日志文件位于 `logs/` 目录：
+
+- `app.log` - 应用日志
+- `error.log` - 错误日志
+- `access.log` - 访问日志
+
+### 性能监控
+
+- 任务执行状态监控
+- 系统资源使用情况
+- API 响应时间统计
+- 错误率统计
+
+### 备份与恢复
+
+```bash
+# 备份数据库（SQLite）
+cp data/cronJob.db data/cronJob.db.backup
+
+# 备份配置文件
+cp config.yaml config.yaml.backup
+
+# 恢复数据库
+cp data/cronJob.db.backup data/cronJob.db
+```
+
+## 🤝 贡献指南
+
+我们欢迎所有形式的贡献，包括但不限于：
+
+- 提交 Bug 报告
+- 提出新功能建议
+- 提交代码补丁
+- 完善文档
+
+### 贡献流程
+
+1. Fork 本项目
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
+
+### 开发规范
+
+- 遵循 Go 语言编码规范
+- 遵循 Vue.js 开发最佳实践
+- 提交前运行 `make lint` 检查代码
+- 为新功能添加测试用例
+- 更新相关文档
 
 ## 📄 许可证
 
-本项目采用 [MIT License](LICENSE) 开源协议。
+本项目采用 MIT 许可证，详情请参阅 [LICENSE](LICENSE) 文件。
+
+## 🎯 开发计划
+
+### 短期计划（v1.1.0）
+- [ ] 任务依赖关系支持
+- [ ] 邮件通知功能
+- [ ] 任务执行历史图表
+- [ ] 批量任务操作
+- [ ] 任务模板功能
+
+### 中期计划（v1.2.0）
+- [ ] 集群部署支持
+- [ ] 任务分组和权限管理
+- [ ] Webhook 通知
+- [ ] 任务执行队列优化
+- [ ] 更多协议支持（gRPC、消息队列等）
+
+### 长期计划（v2.0.0）
+- [ ] 可视化任务编排
+- [ ] 任务执行机器学习预测
+- [ ] 多租户支持
+- [ ] 插件系统
+- [ ] 移动端应用
+
+## 💬 社区支持
+
+- 📧 邮件：support@cronjob.com
+- 💬 讨论：[GitHub Discussions](https://github.com/your-org/cron-job/discussions)
+- 🐛 问题：[GitHub Issues](https://github.com/your-org/cron-job/issues)
+
+## 🙏 致谢
+
+感谢所有为这个项目做出贡献的开发者和用户。
+
+---
+
+**CronJob** - 让定时任务管理变得简单高效 🚀
