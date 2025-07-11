@@ -35,6 +35,7 @@ export interface InstallParams {
   database: DatabaseTestParams;
   auth_enabled: boolean;
   admin_user?: AdminUserConfig;
+  http_port: number;
 }
 
 /** 安装结果 */

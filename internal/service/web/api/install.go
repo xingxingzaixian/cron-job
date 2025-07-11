@@ -252,10 +252,15 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 	// 读取示例配置文件
 	configData := make(map[string]interface{})
 
+	// 构建端口地址
+	httpAddr := fmt.Sprintf(":%d", params.HttpPort)
+	swaggerHost := fmt.Sprintf("127.0.0.1:%d", params.HttpPort)
+	corsOrigins := fmt.Sprintf("http://localhost:%d,http://127.0.0.1:%d", params.HttpPort, params.HttpPort)
+
 	// 基础配置
 	configData["debug"] = "release"
 	configData["http"] = map[string]interface{}{
-		"addr":             ":8210",
+		"addr":             httpAddr,
 		"read_timeout":     10,
 		"write_timeout":    10,
 		"max_header_bytes": 20,
@@ -264,12 +269,12 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 	configData["swagger"] = map[string]interface{}{
 		"title":     "定时任务服务swagger API",
 		"desc":      "这是一个简单的定时任务执行系统",
-		"host":      "127.0.0.1:8210",
+		"host":      swaggerHost,
 		"base_path": "",
 	}
 
 	configData["cors"] = map[string]interface{}{
-		"allowed_origins": "http://localhost:8210,http://127.0.0.1:8210",
+		"allowed_origins": corsOrigins,
 	}
 
 	// 数据库配置

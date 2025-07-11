@@ -43,6 +43,7 @@ type InstallInput struct {
 	Database    DatabaseTestInput `json:"database" comment:"数据库配置" validate:"required"`
 	AuthEnabled bool              `json:"auth_enabled" comment:"是否启用认证" example:"true"`
 	AdminUser   AdminUserInput    `json:"admin_user" comment:"管理员用户配置"`
+	HttpPort    int               `json:"http_port" comment:"HTTP服务端口" example:"8210"`
 }
 
 func (param *InstallInput) BindValidParam(c *gin.Context) error {
