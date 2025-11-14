@@ -5,7 +5,10 @@
         <h1 class="install-title">
           <n-icon size="32" class="title-icon">
             <svg viewBox="0 0 24 24">
-              <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
+              <path
+                fill="currentColor"
+                d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"
+              />
             </svg>
           </n-icon>
           系统安装向导
@@ -25,11 +28,11 @@
           <n-form ref="basicFormRef" :model="basicForm" :rules="basicRules" label-placement="top">
             <!-- HTTP端口配置 -->
             <n-form-item label="HTTP服务端口" path="httpPort">
-              <n-input-number 
-                v-model:value="basicForm.httpPort" 
-                :min="1" 
-                :max="65535" 
-                placeholder="8210" 
+              <n-input-number
+                v-model:value="basicForm.httpPort"
+                :min="1"
+                :max="65535"
+                placeholder="8210"
                 class="w-full"
                 :precision="0"
               />
@@ -40,10 +43,10 @@
             <n-alert type="info" class="mb-4">
               修改端口后，您需要使用新端口访问系统。确保端口未被其他服务占用。
             </n-alert>
-            
+
             <!-- 数据库配置 -->
             <n-divider title-placement="left">数据库配置</n-divider>
-            
+
             <n-form-item label="数据库类型" path="database.engine">
               <n-select
                 v-model:value="basicForm.database.engine"
@@ -67,11 +70,11 @@
                   </n-form-item>
                 </n-grid-item>
               </n-grid>
-              
+
               <n-form-item label="数据库名" path="database.name">
                 <n-input v-model:value="basicForm.database.name" placeholder="cronJob" />
               </n-form-item>
-              
+
               <n-grid :cols="2" :x-gap="16">
                 <n-grid-item>
                   <n-form-item label="用户名" path="database.user">
@@ -80,7 +83,12 @@
                 </n-grid-item>
                 <n-grid-item>
                   <n-form-item label="密码" path="database.password">
-                    <n-input v-model:value="basicForm.database.password" type="password" show-password-on="click" placeholder="数据库密码" />
+                    <n-input
+                      v-model:value="basicForm.database.password"
+                      type="password"
+                      show-password-on="click"
+                      placeholder="数据库密码"
+                    />
                   </n-form-item>
                 </n-grid-item>
               </n-grid>
@@ -92,20 +100,14 @@
                 <n-input v-model:value="basicForm.database.name" placeholder="cronJob" />
                 <template #suffix>.db</template>
               </n-form-item>
-              <n-alert type="info" class="mt-2">
-                SQLite 数据库文件将保存在 data 目录下
-              </n-alert>
+              <n-alert type="info" class="mt-2"> SQLite 数据库文件将保存在 data 目录下 </n-alert>
             </template>
           </n-form>
 
           <div class="step-actions">
             <n-space>
-              <n-button @click="testDbConnection" :loading="testing" type="primary" ghost>
-                测试数据库连接
-              </n-button>
-              <n-button @click="nextStep" :disabled="!dbTestPassed" type="primary">
-                下一步
-              </n-button>
+              <n-button @click="testDbConnection" :loading="testing" type="primary" ghost> 测试数据库连接 </n-button>
+              <n-button @click="nextStep" :disabled="!dbTestPassed" type="primary"> 下一步 </n-button>
             </n-space>
           </div>
         </div>
@@ -126,7 +128,7 @@
             <!-- 管理员账户配置 -->
             <template v-if="authForm.authEnabled">
               <n-divider title-placement="left">管理员账户</n-divider>
-              
+
               <n-grid :cols="2" :x-gap="16">
                 <n-grid-item>
                   <n-form-item label="用户名" path="adminUser.username">
@@ -139,15 +141,25 @@
                   </n-form-item>
                 </n-grid-item>
               </n-grid>
-              
+
               <n-form-item label="密码" path="adminUser.password">
-                <n-input v-model:value="authForm.adminUser.password" type="password" show-password-on="click" placeholder="管理员密码" />
+                <n-input
+                  v-model:value="authForm.adminUser.password"
+                  type="password"
+                  show-password-on="click"
+                  placeholder="管理员密码"
+                />
               </n-form-item>
-              
+
               <n-form-item label="确认密码" path="adminUser.confirmPassword">
-                <n-input v-model:value="authForm.adminUser.confirmPassword" type="password" show-password-on="click" placeholder="再次输入密码" />
+                <n-input
+                  v-model:value="authForm.adminUser.confirmPassword"
+                  type="password"
+                  show-password-on="click"
+                  placeholder="再次输入密码"
+                />
               </n-form-item>
-              
+
               <n-form-item label="邮箱" path="adminUser.email">
                 <n-input v-model:value="authForm.adminUser.email" placeholder="admin@example.com（可选）" />
               </n-form-item>
@@ -157,7 +169,7 @@
           <div class="step-actions">
             <n-space>
               <n-button @click="prevStep">上一步</n-button>
-              <n-button @click="nextStep" type="primary">下一步</n-button>
+              <n-button type="primary" @click="nextStep">下一步</n-button>
             </n-space>
           </div>
         </div>
@@ -195,9 +207,7 @@
           <div class="step-actions">
             <n-space>
               <n-button @click="prevStep">上一步</n-button>
-              <n-button @click="startInstall" :loading="installing" type="primary">
-                开始安装
-              </n-button>
+              <n-button @click="startInstall" :loading="installing" type="primary"> 开始安装 </n-button>
             </n-space>
           </div>
         </div>
@@ -293,7 +303,7 @@ const authRules = {
 
 // 获取数据库引擎标签
 const getDbEngineLabel = (engine: string) => {
-  const option = dbEngineOptions.find(opt => opt.value === engine);
+  const option = dbEngineOptions.find((opt) => opt.value === engine);
   return option?.label || engine;
 };
 
@@ -387,7 +397,7 @@ const nextStep = async () => {
       }
     }
   }
-  
+
   currentStep.value++;
 };
 
@@ -430,10 +440,10 @@ const startInstall = async () => {
     if (data.success) {
       message.success(data.message || '系统安装成功');
       stepStatus.value = 'finish';
-      
+
       // 显示重启提示
       message.info('服务器正在重启，请稍候...', { duration: 5000 });
-      
+
       // 等待服务器重启完成后刷新页面
       setTimeout(() => {
         // 轮询检查服务器是否重启完成
@@ -469,7 +479,7 @@ const checkInstallStatus = async () => {
 const checkServerRestart = async () => {
   let attempts = 0;
   const maxAttempts = 30; // 最多尝试30次，每次间隔2秒
-  
+
   const poll = async () => {
     attempts++;
     try {
@@ -486,14 +496,14 @@ const checkServerRestart = async () => {
     } catch (_error) {
       // 服务器可能还在重启中，继续等待
     }
-    
+
     if (attempts < maxAttempts) {
       setTimeout(poll, 2000); // 2秒后再次检查
     } else {
       message.warning('服务器重启时间较长，请手动刷新页面');
     }
   };
-  
+
   poll();
 };
 
