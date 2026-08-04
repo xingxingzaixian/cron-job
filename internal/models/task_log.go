@@ -63,8 +63,22 @@ func (t *TaskLog) PageList(tx *gorm.DB, params *schemas.TaskLogListInput) (taskL
 		query = query.Where("task_name like ?", "%"+params.TaskName+"%")
 	}
 
-	if params.Status > -1 {
+	// 仅当显式传入有效的日志状态（>0）时才过滤；
+	// 0/-1 均视为"不限状态"，避免未传状态时误过滤出空结果
+	if params.Status > 0 {
 		query = query.Where("status = ?", params.Status)
+	}
+
+	// 开始时间范围过滤
+	if params.StartTime != "" {
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", params.StartTime, time.Local); err == nil {
+			query = query.Where("start_time >= ?", t)
+		}
+	}
+	if params.EndTime != "" {
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", params.EndTime, time.Local); err == nil {
+			query = query.Where("start_time <= ?", t)
+		}
 	}
 
 	query.Count(&count)

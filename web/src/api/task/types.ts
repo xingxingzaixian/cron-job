@@ -59,6 +59,8 @@ export interface QueryTaskLog {
   taskId?: number;
   taskName?: string;
   status?: number;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface TaskLogItemOutput {

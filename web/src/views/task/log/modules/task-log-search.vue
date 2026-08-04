@@ -19,6 +19,17 @@
         class="search-select"
       />
     </NFormItem>
+    <NFormItem :label="$t('page.task.log.dateRange')" path="dateRange" class="search-field">
+      <NDatePicker
+        v-model:value="model.dateRange"
+        type="daterange"
+        clearable
+        size="small"
+        class="search-date"
+        :start-placeholder="$t('page.task.log.startDate')"
+        :end-placeholder="$t('page.task.log.endDate')"
+      />
+    </NFormItem>
     <NFormItem class="search-actions">
       <NSpace size="small">
         <NButton size="small" @click="reset">
@@ -41,6 +52,7 @@
 <script lang="tsx" setup>
 import { $t } from '@/locales';
 import { reactive } from 'vue';
+import dayjs from 'dayjs';
 import { useForm } from '@/hooks';
 import type { QueryTaskLog } from '@/api/task/types';
 import type { SelectOption } from 'naive-ui';
@@ -52,9 +64,10 @@ const emit = defineEmits<{
 }>();
 
 const { formRef, validate, restoreValidation } = useForm();
-const model = reactive<SearchTask>({
+const model = reactive<SearchTask & { dateRange: [number, number] | null }>({
   taskName: '',
-  status: -1
+  status: -1,
+  dateRange: null
 });
 
 const statusOptions: SelectOption[] = [
@@ -77,12 +90,21 @@ const statusOptions: SelectOption[] = [
 ];
 async function reset() {
   await restoreValidation();
+  model.taskName = '';
+  model.status = -1;
+  model.dateRange = null;
   emit('reset');
 }
 
 async function search() {
   await validate();
-  emit('search', model);
+  const { dateRange, ...params } = model;
+  const searchParams: SearchTask = { ...params };
+  if (dateRange && dateRange.length === 2) {
+    searchParams.startTime = dayjs(dateRange[0]).format('YYYY-MM-DD HH:mm:ss');
+    searchParams.endTime = dayjs(dateRange[1]).format('YYYY-MM-DD HH:mm:ss');
+  }
+  emit('search', searchParams);
 }
 </script>
 
@@ -104,6 +126,10 @@ async function search() {
 
 .search-select {
   width: 120px;
+}
+
+.search-date {
+  width: 260px;
 }
 
 .search-actions {

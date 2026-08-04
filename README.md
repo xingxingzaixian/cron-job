@@ -207,6 +207,12 @@ db:
         cache_size: -64000   # 缓存大小（-64MB，负数表示 KB）
         synchronous: NORMAL  # 同步模式：OFF / NORMAL / FULL
         temp_store: MEMORY   # 临时存储：FILE / MEMORY
+        vacuum_interval_hours: 168  # SQLite VACUUM 间隔（小时），回收删除后的文件空间
+
+# 任务日志管理
+log:
+    retention_days: 30       # 任务日志保留天数，0 表示不自动清理（启动时及每 6 小时清理一次）
+    cleanup_interval_hours: 6  # 日志清理检查间隔（小时）
 
     # MySQL 配置（engine: mysql 时生效）
     # host: localhost
@@ -260,6 +266,8 @@ db:
     charset: utf8mb4
     prefix: sched_
 ```
+
+> 任务日志量较大时，MySQL 可按月分区以加快过期日志归档/删除，参考 `docs/sql/mysql_partition_log.sql`。
 
 **PostgreSQL**
 ```yaml

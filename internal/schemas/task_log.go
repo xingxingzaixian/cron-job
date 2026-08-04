@@ -7,9 +7,11 @@ import (
 
 type TaskLogListInput struct {
 	FormPage
-	TaskID   int               `json:"taskId" form:"taskId" comment:"任务id" example:"1"`
-	TaskName string            `json:"taskName" form:"taskName" comment:"任务名称" example:"" `
-	Status   global.TaskStatus `json:"status" form:"status" comment:"任务状态" example:"" `
+	TaskID    int               `json:"taskId" form:"taskId" comment:"任务id" example:"1"`
+	TaskName  string            `json:"taskName" form:"taskName" comment:"任务名称" example:"" `
+	Status    global.TaskStatus `json:"status" form:"status" comment:"任务状态" example:"" `
+	StartTime string            `json:"startTime" form:"startTime" comment:"开始时间起(2006-01-02 15:04:05)" example:""`
+	EndTime   string            `json:"endTime" form:"endTime" comment:"开始时间止(2006-01-02 15:04:05)" example:""`
 }
 
 func (param *TaskLogListInput) BindValidParam(c *gin.Context) error {

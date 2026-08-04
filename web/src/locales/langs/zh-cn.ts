@@ -115,6 +115,9 @@ const local = {
         startTime: '开始时间',
         runStatus: '运行状态',
         runResult: '运行结果',
+        dateRange: '时间范围',
+        startDate: '开始日期',
+        endDate: '结束日期',
 
         failure: '失败',
         success: '成功',
@@ -198,6 +201,9 @@ const local = {
       editFailed: '任务编辑失败',
       deleteSuccess: '任务删除成功',
       deleteFailed: '任务删除失败',
+      cleanExpiredLogs: '清理过期日志',
+      cleanSuccess: '已清理 {count} 条过期日志',
+      cleanFailed: '清理过期日志失败',
       selectTaskFirst: '请先选择要删除的任务',
       confirmDelete: '确认删除该任务吗？'
     }

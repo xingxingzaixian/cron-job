@@ -15,6 +15,21 @@
           <p class="page-description">查看任务执行历史、运行状态和详细日志信息</p>
         </div>
         <div class="header-actions">
+          <NPopconfirm @positive-click="cleanExpiredLogs">
+            <template #trigger>
+              <n-button size="large" class="clean-btn">
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M16 11h1.5c.83 0 1.5-.67 1.5-1.5S18.33 8 17.5 8H16v-1.5c0-.83-.67-1.5-1.5-1.5S13 5.67 13 6.5V8h-4V6.5C9 5.67 8.33 5 7.5 5S6 5.67 6 6.5V8H4.5C3.67 8 3 8.67 3 9.5S3.67 11 4.5 11H6v7c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-7h-2v-1z"/>
+                    </svg>
+                  </n-icon>
+                </template>
+                {{ $t('task.message.cleanExpiredLogs') }}
+              </n-button>
+            </template>
+            {{ $t('common.confirmDelete') }}
+          </NPopconfirm>
           <NPopconfirm @positive-click="batchDelete">
             <template #trigger>
               <n-button type="error" size="large" class="delete-btn">
@@ -61,9 +76,10 @@ import { ref } from 'vue';
 import LogInfo from './modules/info.vue';
 import { useTable } from '@/hooks';
 import TaskLogSearch from './modules/task-log-search.vue';
-import { fetchTaskLogList, fetchTaskLogDelete } from '@/api/task';
+import { fetchTaskLogList, fetchTaskLogDelete, fetchTaskLogClean } from '@/api/task';
 import type { TaskLogOutput, TaskLogItemOutput, QueryTaskLog } from '@/api/task/types';
 import { useRoute } from 'vue-router';
+import dayjs from 'dayjs';
 import { TaskProtocol, TaskStatus } from '@/enum/task';
 import { NTag, NButton } from 'naive-ui';
 import type { DataTableRowKey } from 'naive-ui';
@@ -76,6 +92,8 @@ const showModal = ref<boolean>(false);
 const taskId = Number(route.query.id) || 0;
 let checkedRowKeys: DataTableRowKey[] = [];
 const taskItem = ref<TaskLogItemOutput | null>(null);
+const defaultStartTime = dayjs().subtract(7, 'day').format('YYYY-MM-DD HH:mm:ss');
+const defaultEndTime = dayjs().format('YYYY-MM-DD HH:mm:ss');
 const { columns, data, loading, pagination, updateSearchParams, resetSearchParams, getData } = useTable<
   TaskLogOutput,
   QueryTaskLog
@@ -86,7 +104,9 @@ const { columns, data, loading, pagination, updateSearchParams, resetSearchParam
     pageSize: 15,
     taskId,
     taskName: '',
-    status: -1
+    status: -1,
+    startTime: defaultStartTime,
+    endTime: defaultEndTime
   },
   transformer: (res: any) => {
     const { list = [], total = 0 } = res.data || {};
@@ -211,7 +231,10 @@ const search = (model: Omit<QueryTaskLog, 'pageNo' | 'pageSize'>) => {
   updateSearchParams({
     pageNo: 1,
     pageSize: 15,
-    ...model
+    ...model,
+    // 清空时间范围时显式移除过滤条件
+    startTime: model.startTime || '',
+    endTime: model.endTime || ''
   });
 
   getData();
@@ -231,6 +254,16 @@ const batchDelete = async () => {
   message.success($t('common.deleteSuccess'));
 
   reset();
+};
+
+const cleanExpiredLogs = async () => {
+  const res = await fetchTaskLogClean();
+  if (res.code === 200) {
+    message.success($t('task.message.cleanSuccess', { count: res.data }));
+    reset();
+  } else {
+    message.error($t('task.message.cleanFailed'));
+  }
 };
 </script>
 

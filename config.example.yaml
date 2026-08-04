@@ -37,3 +37,8 @@ db:
         cache_size: -64000
         temp_store: MEMORY
         busy_timeout: 30000
+        vacuum_interval_hours: 168   # SQLite VACUUM 间隔（小时），回收删除后的文件空间
+
+log:
+    retention_days: 30               # 任务日志保留天数，0 表示不自动清理
+    cleanup_interval_hours: 6        # 日志清理检查间隔（小时）

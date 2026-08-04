@@ -316,14 +316,21 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 			dbConfig["data_dir"] = utils.BasePath("data")
 		}
 		dbConfig["sqlite"] = map[string]interface{}{
-			"synchronous":  "NORMAL",
-			"cache_size":   -64000,
-			"temp_store":   "MEMORY",
-			"busy_timeout": 30000,
+			"synchronous":           "NORMAL",
+			"cache_size":            -64000,
+			"temp_store":            "MEMORY",
+			"busy_timeout":          30000,
+			"vacuum_interval_hours": 168,
 		}
 	}
 
 	configData["db"] = dbConfig
+
+	// 日志清理配置
+	configData["log"] = map[string]interface{}{
+		"retention_days":         30,
+		"cleanup_interval_hours": 6,
+	}
 
 	// 认证配置
 	configData["auth"] = map[string]interface{}{

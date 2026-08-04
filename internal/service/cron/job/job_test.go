@@ -4,6 +4,7 @@ import (
 	"context"
 	"cronJob/internal/models"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -115,5 +116,29 @@ func TestExecJobExhaustRetries(t *testing.T) {
 	}
 	if h.callCount != 1 {
 		t.Fatalf("期望只执行1次, 实际 %d 次", h.callCount)
+	}
+}
+
+func TestTruncateLogOutput(t *testing.T) {
+	short := "正常输出"
+	if got := truncateLogOutput(short); got != short {
+		t.Fatalf("短输出不应被截断, 实际 %q", got)
+	}
+
+	exact := strings.Repeat("a", maxLogOutputSize)
+	if got := truncateLogOutput(exact); got != exact {
+		t.Fatal("恰好等于上限的输出不应被截断")
+	}
+
+	long := strings.Repeat("b", maxLogOutputSize+100)
+	got := truncateLogOutput(long)
+	if !strings.HasPrefix(got, long[:maxLogOutputSize]) {
+		t.Fatal("截断后应保留前 maxLogOutputSize 字节")
+	}
+	if !strings.Contains(got, "输出已截断") {
+		t.Fatal("截断后应包含截断提示")
+	}
+	if !strings.Contains(got, "1048676") {
+		t.Fatalf("截断提示应包含原始长度, 实际: %q", got)
 	}
 }

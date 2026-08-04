@@ -4,9 +4,11 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/schemas"
+	"cronJob/internal/service/cron/logcleaner"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gogf/gf/v2/frame/g"
+	"go.uber.org/zap"
 )
 
 type TaskLogApi struct{}
@@ -16,6 +18,7 @@ func TaskLogRegister(group *gin.RouterGroup) {
 	group.GET("/list", service.GetTaskLogList)
 	group.GET("/query", service.GetTaskLog)
 	group.DELETE("/delete", service.DeleteTaskLog)
+	group.POST("/clean", service.CleanTaskLog)
 }
 
 // GetTaskLogList godoc
@@ -163,4 +166,24 @@ func (t *TaskLogApi) DeleteTaskLog(ctx *gin.Context) {
 	}
 
 	schemas.ResponseSuccess(ctx, true)
+}
+
+// CleanTaskLog godoc
+// @Summary 清理过期任务日志
+// @Description 按 log.retention_days 配置删除超过保留期的任务日志
+// @Tags 任务日志管理
+// @Security ApiKeyAuth
+// @ID /api/taskLog/clean
+// @Accept json
+// @Produce json
+// @Success 200 {object} schemas.Response{data=int64} "success"
+// @Router /api/taskLog/clean [post]
+func (t *TaskLogApi) CleanTaskLog(ctx *gin.Context) {
+	deleted, err := logcleaner.CleanupExpiredLogs()
+	if err != nil {
+		zap.S().Error("清理过期日志失败", err)
+		schemas.ResponseError(ctx, schemas.TaskLogDeleteInvalid, err)
+		return
+	}
+	schemas.ResponseSuccess(ctx, deleted)
 }

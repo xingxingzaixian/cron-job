@@ -13,6 +13,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// maxLogOutputSize 单条任务日志内容大小上限（1MB），防止大输出拖垮数据库
+const maxLogOutputSize = 1 * 1024 * 1024
+
 func createHandler(taskModel *models.Task) handler.Handler {
 	var h handler.Handler = nil
 	switch taskModel.Protocol {
@@ -180,10 +183,10 @@ func updateTaskLog(taskLogId uint, taskResult global.TaskResult, startTime time.
 	var result string
 	if taskResult.Err != nil {
 		status = global.TaskStatusFailure
-		result = taskResult.Err.Error()
+		result = truncateLogOutput(taskResult.Err.Error())
 	} else {
 		status = global.TaskStatusFinish
-		result = taskResult.Result
+		result = truncateLogOutput(taskResult.Result)
 	}
 
 	endTime := time.Now()
@@ -196,4 +199,13 @@ func updateTaskLog(taskLogId uint, taskResult global.TaskResult, startTime time.
 		"end_time":    endTime,
 		"duration":    duration,
 	})
+}
+
+// truncateLogOutput 截断过长的日志输出，并在末尾标注原始长度
+func truncateLogOutput(output string) string {
+	if len(output) <= maxLogOutputSize {
+		return output
+	}
+	truncated := output[:maxLogOutputSize]
+	return truncated + fmt.Sprintf("\n...[输出已截断，共 %d 字节]", len(output))
 }

@@ -200,6 +200,20 @@ func (s *SQLiteDB) GetDBSize() (int64, error) {
 	return fileInfo.Size(), nil
 }
 
+// Vacuum 压缩SQLite数据库文件，回收删除操作产生的空闲页
+func (s *SQLiteDB) Vacuum() error {
+	db, err := s.openRaw()
+	if err != nil {
+		return fmt.Errorf("打开数据库失败: %v", err)
+	}
+	defer db.Close()
+
+	if _, err := db.Exec("VACUUM"); err != nil {
+		return fmt.Errorf("VACUUM失败: %v", err)
+	}
+	return nil
+}
+
 // BackupDB 备份数据库文件
 func (s *SQLiteDB) BackupDB(backupPath string) error {
 	// 确保备份目录存在

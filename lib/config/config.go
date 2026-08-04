@@ -71,6 +71,11 @@ func setDefaultConfig() {
 	// 认证默认配置
 	viper.SetDefault("auth.enable", true)
 
+	// 日志清理默认配置
+	viper.SetDefault("log.retention_days", 30)               // 任务日志保留天数，0 表示不自动清理
+	viper.SetDefault("log.cleanup_interval_hours", 6)        // 日志清理检查间隔（小时）
+	viper.SetDefault("db.sqlite.vacuum_interval_hours", 168) // SQLite VACUUM 间隔（小时）
+
 	// JWT 默认配置
 	viper.SetDefault("jwt.secret", utils.GenerateRandomJWTSecret())
 	viper.SetDefault("jwt.expires", 7200)

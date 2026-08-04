@@ -144,3 +144,15 @@ func (f *DatabaseFactory) GetConnectionInfo() string {
 
 	return fmt.Sprintf("%s://%s@%s:%d/%s", engine, user, host, port, name)
 }
+
+// VacuumDB 压缩数据库文件（目前仅SQLite支持，其他引擎为无操作）
+func VacuumDB() error {
+	engine := viper.GetString("db.engine")
+	switch engine {
+	case "sqlite", "sqlite3":
+		sqliteDB := &SQLiteDB{}
+		return sqliteDB.Vacuum()
+	default:
+		return nil
+	}
+}

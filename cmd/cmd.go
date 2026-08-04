@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"cronJob/internal/global"
+	"cronJob/internal/service/cron/logcleaner"
 	task "cronJob/internal/service/cron/task_manager"
 	"cronJob/internal/service/web/router"
 	"cronJob/internal/utils"
@@ -64,6 +65,9 @@ func startServer(configFile string) {
 		go func() {
 			task.CronServerRun()
 		}()
+
+		// 启动任务日志自动清理
+		logcleaner.Start()
 	}
 
 	// 4. 启动web服务（无论是否需要安装都要启动）

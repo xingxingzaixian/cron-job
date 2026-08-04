@@ -73,3 +73,9 @@ export const fetchTaskLogDelete = (ids: number[]) => {
     }
   });
 };
+
+export const fetchTaskLogClean = () => {
+  return apiHttp.post<HttpResult<number>>({
+    url: '/api/taskLog/clean'
+  });
+};
