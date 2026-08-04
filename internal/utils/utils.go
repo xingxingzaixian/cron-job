@@ -80,7 +80,8 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 	// 设置平台特定的进程属性
 	setProcAttr(cmd)
 
-	resultChan := make(chan Result)
+	// 使用缓冲通道，避免超时返回后命令 goroutine 阻塞在发送上造成泄漏
+	resultChan := make(chan Result, 1)
 	go func() {
 		output, err := cmd.CombinedOutput()
 		resultChan <- Result{string(output), err}

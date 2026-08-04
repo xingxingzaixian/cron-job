@@ -1,0 +1,39 @@
+# CronJob 定时任务管理系统 - 配置示例
+# 部署时复制为 config.yaml 并按需修改；相对路径基于启动目录（或 CRONJOB_BASE_DIR）解析
+
+debug: release
+
+http:
+    addr: :8210
+    read_timeout: 10
+    write_timeout: 10
+    max_header_bytes: 20
+
+swagger:
+    title: 定时任务服务swagger API
+    desc: 这是一个简单的定时任务执行系统
+    host: 127.0.0.1:8210
+    base_path: ""
+
+cors:
+    allowed_origins: http://localhost:8210,http://127.0.0.1:8210
+
+auth:
+    enable: true
+
+jwt:
+    expires: 7200
+    # 生产环境请固定为随机密钥（如 `openssl rand -hex 64` 生成）。
+    # 不配置时每次启动生成随机密钥，重启后所有登录态失效。
+    # secret: ""
+
+db:
+    engine: sqlite
+    name: cronJob
+    data_dir: data
+    prefix: sched_
+    sqlite:
+        synchronous: NORMAL
+        cache_size: -64000
+        temp_store: MEMORY
+        busy_timeout: 30000

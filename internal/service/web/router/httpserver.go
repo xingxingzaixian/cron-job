@@ -22,13 +22,13 @@ func HttpServerRun(installMode bool) {
 		addr = ":8210"
 	}
 
-	readTimeout := viper.GetDuration("http.read_timeout")
-	if readTimeout == 0 {
+	readTimeout := viper.GetInt("http.read_timeout")
+	if readTimeout <= 0 {
 		readTimeout = 10
 	}
 
-	writeTimeout := viper.GetDuration("http.write_timeout")
-	if writeTimeout == 0 {
+	writeTimeout := viper.GetInt("http.write_timeout")
+	if writeTimeout <= 0 {
 		writeTimeout = 10
 	}
 
@@ -40,8 +40,8 @@ func HttpServerRun(installMode bool) {
 	global.HttpSrvHandler = &http.Server{
 		Addr:           addr,
 		Handler:        router,
-		ReadTimeout:    readTimeout * time.Second,
-		WriteTimeout:   writeTimeout * time.Second,
+		ReadTimeout:    time.Duration(readTimeout) * time.Second,
+		WriteTimeout:   time.Duration(writeTimeout) * time.Second,
 		MaxHeaderBytes: 1 << maxHeaderBytes,
 	}
 

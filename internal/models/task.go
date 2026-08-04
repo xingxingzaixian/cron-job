@@ -52,6 +52,17 @@ func (t *Task) GetActiveTasks() (tasks []Task) {
 
 // PageList 分页查询
 func (t *Task) PageList(tx *gorm.DB, params *schemas.SearchTaskParmas) (tasks []Task, count int64, err error) {
+	// 分页参数归一化：默认值 + 上限，避免拉全表或非法偏移
+	if params.PageNo <= 0 {
+		params.PageNo = 1
+	}
+	if params.PageSize <= 0 {
+		params.PageSize = 15
+	}
+	if params.PageSize > 100 {
+		params.PageSize = 100
+	}
+
 	query := tx.Model(t)
 	if params.Name != "" {
 		query = query.Where("name like ?", "%"+params.Name+"%")
@@ -83,15 +94,6 @@ func (t *Task) IsNameExist(name string) bool {
 	return count > 0
 }
 
-func (t *Task) IsExist(id uint) bool {
-	var count int64 = 0
-	if id > 0 {
-		global.GormDB.Model(t).Where("id != ?", id).Count(&count)
-		return count > 0
-	}
-	return false
-}
-
 func (t *Task) Find(tx *gorm.DB, taskModel g.Map) (list []Task, err error) {
 	result := tx.Where(taskModel).Find(&list)
 	if result.RowsAffected == 0 {
@@ -109,6 +111,32 @@ func (t *Task) FindOne(tx *gorm.DB, taskModel g.Map) error {
 	return nil
 }
 
-func (t *Task) Delete(tx *gorm.DB, id uint) {
-	tx.Delete(&Task{}, id)
+func (t *Task) Delete(tx *gorm.DB, id uint) error {
+	result := tx.Delete(&Task{}, id)
+	return result.Error
+}
+
+func (t *Task) GetDependents() ([]TaskDependency, error) {
+	dependency := TaskDependency{}
+	return dependency.GetDependentsByTaskID(t.ID)
+}
+
+// HasDependencies 检查任务是否有依赖
+func (t *Task) HasDependencies() (bool, error) {
+	dependency := TaskDependency{}
+	dependencies, err := dependency.GetDependenciesByTaskID(t.ID)
+	if err != nil {
+		return false, err
+	}
+	return len(dependencies) > 0, nil
+}
+
+// CanExecute 检查任务是否可以执行（依赖是否满足）
+func (t *Task) CanExecute() (bool, error) {
+	dependency := TaskDependency{}
+	completed, err := dependency.CheckDependenciesCompleted(t.ID)
+	if err != nil {
+		return false, err
+	}
+	return completed, nil
 }

@@ -49,7 +49,7 @@ type SearchTaskResponse struct {
 
 type TaskOptionInput struct {
 	ID uint   `json:"id" form:"id" comment:"任务ID" example:"1" validate:"required"`
-	Op string `json:"op" form:"op" comment:"操作" example:"stop" comment:"start|stop|run|delete" validate:"required"`
+	Op string `json:"op" form:"op" comment:"操作" example:"stop" comment:"start|stop|run|delete"`
 }
 
 func (param *TaskOptionInput) BindValidParam(c *gin.Context) error {

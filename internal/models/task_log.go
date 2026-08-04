@@ -43,6 +43,17 @@ func (t *TaskLog) Update(id uint, data g.Map) (int64, error) {
 }
 
 func (t *TaskLog) PageList(tx *gorm.DB, params *schemas.TaskLogListInput) (taskLogs []TaskLog, count int64, err error) {
+	// 分页参数归一化：默认值 + 上限
+	if params.PageNo <= 0 {
+		params.PageNo = 1
+	}
+	if params.PageSize <= 0 {
+		params.PageSize = 15
+	}
+	if params.PageSize > 100 {
+		params.PageSize = 100
+	}
+
 	query := tx.Model(t)
 	if params.TaskID > 0 {
 		query = query.Where("task_id = ?", params.TaskID)
@@ -75,6 +86,8 @@ func (t *TaskLog) FindOne(tx *gorm.DB, taskLogModel g.Map) error {
 	return nil
 }
 
+// Delete 批量删除任务日志（硬删除）
+// 日志属于可清理的审计数据，直接物理删除，避免表无限膨胀
 func (t *TaskLog) Delete(tx *gorm.DB, ids []uint) error {
 	result := tx.Unscoped().Where("id in (?)", ids).Delete(t)
 	if result.Error != nil {

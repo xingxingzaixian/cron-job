@@ -18,16 +18,30 @@ export const fetchTaskList = (params: QueryTask) => {
   });
 };
 
-export const fetchTaskEdit = (data: TaskEditHTTPInput) => {
+export const fetchTaskCreate = (data: TaskEditHTTPInput) => {
   return apiHttp.post<HttpResult<string>>({
-    url: '/api/task/edit',
+    url: '/api/task/create',
+    data
+  });
+};
+
+export const fetchTaskUpdate = (data: TaskEditHTTPInput) => {
+  return apiHttp.post<HttpResult<string>>({
+    url: '/api/task/update',
     data
   });
 };
 
 export const fetchTaskOp = (data: TaskOptionInput) => {
+  const opUrls: Record<TaskOptionInput['op'], string> = {
+    start: '/api/task/start',
+    stop: '/api/task/stop',
+    run: '/api/task/execute',
+    delete: '/api/task/delete'
+  };
+
   return apiHttp.post<HttpResult<boolean>>({
-    url: '/api/task/op',
+    url: opUrls[data.op],
     data
   });
 };

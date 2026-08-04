@@ -140,6 +140,21 @@ func (s *InstallApi) Install(ctx *gin.Context) {
 		return
 	}
 
+	// 检查如果启用认证，管理员用户信息是否完整
+	if params.AuthEnabled {
+		if params.AdminUser == nil ||
+			params.AdminUser.Username == "" ||
+			params.AdminUser.Nickname == "" ||
+			params.AdminUser.Password == "" {
+			schemas.ResponseError(ctx, schemas.InstallParamInvalid, fmt.Errorf("启用认证时，管理员用户信息必须完整：用户名、昵称和密码为必填字段"))
+			return
+		}
+		if !utils.ValidatePassword(params.AdminUser.Password) {
+			schemas.ResponseError(ctx, schemas.InstallParamInvalid, fmt.Errorf("管理员密码长度需6-128位，且至少包含大写字母、小写字母、数字中的两种"))
+			return
+		}
+	}
+
 	// 检查是否已安装（在写入新配置之前检查）
 	if s.isSystemInstalled() {
 		schemas.ResponseError(ctx, schemas.InstallAlreadyInstalled, fmt.Errorf("系统已安装，请勿重复安装"))
@@ -153,7 +168,7 @@ func (s *InstallApi) Install(ctx *gin.Context) {
 	}
 
 	// 2. 重新加载配置
-	config.InitConfig("config.yaml")
+	config.InitConfig(utils.BasePath("config.yaml"))
 
 	// 3. 初始化数据库
 	if err := s.initDatabase(); err != nil {
@@ -163,7 +178,7 @@ func (s *InstallApi) Install(ctx *gin.Context) {
 
 	// 4. 创建管理员账户（如果启用认证）
 	if params.AuthEnabled {
-		if err := s.createAdminUser(params.AdminUser); err != nil {
+		if err := s.createAdminUser(*params.AdminUser); err != nil {
 			schemas.ResponseError(ctx, schemas.InstallCreateAdminFailed, err)
 			return
 		}
@@ -214,7 +229,7 @@ func (s *InstallApi) isDatabaseConfigured() bool {
 // 检查系统是否已安装（通过检查install.lock文件）
 func (s *InstallApi) isSystemInstalled() bool {
 	// 检查install.lock文件是否存在
-	_, err := os.Stat("install.lock")
+	_, err := os.Stat(utils.BasePath("install.lock"))
 	exists := !os.IsNotExist(err)
 	zap.S().Debugf("检查install.lock文件是否存在: %v", exists)
 	return exists
@@ -222,7 +237,7 @@ func (s *InstallApi) isSystemInstalled() bool {
 
 // 检查配置文件是否存在
 func (s *InstallApi) isConfigFileExists() bool {
-	_, err := os.Stat("config.yaml")
+	_, err := os.Stat(utils.BasePath("config.yaml"))
 	return !os.IsNotExist(err)
 }
 
@@ -298,7 +313,7 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 			dbConfig["path"] = params.Database.Path
 		} else {
 			dbConfig["name"] = params.Database.Name
-			dbConfig["data_dir"] = "data"
+			dbConfig["data_dir"] = utils.BasePath("data")
 		}
 		dbConfig["sqlite"] = map[string]interface{}{
 			"synchronous":  "NORMAL",
@@ -327,14 +342,15 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 		return fmt.Errorf("序列化配置失败: %v", err)
 	}
 
+	configPath := utils.BasePath("config.yaml")
 	// 确保目录存在
-	configDir := filepath.Dir("config.yaml")
+	configDir := filepath.Dir(configPath)
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return fmt.Errorf("创建配置目录失败: %v", err)
 	}
 
 	// 写入文件
-	if err := os.WriteFile("config.yaml", yamlData, 0644); err != nil {
+	if err := os.WriteFile(configPath, yamlData, 0644); err != nil {
 		return fmt.Errorf("写入配置文件失败: %v", err)
 	}
 
@@ -342,21 +358,32 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 }
 
 // 初始化数据库
-func (s *InstallApi) initDatabase() error {
+func (s *InstallApi) initDatabase() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			zap.S().Errorf("数据库初始化失败: %v", r)
+			err = fmt.Errorf("数据库初始化失败: %v", r)
+			zap.S().Error(err)
 		}
 	}()
 
 	// 初始化数据库连接
 	database.InitDB(viper.GetString("db.prefix"))
 
+	// 检查数据库是否初始化成功
+	if global.GormDB == nil {
+		return fmt.Errorf("数据库初始化失败: GormDB 为 nil")
+	}
+
 	return nil
 }
 
 // 创建或更新管理员用户
 func (s *InstallApi) createAdminUser(adminUser schemas.AdminUserInput) error {
+	// 检查数据库连接是否有效
+	if global.GormDB == nil {
+		return fmt.Errorf("数据库连接未初始化")
+	}
+
 	tx := global.GormDB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -412,7 +439,7 @@ func (s *InstallApi) createAdminUser(adminUser schemas.AdminUserInput) error {
 func (s *InstallApi) createInstallLock() error {
 	lockContent := fmt.Sprintf("# 系统安装锁文件\n# 安装时间: %s\n# 请勿删除此文件，删除后系统将重新进入安装模式\n", time.Now().Format("2006-01-02 15:04:05"))
 
-	err := os.WriteFile("install.lock", []byte(lockContent), 0644)
+	err := os.WriteFile(utils.BasePath("install.lock"), []byte(lockContent), 0644)
 	if err != nil {
 		return fmt.Errorf("创建install.lock文件失败: %v", err)
 	}

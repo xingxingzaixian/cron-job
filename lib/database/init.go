@@ -24,7 +24,7 @@ func InitDB(prefix string) {
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
 			SlowThreshold:             time.Second,
-			LogLevel:                  logger.Info,
+			LogLevel:                  logger.Warn,
 			IgnoreRecordNotFoundError: true,
 			Colorful:                  true,
 		})
@@ -61,6 +61,9 @@ func InitDB(prefix string) {
 		panic(fmt.Sprintf("数据库连接失败: %v", err))
 	}
 
+	// 先设置全局连接，再进行迁移，避免首次安装时空指针
+	global.GormDB = db
+
 	// 配置数据库连接池
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -89,6 +92,13 @@ func InitDB(prefix string) {
 	zap.S().Infof("数据库连接池配置: MaxIdle=%d, MaxOpen=%d, MaxLifetime=%ds",
 		maxIdleConns, maxOpenConns, connMaxLifetime)
 
-	db.AutoMigrate(&models.User{}, &models.Task{}, &models.TaskLog{})
-	global.GormDB = db
+	err = global.GormDB.AutoMigrate(
+		&models.User{},
+		&models.Task{},
+		&models.TaskLog{},
+		&models.TaskDependency{},
+	)
+	if err != nil {
+		log.Panicf("数据表迁移失败：%v", err)
+	}
 }

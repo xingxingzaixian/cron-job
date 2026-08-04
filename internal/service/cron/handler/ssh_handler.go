@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"golang.org/x/crypto/ssh"
 )
 
 // SSHHandler SSH远程执行任务
@@ -23,13 +24,16 @@ type SSHConfig struct {
 	Username string `json:"username"` // 用户名
 	Password string `json:"password"` // 密码（密码认证时使用）
 	Mode     string `json:"mode"`     // 执行模式：sequential(顺序执行) 或 script(脚本执行)
+	HostKey  string `json:"host_key"` // 主机公钥（可选），用于校验主机身份
 }
 
 // Run 实现Handler接口，执行SSH任务
-func (h *SSHHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, error) {
+func (h *SSHHandler) Run(taskModel *models.Task, taskUniqueId uint) (output string, err error) {
 	defer func() {
-		if err := recover(); err != nil {
-			zap.S().Error("SSH Handler panic: ", err)
+		if r := recover(); r != nil {
+			zap.S().Errorf("SSH Handler panic: taskId=%d, panic=%v", taskModel.ID, r)
+			err = fmt.Errorf("任务【%d】执行发生内部错误: %v", taskModel.ID, r)
+			output = ""
 		}
 	}()
 
@@ -65,6 +69,7 @@ func (h *SSHHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, err
 		Username: sshConfig.Username,
 		Password: sshConfig.Password,
 		Timeout:  global.SSHConnTimeout,
+		HostKey:  sshConfig.HostKey,
 	})
 
 	// 建立连接
@@ -78,7 +83,6 @@ func (h *SSHHandler) Run(taskModel *models.Task, taskUniqueId uint) (string, err
 	defer cancel()
 
 	// 根据执行模式执行命令
-	var output string
 	switch strings.ToLower(sshConfig.Mode) {
 	case "script":
 		// 脚本模式：将所有命令作为一个脚本执行
@@ -165,6 +169,11 @@ func (h *SSHHandler) validateSSHConfig(config *SSHConfig, commands []string) err
 	if config.Port <= 0 || config.Port > 65535 {
 		return fmt.Errorf("端口号必须在1-65535之间")
 	}
+	if config.HostKey != "" {
+		if _, _, _, _, err := ssh.ParseAuthorizedKey([]byte(config.HostKey)); err != nil {
+			return fmt.Errorf("主机公钥格式错误: %v", err)
+		}
+	}
 
 	return nil
 }
@@ -217,6 +226,7 @@ func TestSSHConnection(config *SSHConfig, commands []string) error {
 		Username: config.Username,
 		Password: config.Password,
 		Timeout:  global.SSHConnTimeout,
+		HostKey:  config.HostKey,
 	})
 
 	if err := client.Connect(); err != nil {

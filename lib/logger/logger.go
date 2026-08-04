@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"cronJob/internal/utils"
 	"github.com/natefinch/lumberjack/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -25,7 +26,7 @@ func getEncoder() zapcore.Encoder {
 
 func getWriterSyncer() zapcore.WriteSyncer {
 	lumberWriteSyncer, _ := lumberjack.NewRoller(
-		"logs/scheduler.log",
+		utils.BasePath("logs/scheduler.log"),
 		10*1024*1024,
 		&lumberjack.Options{
 			MaxBackups: 10,

@@ -5,6 +5,7 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/handler"
+	"fmt"
 	"time"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -37,6 +38,36 @@ func CreateJob(taskModel models.Task) gcron.JobFunc {
 	}
 
 	return func(ctx context.Context) {
+		// 检查任务是否有依赖
+		hasDependencies, err := taskModel.HasDependencies()
+		if err != nil {
+			zap.S().Errorf("检查任务依赖失败: taskId=%d, error=%v", taskModel.ID, err)
+			return
+		}
+
+		// 如果有依赖，检查依赖是否满足
+		if hasDependencies {
+			canExecute, err := taskModel.CanExecute()
+			if err != nil {
+				zap.S().Errorf("检查任务执行条件失败: taskId=%d, error=%v", taskModel.ID, err)
+				return
+			}
+
+			if !canExecute {
+				zap.S().Infof("任务依赖未满足，跳过执行: taskId=%d", taskModel.ID)
+				// 记录日志，说明依赖未满足；仅当最近一次日志不是取消状态时写入，避免日志膨胀
+				lastLog := &models.TaskLog{}
+				lastLogErr := global.GormDB.Where("task_id = ?", taskModel.ID).Order("id DESC").First(lastLog).Error
+				if lastLogErr != nil || lastLog.Status != global.TaskStatusCancel {
+					_, err := createTaskLog(&taskModel, global.TaskStatusCancel)
+					if err != nil {
+						zap.S().Errorf("创建依赖未满足任务日志失败: taskId=%d, error=%v", taskModel.ID, err)
+					}
+				}
+				return
+			}
+		}
+
 		startTime := time.Now()
 		taskLogId := beforeExecJob(&taskModel)
 		if taskLogId <= 0 {
@@ -44,7 +75,7 @@ func CreateJob(taskModel models.Task) gcron.JobFunc {
 		}
 
 		zap.S().Infof("开始执行任务#%s#命令-%s", taskModel.Name, taskModel.Command)
-		taskResult := execJob(hdler, &taskModel, taskLogId)
+		taskResult := execJob(ctx, hdler, &taskModel, taskLogId)
 		zap.S().Infof("任务完成#%s#命令-%s", taskModel.Name, taskModel.Command)
 		afterExecJob(&taskModel, taskResult, taskLogId, startTime)
 	}
@@ -63,7 +94,7 @@ func beforeExecJob(taskModel *models.Task) (taskLogId uint) {
 }
 
 // 执行任务
-func execJob(handler handler.Handler, taskModel *models.Task, taskUniqueId uint) global.TaskResult {
+func execJob(ctx context.Context, handler handler.Handler, taskModel *models.Task, taskUniqueId uint) global.TaskResult {
 	defer func() {
 		if err := recover(); err != nil {
 			zap.S().Error("panic#service/cron/job/job.go:execJob#", err)
@@ -86,18 +117,36 @@ func execJob(handler handler.Handler, taskModel *models.Task, taskUniqueId uint)
 		}
 		i++
 
-		if i < execTimes {
-			zap.S().Warnf("任务执行失败#任务id-%d#重试第%d次#输出-%s#错误-%s", taskModel.ID, i, output, err.Error())
-			if taskModel.RetryInterval > 0 {
-				time.Sleep(time.Duration(taskModel.RetryInterval) * time.Second)
-			} else {
-				// 默认重试间隔时间，每次递增1分钟
-				time.Sleep(time.Duration(i) * time.Minute)
-			}
+		if i >= execTimes {
+			break
+		}
+
+		interval := retryInterval(taskModel.RetryInterval, i)
+
+		zap.S().Warnf("任务执行失败#任务id-%d#重试第%d次#输出-%s#错误-%s", taskModel.ID, i, output, err.Error())
+
+		// 可取消的重试等待，任务被取消/系统关闭时立即退出
+		select {
+		case <-ctx.Done():
+			return global.TaskResult{Result: output, Err: fmt.Errorf("任务【%d】执行被取消: %v", taskModel.ID, ctx.Err()), RetryTimes: i}
+		case <-time.After(interval):
 		}
 	}
 
 	return global.TaskResult{Result: output, Err: err, RetryTimes: taskModel.RetryTimes}
+}
+
+// retryInterval 计算重试等待间隔（纯函数，便于单测）
+// 任务配置的间隔优先；未配置时按重试次数递增，但上限5分钟，避免长时间阻塞
+func retryInterval(retryInterval int16, retryTimes int8) time.Duration {
+	interval := time.Duration(retryInterval) * time.Second
+	if retryInterval <= 0 {
+		interval = time.Duration(retryTimes) * time.Minute
+		if interval > 5*time.Minute {
+			interval = 5 * time.Minute
+		}
+	}
+	return interval
 }
 
 // 任务执行后置操作

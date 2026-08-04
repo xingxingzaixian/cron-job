@@ -70,8 +70,8 @@ COPY config.example.yaml config.yaml
 RUN mkdir -p /app/data && \
     chown -R cronjob:cronjob /app
 
-# 暴露端口
-EXPOSE 8080
+# 暴露端口（与默认配置 http.addr 保持一致）
+EXPOSE 8210
 
 # 启动命令
 CMD ["./cronJob", "server"]

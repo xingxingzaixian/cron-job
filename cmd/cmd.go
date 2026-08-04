@@ -4,6 +4,7 @@ import (
 	"cronJob/internal/global"
 	task "cronJob/internal/service/cron/task_manager"
 	"cronJob/internal/service/web/router"
+	"cronJob/internal/utils"
 	"cronJob/lib/config"
 	"cronJob/lib/database"
 	"cronJob/lib/logger"
@@ -31,7 +32,8 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("config", "c", "config.yaml", "config file path")
+	// 默认空值，由 InitConfig 基于基础目录解析
+	rootCmd.PersistentFlags().StringP("config", "c", "", "config file path")
 }
 
 func Execute() {
@@ -70,7 +72,8 @@ func startServer(configFile string) {
 	}()
 
 	// 5. 监听退出信号
-	quit := make(chan os.Signal)
+	// 使用带缓冲的通道，避免信号在 Notify 尚未读取时被丢弃
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	zap.S().Info("Shutting down server...")
@@ -83,7 +86,7 @@ func startServer(configFile string) {
 // 检查是否需要安装
 func checkNeedInstall() bool {
 	// 检查install.lock文件是否存在
-	_, err := os.Stat("install.lock")
+	_, err := os.Stat(utils.BasePath("install.lock"))
 	if os.IsNotExist(err) {
 		zap.S().Info("install.lock文件不存在，进入安装模式")
 		return true

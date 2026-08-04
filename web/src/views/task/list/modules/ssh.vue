@@ -49,6 +49,15 @@
             </NFormItem>
           </NGridItem>
           <NGridItem>
+            <NFormItem :label="$t('ssh.hostKey')" path="hostKey" :show-feedback="false">
+              <NInput
+                v-model:value="sshConfig.host_key"
+                :placeholder="$t('ssh.hostKeyPlaceholder')"
+                @input="onConfigChange"
+              />
+            </NFormItem>
+          </NGridItem>
+          <NGridItem>
             <NFormItem :label="$t('ssh.mode')" path="mode" :show-feedback="false">
               <NSelect
                 v-model:value="sshConfig.mode"
@@ -122,6 +131,7 @@ const sshConfig = reactive({
   port: 22,
   username: '',
   password: '',
+  host_key: '',
   mode: 'sequential'
 });
 
@@ -200,6 +210,7 @@ const showExample = () => {
   sshConfig.port = 22;
   sshConfig.username = 'root';
   sshConfig.password = 'your_password';
+  sshConfig.host_key = '';
   sshConfig.mode = 'sequential';
   
   commands.value = `whoami

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -16,6 +17,7 @@ type SSHConfig struct {
 	Username string // 用户名
 	Password string // 密码（密码认证时使用）
 	Timeout  int    // 连接超时时间（秒）
+	HostKey  string // 主机公钥（可选，如 "ssh-rsa AAAA..."），提供时校验主机身份
 }
 
 // SSHClient SSH客户端
@@ -41,9 +43,20 @@ func NewSSHClient(config *SSHConfig) *SSHClient {
 func (c *SSHClient) Connect() error {
 	// 创建SSH客户端配置
 	sshConfig := &ssh.ClientConfig{
-		User:            c.config.Username,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // 生产环境应该验证主机密钥
-		Timeout:         time.Duration(c.config.Timeout) * time.Second,
+		User:    c.config.Username,
+		Timeout: time.Duration(c.config.Timeout) * time.Second,
+	}
+
+	// 配置主机密钥校验：提供了主机公钥则严格校验，否则降级为跳过校验（记录警告）
+	if c.config.HostKey != "" {
+		hostKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(c.config.HostKey))
+		if err != nil {
+			return fmt.Errorf("主机公钥格式错误: %v", err)
+		}
+		sshConfig.HostKeyCallback = ssh.FixedHostKey(hostKey)
+	} else {
+		zap.S().Warnf("SSH连接[%s:%d]未配置主机公钥，跳过主机身份校验，存在中间人攻击风险", c.config.Host, c.config.Port)
+		sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 	}
 
 	// 根据认证方式设置认证方法

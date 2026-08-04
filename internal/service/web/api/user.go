@@ -4,6 +4,7 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/schemas"
+	"cronJob/internal/utils"
 	"errors"
 
 	"github.com/gin-gonic/gin"
@@ -116,6 +117,13 @@ func (u *UserApi) EditUser(c *gin.Context) {
 			schemas.ResponseError(c, schemas.UserUpdateFailed, err)
 		}
 	} else {
+		// 校验密码强度
+		if !utils.ValidatePassword(params.Password) {
+			tx.Rollback()
+			schemas.ResponseError(c, schemas.UserEditParamInvalid, errors.New("密码长度需6-128位，且至少包含大写字母、小写字母、数字中的两种"))
+			return
+		}
+
 		user.UserName = params.UserName
 		user.NickName = params.NickName
 		user.Email = params.Email
@@ -205,7 +213,13 @@ func (u *UserApi) GetUser(c *gin.Context) {
 		return
 	}
 
-	schemas.ResponseSuccess(c, user)
+	// 只返回安全字段，避免泄露密码哈希
+	schemas.ResponseSuccess(c, &schemas.UserEditInput{
+		ID:       user.ID,
+		UserName: user.UserName,
+		NickName: user.NickName,
+		Email:    user.Email,
+	})
 }
 
 // DelUser godoc
@@ -270,6 +284,12 @@ func (u *UserApi) UpdatePassword(ctx *gin.Context) {
 	// 检查密码是否一致
 	if params.NewPass != params.ConfirmPassword {
 		schemas.ResponseError(ctx, schemas.UserUpdateFailed, errors.New("两次密码不一致"))
+		return
+	}
+
+	// 校验新密码强度
+	if !utils.ValidatePassword(params.NewPass) {
+		schemas.ResponseError(ctx, schemas.UserUpdateFailed, errors.New("新密码长度需6-128位，且至少包含大写字母、小写字母、数字中的两种"))
 		return
 	}
 

@@ -1,9 +1,12 @@
 package database
 
 import (
+	"cronJob/internal/global"
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -29,7 +32,7 @@ func (s *SQLiteDB) Create(option *gorm.Config) (*gorm.DB, error) {
 	zap.S().Infof("SQLite 数据库文件路径: %s", dbPath)
 
 	// 构建连接字符串，指定使用 modernc.org/sqlite 驱动
-	dsn := fmt.Sprintf("file:%s?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)", dbPath)
+	dsn := s.getDSN() + "&_pragma=journal_mode(WAL)"
 
 	// 打开数据库连接，使用纯Go驱动
 	db, err := gorm.Open(sqlite.Dialector{
@@ -76,6 +79,25 @@ func (s *SQLiteDB) getDBPath() string {
 	}
 
 	return filepath.Join(dataDir, dbName)
+}
+
+// getDSN 构建SQLite连接DSN
+func (s *SQLiteDB) getDSN() string {
+	dbPath := s.getDBPath()
+	return fmt.Sprintf("file:%s?_pragma=foreign_keys(1)", dbPath)
+}
+
+// openRaw 打开一个独立的SQLite连接，用于备份等独立操作
+func (s *SQLiteDB) openRaw() (*sql.DB, error) {
+	db, err := sql.Open("sqlite", s.getDSN())
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, err
+	}
+	return db, nil
 }
 
 // ensureDBDir 确保数据库目录存在
@@ -180,32 +202,30 @@ func (s *SQLiteDB) GetDBSize() (int64, error) {
 
 // BackupDB 备份数据库文件
 func (s *SQLiteDB) BackupDB(backupPath string) error {
-	dbPath := s.getDBPath()
-
 	// 确保备份目录存在
 	if err := s.ensureDBDir(backupPath); err != nil {
 		return err
 	}
 
-	// 读取源文件
-	sourceData, err := os.ReadFile(dbPath)
+	// 使用 VACUUM INTO 生成一致性快照，兼容 WAL 模式
+	// （直接复制主库文件会丢失 WAL 中尚未合并的已提交数据）
+	db, err := s.openRaw()
 	if err != nil {
-		return fmt.Errorf("读取数据库文件失败: %v", err)
+		return fmt.Errorf("打开数据库失败: %v", err)
+	}
+	defer db.Close()
+
+	escapedPath := strings.ReplaceAll(backupPath, "'", "''")
+	if _, err := db.Exec("VACUUM INTO '" + escapedPath + "'"); err != nil {
+		return fmt.Errorf("备份数据库失败: %v", err)
 	}
 
-	// 写入备份文件
-	if err := os.WriteFile(backupPath, sourceData, 0644); err != nil {
-		return fmt.Errorf("写入备份文件失败: %v", err)
-	}
-
-	zap.S().Infof("数据库备份完成: %s -> %s", dbPath, backupPath)
+	zap.S().Infof("数据库备份完成: %s -> %s", s.getDBPath(), backupPath)
 	return nil
 }
 
 // RestoreDB 从备份恢复数据库
 func (s *SQLiteDB) RestoreDB(backupPath string) error {
-	dbPath := s.getDBPath()
-
 	// 检查备份文件是否存在
 	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
 		return fmt.Errorf("备份文件不存在: %s", backupPath)
@@ -217,15 +237,35 @@ func (s *SQLiteDB) RestoreDB(backupPath string) error {
 		return fmt.Errorf("读取备份文件失败: %v", err)
 	}
 
+	dbPath := s.getDBPath()
 	// 确保数据库目录存在
 	if err := s.ensureDBDir(dbPath); err != nil {
 		return err
+	}
+
+	// 关闭全局数据库连接，避免恢复时文件被占用或并发写入
+	if global.GormDB != nil {
+		if sqlDB, err := global.GormDB.DB(); err == nil {
+			sqlDB.Close()
+			zap.S().Warn("恢复数据库前已关闭全局数据库连接，恢复完成后将重新连接")
+		}
 	}
 
 	// 写入数据库文件
 	if err := os.WriteFile(dbPath, backupData, 0644); err != nil {
 		return fmt.Errorf("写入数据库文件失败: %v", err)
 	}
+
+	// 删除残留的 WAL/SHM 文件，避免旧日志被误恢复
+	_ = os.Remove(dbPath + "-wal")
+	_ = os.Remove(dbPath + "-shm")
+
+	// 恢复完成后重新建立连接
+	db, err := s.Create(&gorm.Config{})
+	if err != nil {
+		return fmt.Errorf("恢复后重新连接数据库失败: %v", err)
+	}
+	global.GormDB = db
 
 	zap.S().Infof("数据库恢复完成: %s -> %s", backupPath, dbPath)
 	return nil

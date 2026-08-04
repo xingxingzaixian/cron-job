@@ -52,6 +52,8 @@ func (u *User) UpdatePassword(tx *gorm.DB, password string) (int64, error) {
 	return result.RowsAffected, nil
 }
 
+// Delete 删除用户（硬删除）
+// 故意不使用软删除：软删除记录仍占用 username 唯一索引，会导致同名账号无法重新创建
 func (u *User) Delete(tx *gorm.DB, id uint) (int64, error) {
 	result := tx.Unscoped().Where("id = ?", id).Delete(u)
 	if result.Error != nil {
@@ -61,6 +63,17 @@ func (u *User) Delete(tx *gorm.DB, id uint) (int64, error) {
 }
 
 func (u *User) PageList(tx *gorm.DB, params *schemas.SearchUserParams) (users []User, count int64, err error) {
+	// 分页参数归一化：默认值 + 上限
+	if params.PageNo <= 0 {
+		params.PageNo = 1
+	}
+	if params.PageSize <= 0 {
+		params.PageSize = 15
+	}
+	if params.PageSize > 100 {
+		params.PageSize = 100
+	}
+
 	query := tx.Model(u)
 	if params.Name != "" {
 		query = query.Where("nickname like ?", "%"+params.Name+"%")

@@ -139,4 +139,5 @@ const (
 	InstallDatabaseInitFailed
 	InstallCreateAdminFailed
 	DatabaseTestFailed
+	LoginTooManyAttempts
 )

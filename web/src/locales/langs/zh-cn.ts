@@ -198,6 +198,7 @@ const local = {
       editFailed: '任务编辑失败',
       deleteSuccess: '任务删除成功',
       deleteFailed: '任务删除失败',
+      selectTaskFirst: '请先选择要删除的任务',
       confirmDelete: '确认删除该任务吗？'
     }
   },
@@ -218,6 +219,8 @@ const local = {
     passwordAuth: '密码认证',
     password: '密码',
     passwordPlaceholder: '请输入SSH密码',
+    hostKey: '主机公钥',
+    hostKeyPlaceholder: '可选，粘贴服务器公钥（ssh-rsa AAAA...），用于校验主机身份',
     mode: '执行模式',
     sequentialMode: '顺序执行',
     scriptMode: '脚本执行',

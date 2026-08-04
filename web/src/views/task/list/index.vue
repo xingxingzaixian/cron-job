@@ -34,7 +34,7 @@
       <template #header-extra>
         <TableHeaderOperation
           v-model:columns="filteredColumns"
-          :canDelete="false"
+          :canDelete="true"
           :loading="loading"
           @add="handleAdd"
           @delete="handleBatchDelete"
@@ -205,7 +205,18 @@ const { columns, filteredColumns, data, loading, pagination, updateSearchParams,
   });
 
 async function handleBatchDelete() {
-  message.success($t('common.deleteSuccess'));
+  const ids = checkedRowKeys.value;
+  if (ids.length === 0) {
+    message.warning($t('task.message.selectTaskFirst'));
+    return;
+  }
+
+  try {
+    await Promise.all(ids.map((id) => fetchTaskOp({ id: Number(id), op: 'delete' })));
+    message.success($t('common.deleteSuccess'));
+  } catch (error) {
+    message.error($t('task.message.deleteFailed'));
+  }
 
   checkedRowKeys.value = [];
 
@@ -243,9 +254,9 @@ async function handleEnable(val: boolean, row: TaskItemOutput) {
     row.status = val ? TaskStatus.Enabled : TaskStatus.Disabled;
   } else {
     if (val) {
-      message.success($t('task.message.startFailed'));
+      message.error($t('task.message.startFailed'));
     } else {
-      message.success($t('task.message.stopFailed'));
+      message.error($t('task.message.stopFailed'));
     }
   }
 }

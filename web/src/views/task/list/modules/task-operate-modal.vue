@@ -124,7 +124,7 @@ import { computed, reactive, ref, watch } from 'vue';
 import type { FormInst, FormRules } from 'naive-ui';
 import { $t } from '@/locales';
 import { TaskProtocol, TaskPolicy, TaskStatus } from '@/enum/task';
-import { fetchTaskEdit, fetchTaskView } from '@/api/task';
+import { fetchTaskCreate, fetchTaskUpdate, fetchTaskView } from '@/api/task';
 import { message } from '@/utils/message';
 import Http from './http.vue';
 import Ssh from './ssh.vue';
@@ -271,10 +271,10 @@ async function handleSubmit() {
   
   try {
     if (props.operateType === 'add') {
-      await fetchTaskEdit(model);
+      await fetchTaskCreate(model);
       message.success($t('common.addSuccess'));
     } else {
-      await fetchTaskEdit(model);
+      await fetchTaskUpdate(model);
       message.success($t('common.updateSuccess'));
     }
     

@@ -5,12 +5,76 @@ import (
 	"cronJob/internal/models"
 	"cronJob/internal/schemas"
 	jwt2 "cronJob/lib/jwt"
+	"errors"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// 登录失败限流：同一IP在时间窗口内最多允许失败次数
+const (
+	maxLoginFailures    = 5
+	loginFailureWindow  = 10 * time.Minute
+	maxLoginAttemptKeys = 10000
+)
+
+type loginAttempt struct {
+	failures  int
+	windowEnd time.Time
+}
+
+var (
+	loginAttempts   = make(map[string]*loginAttempt)
+	loginAttemptsMu sync.Mutex
+)
+
+// checkLoginRateLimit 检查是否允许继续尝试登录
+func checkLoginRateLimit(key string) bool {
+	loginAttemptsMu.Lock()
+	defer loginAttemptsMu.Unlock()
+
+	now := time.Now()
+	entry, ok := loginAttempts[key]
+	if !ok || now.After(entry.windowEnd) {
+		entry = &loginAttempt{windowEnd: now.Add(loginFailureWindow)}
+		loginAttempts[key] = entry
+	}
+	return entry.failures < maxLoginFailures
+}
+
+// recordLoginFailure 记录一次登录失败
+func recordLoginFailure(key string) {
+	loginAttemptsMu.Lock()
+	defer loginAttemptsMu.Unlock()
+
+	now := time.Now()
+	entry, ok := loginAttempts[key]
+	if !ok || now.After(entry.windowEnd) {
+		entry = &loginAttempt{windowEnd: now.Add(loginFailureWindow)}
+		loginAttempts[key] = entry
+	}
+	entry.failures++
+
+	// 防止map无限增长：条目过多时清理过期记录
+	if len(loginAttempts) > maxLoginAttemptKeys {
+		for k, e := range loginAttempts {
+			if now.After(e.windowEnd) {
+				delete(loginAttempts, k)
+			}
+		}
+	}
+}
+
+// resetLoginFailures 登录成功后清零失败记录
+func resetLoginFailures(key string) {
+	loginAttemptsMu.Lock()
+	defer loginAttemptsMu.Unlock()
+	delete(loginAttempts, key)
+}
 
 type LoginApi struct{}
 
@@ -51,19 +115,31 @@ func (service *LoginApi) Login(ctx *gin.Context) {
 		return
 	}
 
+	// 登录失败限流，防止暴力破解
+	rateKey := ctx.ClientIP()
+	if !checkLoginRateLimit(rateKey) {
+		schemas.ResponseError(ctx, schemas.LoginTooManyAttempts, errors.New("登录尝试过于频繁，请稍后再试"))
+		return
+	}
+
 	// 判断用户是否存在
 	user := &models.User{}
 	if err := user.FindOne(global.GormDB, g.Map{
 		"username": params.UserName,
 	}); err != nil {
-		schemas.ResponseError(ctx, schemas.UserNotExist, err)
+		recordLoginFailure(rateKey)
+		// 统一错误提示，避免用户名枚举
+		schemas.ResponseError(ctx, schemas.UserPasswordError, errors.New("用户名或密码错误"))
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(params.Password)); err != nil {
-		schemas.ResponseError(ctx, schemas.UserPasswordError, err)
+		recordLoginFailure(rateKey)
+		schemas.ResponseError(ctx, schemas.UserPasswordError, errors.New("用户名或密码错误"))
 		return
 	}
+
+	resetLoginFailures(rateKey)
 
 	token, err := jwt2.GenToken(user.UserName)
 	if err != nil {

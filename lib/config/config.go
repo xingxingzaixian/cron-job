@@ -13,14 +13,15 @@ func InitConfig(configFile string) {
 
 	// 配置文件路径设置
 	if configFile != "" {
-		viper.SetConfigFile(configFile)
+		// 显式指定时基于基础目录解析相对路径
+		viper.SetConfigFile(utils.BasePath(configFile))
 		zap.S().Infof("使用指定配置文件: %s", configFile)
 	} else {
-		viper.AddConfigPath(".")
+		viper.AddConfigPath(utils.BaseDir())
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AutomaticEnv()
-		zap.S().Info("使用默认配置文件路径: ./config.yaml")
+		zap.S().Infof("使用默认配置文件路径: %s", utils.BasePath("config.yaml"))
 	}
 
 	// 尝试读取配置文件
@@ -64,6 +65,8 @@ func setDefaultConfig() {
 	// 数据库默认配置（空值，表示未配置）
 	viper.SetDefault("db.engine", "")
 	viper.SetDefault("db.prefix", "sched_")
+	// 数据目录基于基础目录，避免从其他目录启动时找不到数据库
+	viper.SetDefault("db.data_dir", utils.BasePath("data"))
 
 	// 认证默认配置
 	viper.SetDefault("auth.enable", true)
