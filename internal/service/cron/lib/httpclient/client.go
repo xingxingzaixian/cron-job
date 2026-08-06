@@ -16,118 +16,186 @@ import (
 const maxResponseBodySize = 10 * 1024 * 1024
 
 /*
-		{
-		  "url": "http://www.baidu.com",
-		  "method": "GET"
-	    }
-		{
-		  "headers": {},
-		  "query": {},
-		  "data": {},
-		}
+	command 示例：
+	{
+	  "url": "http://www.baidu.com",
+	  "method": "GET"
+	}
+	params 示例（headers/query 为行结构，data 为原始请求体字符串）：
+	{
+	  "headers": [{"key":"Content-Type","value":"application/json","enabled":true}],
+	  "query": [{"key":"page","value":"1","enabled":true}],
+	  "data": "{\"foo\":\"bar\"}"
+	}
 */
-func Get(url, params string, timeout time.Duration) (string, error) {
-	client, url, _, err := parseClient(url, params, timeout)
+
+// Result HTTP请求完整结果
+type Result struct {
+	Output     string        // 响应体
+	StatusCode int           // 状态码
+	Duration   time.Duration // 耗时
+	Size       int           // 响应体字节数
+}
+
+// paramRow 参数行（key-value 行结构，支持启用/停用与描述）
+type paramRow struct {
+	Key     string `json:"key"`
+	Value   string `json:"value"`
+	Enabled bool   `json:"enabled"`
+	Desc    string `json:"desc,omitempty"`
+}
+
+// requestParams 解析后的请求参数
+type requestParams struct {
+	headers map[string]string
+	query   urlParse.Values
+	body    string
+}
+
+// Do 执行HTTP请求并返回完整结果（含状态码、耗时、响应大小）
+func Do(method, targetURL, params string, timeout time.Duration) (*Result, error) {
+	client, reqURL, rp, err := parseParams(targetURL, params, timeout)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	r, err := client.Get(gctx.GetInitCtx(), url)
+	start := time.Now()
+	var r *gclient.Response
+	switch strings.ToUpper(method) {
+	case "POST":
+		r, err = client.Post(gctx.GetInitCtx(), reqURL, rp.body)
+	default:
+		r, err = client.Get(gctx.GetInitCtx(), reqURL)
+	}
+	duration := time.Since(start)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer r.Close()
 
-	return readResponse(r)
+	body, readErr := io.ReadAll(io.LimitReader(r.Body, maxResponseBodySize+1))
+	if readErr != nil {
+		return nil, fmt.Errorf("读取响应失败: %v", readErr)
+	}
+	size := len(body)
+	if size > maxResponseBodySize {
+		return nil, fmt.Errorf("响应体超过大小限制(%d字节)", maxResponseBodySize)
+	}
+
+	result := &Result{
+		Output:     string(body),
+		StatusCode: r.StatusCode,
+		Duration:   duration,
+		Size:       size,
+	}
+	if r.StatusCode >= 400 {
+		return result, fmt.Errorf("HTTP请求失败，状态码: %d", r.StatusCode)
+	}
+	return result, nil
+}
+
+func Get(url, params string, timeout time.Duration) (string, error) {
+	result, err := Do("GET", url, params, timeout)
+	if err != nil {
+		return "", err
+	}
+	return result.Output, nil
 }
 
 func Post(url, params string, timeout time.Duration) (string, error) {
-	client, url, data, err := parseClient(url, params, timeout)
+	result, err := Do("POST", url, params, timeout)
 	if err != nil {
 		return "", err
 	}
-
-	r, err := client.Post(gctx.GetInitCtx(), url, data)
-	if err != nil {
-		return "", err
-	}
-	defer r.Close()
-	return readResponse(r)
+	return result.Output, nil
 }
 
-// readResponse 校验HTTP状态码并读取响应体（带大小限制）
-func readResponse(r *gclient.Response) (string, error) {
-	if r.StatusCode >= 400 {
-		return "", fmt.Errorf("HTTP请求失败，状态码: %d", r.StatusCode)
-	}
-
-	body, err := io.ReadAll(io.LimitReader(r.Body, maxResponseBodySize+1))
-	if err != nil {
-		return "", fmt.Errorf("读取响应失败: %v", err)
-	}
-	if len(body) > maxResponseBodySize {
-		return "", fmt.Errorf("响应体超过大小限制(%d字节)", maxResponseBodySize)
-	}
-	return string(body), nil
-}
-
-func parseClient(url, params string, timeout time.Duration) (*gclient.Client, string, g.Map, error) {
+func parseParams(targetURL, params string, timeout time.Duration) (*gclient.Client, string, *requestParams, error) {
 	client := g.Client()
 	client.SetTimeout(timeout)
+	rp := &requestParams{}
 	if params == "" {
-		return client, url, nil, nil
+		return client, targetURL, rp, nil
 	}
 
-	var data g.Map
+	var data map[string]interface{}
 	err := json.Unmarshal([]byte(params), &data)
 	if err != nil {
-		return nil, url, nil, err
+		return nil, targetURL, nil, err
 	}
 
-	headers, ok := data["headers"]
-	if ok {
-		headerMap, ok := headers.(map[string]interface{})
-		if !ok {
-			return nil, url, nil, fmt.Errorf("headers 必须是 JSON 对象")
+	// headers：行结构 [{key,value,enabled}]
+	if raw, ok := data["headers"]; ok && raw != nil {
+		rows, err := parseRows(raw, "headers")
+		if err != nil {
+			return nil, targetURL, nil, err
 		}
-		for key, value := range headerMap {
-			strValue, ok := value.(string)
-			if !ok {
-				return nil, url, nil, fmt.Errorf("header[%s] 的值必须是字符串", key)
+		rp.headers = make(map[string]string, len(rows))
+		for _, row := range rows {
+			if row.Enabled && row.Key != "" {
+				rp.headers[row.Key] = row.Value
+				client.SetHeader(row.Key, row.Value)
 			}
-			client.SetHeader(key, strValue)
 		}
 	}
 
-	query, ok := data["query"]
-	if ok {
-		queryMap, ok := query.(map[string]interface{})
-		if !ok {
-			return nil, url, nil, fmt.Errorf("query 必须是 JSON 对象")
+	// query：行结构，拼接到 URL
+	if raw, ok := data["query"]; ok && raw != nil {
+		rows, err := parseRows(raw, "query")
+		if err != nil {
+			return nil, targetURL, nil, err
 		}
-		v := urlParse.Values{}
-		for key, value := range queryMap {
-			strValue, ok := value.(string)
-			if !ok {
-				return nil, url, nil, fmt.Errorf("query[%s] 的值必须是字符串", key)
+		rp.query = urlParse.Values{}
+		for _, row := range rows {
+			if row.Enabled && row.Key != "" {
+				rp.query.Add(row.Key, row.Value)
 			}
-			v.Add(key, strValue)
 		}
-
-		if strings.Contains(url, "?") {
-			url += "&" + v.Encode()
-		} else {
-			url += "?" + v.Encode()
+		if len(rp.query) > 0 {
+			if strings.Contains(targetURL, "?") {
+				targetURL += "&" + rp.query.Encode()
+			} else {
+				targetURL += "?" + rp.query.Encode()
+			}
 		}
 	}
 
-	body, ok := data["data"]
-	if !ok {
-		return client, url, nil, nil
+	// data：原始请求体字符串
+	if raw, ok := data["data"]; ok && raw != nil {
+		bodyStr, ok := raw.(string)
+		if !ok {
+			return nil, targetURL, nil, fmt.Errorf("data 必须是字符串")
+		}
+		rp.body = bodyStr
 	}
-	bodyMap, ok := body.(map[string]interface{})
-	if !ok {
-		return nil, url, nil, fmt.Errorf("data 必须是 JSON 对象")
+
+	// 未显式设置 Content-Type 且存在请求体时，默认按 JSON 发送，
+	// 避免被编码为表单格式导致 JSON 接口返回 415
+	if rp.body != "" && !hasHeaderKey(rp.headers, "Content-Type") {
+		client.SetHeader("Content-Type", "application/json")
 	}
-	return client, url, bodyMap, nil
+	return client, targetURL, rp, nil
+}
+
+// parseRows 解析 key-value 行数组
+func parseRows(raw interface{}, name string) ([]paramRow, error) {
+	rawJSON, err := json.Marshal(raw)
+	if err != nil {
+		return nil, fmt.Errorf("%s 解析失败: %v", name, err)
+	}
+	var rows []paramRow
+	if err := json.Unmarshal(rawJSON, &rows); err != nil {
+		return nil, fmt.Errorf("%s 必须是行数组: %v", name, err)
+	}
+	return rows, nil
+}
+
+// hasHeaderKey 判断 headers 中是否包含指定请求头（大小写不敏感）
+func hasHeaderKey(headers map[string]string, key string) bool {
+	for k := range headers {
+		if strings.EqualFold(k, key) {
+			return true
+		}
+	}
+	return false
 }

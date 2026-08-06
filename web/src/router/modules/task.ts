@@ -29,6 +29,16 @@ const routes: AppRouteRecordRaw[] = [
           title: 'route.task_log',
           icon: 'material-symbols-light:nest-clock-farsight-analog-outline-rounded'
         }
+      },
+      {
+        path: '/task/edit',
+        name: 'TaskEdit',
+        component: () => import('@/views/task/edit/index.vue'),
+        meta: {
+          title: 'route.task_edit',
+          icon: 'ic:baseline-edit-note',
+          hideInMenu: true
+        }
       }
     ]
   }

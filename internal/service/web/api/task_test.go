@@ -87,3 +87,34 @@ func TestTaskDependencyWouldCycle(t *testing.T) {
 		})
 	}
 }
+
+func TestNewTaskHandler(t *testing.T) {
+	tests := []struct {
+		name     string
+		protocol global.TaskProtocol
+		wantErr  bool
+	}{
+		{"http", global.TaskProtocolHttp, false},
+		{"shell", global.TaskProtocolShell, false},
+		{"ssh", global.TaskProtocolSSH, false},
+		{"invalid", global.TaskProtocol(99), true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h, err := newTaskHandler(tt.protocol)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected error for protocol %d, got handler %T", tt.protocol, h)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error for protocol %d: %v", tt.protocol, err)
+			}
+			if h == nil {
+				t.Fatalf("expected non-nil handler for protocol %d", tt.protocol)
+			}
+		})
+	}
+}

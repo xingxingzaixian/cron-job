@@ -53,6 +53,22 @@ export interface TaskOptionInput {
   op: 'start' | 'stop' | 'run' | 'delete';
 }
 
+export interface TaskTestInput {
+  protocol: TaskProtocol;
+  command: string;
+  params: string;
+  timeout: number;
+}
+
+export interface TaskTestOutput {
+  success: boolean;
+  output: string;
+  error: string;
+  status_code: number;
+  duration_ms: number;
+  size: number;
+}
+
 export interface QueryTaskLog {
   pageNo: number;
   pageSize: number;

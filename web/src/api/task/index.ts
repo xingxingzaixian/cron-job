@@ -8,7 +8,9 @@ import type {
   TaskLogOutput,
   TaskLogItemOutput,
   QueryTaskLog,
-  TaskItemOutput
+  TaskItemOutput,
+  TaskTestInput,
+  TaskTestOutput
 } from './types';
 
 export const fetchTaskList = (params: QueryTask) => {
@@ -42,6 +44,13 @@ export const fetchTaskOp = (data: TaskOptionInput) => {
 
   return apiHttp.post<HttpResult<boolean>>({
     url: opUrls[data.op],
+    data
+  });
+};
+
+export const fetchTaskTest = (data: TaskTestInput) => {
+  return apiHttp.post<HttpResult<TaskTestOutput>>({
+    url: '/api/task/test',
     data
   });
 };

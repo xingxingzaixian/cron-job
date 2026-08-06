@@ -4,11 +4,15 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/schemas"
+	"cronJob/internal/service/cron/handler"
+	"cronJob/internal/service/cron/lib/httpclient"
 	taskManager "cronJob/internal/service/cron/task_manager"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -29,6 +33,7 @@ func TaskRegister(router *gin.RouterGroup) {
 	router.POST("/start", TaskStart)
 	router.POST("/stop", TaskStop)
 	router.POST("/execute", TaskExecute)
+	router.POST("/test", TaskTest)
 
 	// 任务依赖相关接口
 	router.POST("/dependency/add", TaskDependencyAdd)
@@ -835,6 +840,110 @@ func TaskExecute(c *gin.Context) {
 		"code":    200,
 		"message": "执行成功",
 	})
+}
+
+// TaskTest 测试任务配置
+// @Summary 测试任务配置
+// @Description 按当前表单配置同步执行一次，不保存任务
+// @Tags 任务
+// @Accept json
+// @Produce json
+// @Param data body schemas.TaskTestInput true "测试任务配置"
+// @Success 200 {object} schemas.Response{data=schemas.TaskTestOutput} "success"
+// @Router /api/task/test [post]
+func TaskTest(c *gin.Context) {
+	params := &schemas.TaskTestInput{}
+	if err := c.ShouldBind(params); err != nil {
+		zap.S().Error("参数绑定失败", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    400,
+			"message": GetErrorMsg(schemas.TaskTestInput{}, err),
+		})
+		return
+	}
+
+	// 验证参数
+	validate := validator.New()
+	if err := validate.Struct(params); err != nil {
+		zap.S().Errorw("参数验证失败", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": GetErrorMsg(schemas.TaskTestInput{}, err),
+		})
+		return
+	}
+
+	h, err := newTaskHandler(params.Protocol)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    400,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	start := time.Now()
+	result := schemas.TaskTestOutput{}
+
+	if params.Protocol == global.TaskProtocolHttp {
+		// HTTP 任务：直接执行以获取状态码、耗时、响应大小
+		var cmd struct {
+			URL    string `json:"url"`
+			Method string `json:"method"`
+		}
+		if err := json.Unmarshal([]byte(params.Command), &cmd); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"code":    400,
+				"message": "command 解析失败",
+			})
+			return
+		}
+		timeout := params.Timeout
+		if timeout <= 0 {
+			timeout = global.HttpExecTimeout
+		}
+		httpResult, runErr := httpclient.Do(cmd.Method, cmd.URL, params.Params, time.Duration(timeout)*time.Second)
+		if httpResult != nil {
+			result.Output = httpResult.Output
+			result.StatusCode = httpResult.StatusCode
+			result.Size = httpResult.Size
+		}
+		result.DurationMs = time.Since(start).Milliseconds()
+		result.Success = runErr == nil
+		if runErr != nil {
+			result.Error = runErr.Error()
+		}
+	} else {
+		// Shell / SSH：复用任务处理器
+		taskModel := &models.Task{
+			Protocol: params.Protocol,
+			Command:  params.Command,
+			Params:   params.Params,
+			Timeout:  params.Timeout,
+		}
+		output, runErr := h.Run(taskModel, 0)
+		result.Output = output
+		result.DurationMs = time.Since(start).Milliseconds()
+		result.Success = runErr == nil
+		if runErr != nil {
+			result.Error = runErr.Error()
+		}
+	}
+	schemas.ResponseSuccess(c, result)
+}
+
+// newTaskHandler 根据协议返回对应的任务执行处理器
+func newTaskHandler(protocol global.TaskProtocol) (handler.Handler, error) {
+	switch protocol {
+	case global.TaskProtocolHttp:
+		return &handler.HTTPHandler{}, nil
+	case global.TaskProtocolShell:
+		return &handler.SHELLHandler{}, nil
+	case global.TaskProtocolSSH:
+		return &handler.SSHHandler{}, nil
+	default:
+		return nil, fmt.Errorf("不支持的协议类型: %d", protocol)
+	}
 }
 
 // TaskDependencyAdd 添加任务依赖

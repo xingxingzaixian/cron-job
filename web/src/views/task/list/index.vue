@@ -57,13 +57,6 @@
       />
     </n-card>
 
-    <!-- 弹框组件 -->
-    <TaskOperateModal
-      v-model:visible="modalVisible"
-      :operate-type="operateType"
-      :dataId="dataId"
-      @submitted="getData"
-    />
   </div>
 </template>
 
@@ -71,10 +64,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { $t } from '@/locales';
 import { message } from '@/utils/message';
-import { useBoolean, useTable } from '@/hooks';
+import { useTable } from '@/hooks';
 import TableSearch from './modules/task-search.vue';
 import TableHeaderOperation from '@/components/custom/TableHeaderOperation.vue';
-import TaskOperateModal, { type OperateType } from './modules/task-operate-modal.vue';
 import { fetchTaskList, fetchTaskOp } from '@/api/task';
 import type { SearchTaskResponse, QueryTask, TaskItemOutput } from '@/api/task/types';
 import { NButton, NPopconfirm, NSwitch } from 'naive-ui';
@@ -84,8 +76,6 @@ import router from '@/router';
 defineOptions({ name: 'TaskList' });
 
 const checkedRowKeys = ref<string[]>([]);
-const dataId = ref<number>(0);
-const { bool: modalVisible, setTrue: openModal } = useBoolean();
 
 const { columns, filteredColumns, data, loading, pagination, updateSearchParams, resetSearchParams, getData } =
   useTable<SearchTaskResponse, QueryTask>({
@@ -224,9 +214,7 @@ async function handleBatchDelete() {
 }
 
 function handleEdit(id: number) {
-  operateType.value = 'edit';
-  dataId.value = id;
-  openModal();
+  router.push({ path: '/task/edit', query: { id } });
 }
 
 async function handleDelete(id: number) {
@@ -280,10 +268,8 @@ const reset = () => {
   getData();
 };
 
-const operateType = ref<OperateType>('add');
 function handleAdd() {
-  operateType.value = 'add';
-  openModal();
+  router.push({ name: 'TaskEdit' });
 }
 
 // 动态计算表格高度

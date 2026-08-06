@@ -40,6 +40,7 @@ const local = {
     task_log: '日志',
     task_list: '列表',
     task: '任务列表',
+    task_edit: '任务编辑',
     user: '用户管理',
     user_list: '用户列表'
   },
@@ -81,6 +82,21 @@ const local = {
         count: '执行次数',
         addTask: '新增任务',
         editTask: '编辑任务',
+        testButton: '测试执行',
+        testSuccess: '测试成功',
+        testFailed: '测试失败',
+        testOutput: '输出结果',
+        testError: '错误信息',
+        testShellCommandEmpty: '请先填写要执行的命令',
+        testSshConfigEmpty: '请先填写SSH连接配置（主机和用户名）',
+        configTitle: '执行方式配置',
+        saveButton: '保存',
+        basicInfoTitle: '基本信息',
+        testStatusCode: '状态码',
+        testDuration: '耗时',
+        testSize: '大小',
+        responseJson: 'JSON 格式化',
+        responseRaw: '原始内容',
         form: {
           name: '任务名称',
           tag: '任务标签',
@@ -211,7 +227,16 @@ const local = {
   http: {
     header: '请求头',
     query: '参数',
-    data: '请求体'
+    data: '请求体',
+    urlPlaceholder: 'https://example.com',
+    urlInvalid: 'URL 必须以 http:// 或 https:// 开头',
+    kvKey: 'Key',
+    kvValue: 'Value',
+    kvDesc: '描述（可选）',
+    addRow: '添加',
+    bodyNone: '无请求体',
+    bodyPlaceholder: '请求体内容',
+    customContentType: '自定义 Content-Type'
   },
   ssh: {
     connection: 'SSH连接',

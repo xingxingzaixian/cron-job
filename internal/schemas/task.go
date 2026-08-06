@@ -63,3 +63,25 @@ type TaskViewInput struct {
 func (param *TaskViewInput) BindValidParam(c *gin.Context) error {
 	return DefaultGetValidParams(c, param)
 }
+
+// TaskTestInput 测试任务配置入参（不落库，按当前配置执行一次）
+type TaskTestInput struct {
+	Protocol global.TaskProtocol `json:"protocol" form:"protocol" comment:"任务协议" example:"1" validate:"required"`
+	Command  string              `json:"command" form:"command" comment:"任务命令" example:"" validate:"required"`
+	Params   string              `json:"params" form:"params" comment:"命令参数" example:""`
+	Timeout  int                 `json:"timeout" form:"timeout" comment:"超时时间" example:"30" default:"0"`
+}
+
+func (param *TaskTestInput) BindValidParam(c *gin.Context) error {
+	return DefaultGetValidParams(c, param)
+}
+
+// TaskTestOutput 测试任务配置输出
+type TaskTestOutput struct {
+	Success    bool   `json:"success" comment:"是否执行成功"`
+	Output     string `json:"output" comment:"命令输出"`
+	Error      string `json:"error" comment:"错误信息"`
+	StatusCode int    `json:"status_code" comment:"HTTP状态码"`
+	DurationMs int64  `json:"duration_ms" comment:"耗时(毫秒)"`
+	Size       int    `json:"size" comment:"响应体大小(字节)"`
+}
