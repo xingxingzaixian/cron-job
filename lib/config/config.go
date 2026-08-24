@@ -85,4 +85,17 @@ func setDefaultConfig() {
 	// JWT 默认配置
 	viper.SetDefault("jwt.secret", utils.GenerateRandomJWTSecret())
 	viper.SetDefault("jwt.expires", 7200)
+
+	// 通知默认配置
+	viper.SetDefault("notification.email.enabled", false)
+	viper.SetDefault("notification.email.smtp_host", "")
+	viper.SetDefault("notification.email.smtp_port", 587)
+	viper.SetDefault("notification.email.username", "")
+	viper.SetDefault("notification.email.password", "")
+	viper.SetDefault("notification.email.from", "")
+	viper.SetDefault("notification.webhook.enabled", false)
+	viper.SetDefault("notification.webhook.url", "")
+	viper.SetDefault("notification.webhook.headers", map[string]string{})
+	viper.SetDefault("notification.webhook.timeout", 10)
+	viper.SetDefault("notification.cache.ttl", 60)
 }

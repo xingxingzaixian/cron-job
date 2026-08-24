@@ -38,3 +38,38 @@ type TaskResult struct {
 	Err        error
 	RetryTimes int8
 }
+
+// NotificationType 通知类型
+type NotificationType string
+
+const (
+	NotificationTypeEmail   NotificationType = "email"   // 邮件通知
+	NotificationTypeWebhook NotificationType = "webhook" // Webhook通知
+)
+
+// NotificationTrigger 通知触发条件
+type NotificationTrigger string
+
+const (
+	NotificationTriggerSuccess NotificationTrigger = "success" // 成功时触发
+	NotificationTriggerFailure NotificationTrigger = "failure" // 失败时触发
+	NotificationTriggerAll     NotificationTrigger = "all"     // 所有情况触发
+	NotificationTriggerTimeout NotificationTrigger = "timeout" // 超时时触发
+	NotificationTriggerCancel  NotificationTrigger = "cancel"  // 取消时触发
+)
+
+// NotificationStatus 通知状态
+type NotificationStatus int8
+
+const (
+	NotificationStatusDisabled NotificationStatus = 0 // 禁用
+	NotificationStatusEnabled  NotificationStatus = 1 // 启用
+)
+
+// NotificationTemplateType 模板类型
+type NotificationTemplateType string
+
+const (
+	NotificationTemplateTypeSuccess NotificationTemplateType = "success" // 成功模板
+	NotificationTemplateTypeFailure NotificationTemplateType = "failure" // 失败模板
+)

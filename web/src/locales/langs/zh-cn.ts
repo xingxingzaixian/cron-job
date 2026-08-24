@@ -41,6 +41,8 @@ const local = {
     task_list: '列表',
     task: '任务列表',
     task_edit: '任务编辑',
+    notification: '通知管理',
+    notification_list: '通知配置',
     user: '用户管理',
     user_list: '用户列表'
   },

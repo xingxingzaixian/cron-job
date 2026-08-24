@@ -5,6 +5,7 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/handler"
+	"cronJob/internal/service/notification"
 	"fmt"
 	"time"
 
@@ -177,6 +178,9 @@ func afterExecJob(taskModel *models.Task, taskResult global.TaskResult, taskLogI
 		Update("status", finalStatus).Error; err != nil {
 		zap.S().Errorf("更新任务状态失败: taskId=%d, error=%v", taskModel.ID, err)
 	}
+
+	// 异步触发通知（邮件/Webhook），不阻塞主流程
+	go notification.SendNotification(taskModel, taskResult, startTime)
 }
 
 func createTaskLog(taskModel *models.Task, status global.TaskStatus) (insertId uint, err error) {

@@ -26,6 +26,7 @@ type Task struct {
 	Tag           string              `gorm:"size:32;not null;default:'';index:idx_task_tag" json:"tag"`
 	Remark        string              `gorm:"size:256;not null;default:''" json:"remark"`
 	Status        global.TaskStatus   `gorm:"type:tinyint;not null;default:0;index:idx_task_status" json:"status"`
+	EnableNotification bool           `gorm:"type:boolean;not null;default:true" json:"enable_notification"` // 是否启用通知
 }
 
 func (t *Task) Create() (uint, error) {

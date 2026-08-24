@@ -97,6 +97,8 @@ func InitDB(prefix string) {
 		&models.Task{},
 		&models.TaskLog{},
 		&models.TaskDependency{},
+		&models.NotificationConfig{},
+		&models.NotificationLog{},
 	)
 	if err != nil {
 		log.Panicf("数据表迁移失败：%v", err)

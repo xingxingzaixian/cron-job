@@ -75,5 +75,11 @@ func InitRouter(installMode bool, middlewares ...gin.HandlerFunc) *gin.Engine {
 	{
 		api.UserRegister(userRouter)
 	}
+
+	notificationRouter := apiRouter.Group("/notification")
+	{
+		api.NotificationRegister(notificationRouter)
+	}
+
 	return router
 }

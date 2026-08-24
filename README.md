@@ -49,6 +49,13 @@ CronJob 是一个基于 Go 语言开发的现代化定时任务管理系统，�
 - **详细日志**：完整的任务执行日志记录（状态、结果、耗时）
 - **执行统计**：任务执行时长、成功率统计
 
+### 通知系统
+- **邮件通知**：支持 SMTP 邮件发送，任务执行完成时自动通知
+- **Webhook 通知**：支持 HTTP 回调，可对接钉钉、企业微信等
+- **灵活配置**：支持任务级和全局两级配置
+- **触发条件**：支持成功、失败、超时、取消等多种触发条件
+- **重试机制**：通知发送失败时自动重试
+
 ### 系统特性
 - **用户认证**：可选的 JWT 用户身份验证（可通过配置关闭）
 - **RESTful API**：完整的 API 接口，支持 Swagger 在线文档
@@ -250,6 +257,20 @@ log:
     retention_days: 30       # 任务日志保留天数，0 表示不自动清理
     cleanup_interval_hours: 6  # 日志清理检查间隔（小时）
 
+# 通知配置
+notification:
+    email:
+        enabled: false               # 是否启用邮件通知
+        smtp_host: ""                # SMTP 服务器地址
+        smtp_port: 587               # SMTP 端口（587=STARTTLS, 465=SSL/TLS）
+        username: ""                 # SMTP 用户名
+        password: ""                 # SMTP 密码
+        from: ""                     # 发件人地址
+    webhook:
+        enabled: false               # 是否启用 Webhook 通知
+        url: ""                      # Webhook URL（任务级配置优先）
+        headers: {}                  # 自定义请求头
+
 # 敏感数据加密
 security:
     # secret: ""             # SSH密码等敏感数据加密密钥，请固定为随机字符串（如 `openssl rand -hex 64`）
@@ -411,6 +432,13 @@ db:
 | | `POST /api/user/del` | 删除用户 |
 | | `POST /api/user/update-password` | 修改密码 |
 | | `GET /api/user/info` | 当前用户信息 |
+| 通知 | `GET /api/notification/list` | 通知配置列表 |
+| | `GET /api/notification/view` | 通知配置详情 |
+| | `POST /api/notification/create` | 创建通知配置 |
+| | `POST /api/notification/update` | 更新通知配置 |
+| | `POST /api/notification/delete` | 删除通知配置 |
+| | `POST /api/notification/test` | 测试通知发送 |
+| | `GET /api/notification/logs` | 通知发送日志 |
 
 ### Swagger 在线文档
 
@@ -628,9 +656,9 @@ MySQL/PostgreSQL 模式下请使用各自数据库的备份工具。
 - [x] 响应式 Web 管理界面
 - [x] 快速构建命令（make quick）
 - [x] 构建环境检查（make check）
+- [x] 邮件/Webhook 通知（支持任务级和全局配置）
 
 ### 近期计划
-- [ ] 邮件/Webhook 通知
 - [ ] 任务执行趋势图表
 - [ ] 批量任务操作
 - [ ] 任务模板功能
