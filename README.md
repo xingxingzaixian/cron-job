@@ -3,6 +3,8 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.22+-brightgreen.svg)](https://golang.org)
 [![Vue Version](https://img.shields.io/badge/Vue-3.4+-brightgreen.svg)](https://vuejs.org)
+[![Vite Version](https://img.shields.io/badge/Vite-5.1+-brightgreen.svg)](https://vitejs.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org)
 
 CronJob 是一个基于 Go 语言开发的现代化定时任务管理系统，提供了直观的 Web 管理界面，支持多种任务执行方式和灵活的调度策略。
 
@@ -73,6 +75,8 @@ CronJob 是一个基于 Go 语言开发的现代化定时任务管理系统，�
 - **Naive UI** - 组件库
 - **Pinia** - 状态管理
 - **Vue Router** - 路由管理
+- **Vue I18n** - 中英文国际化
+- **VueUse** - 组合式 API 工具库
 
 ### 数据库支持
 - **SQLite** - 默认数据库，纯 Go 驱动（modernc.org/sqlite），无需 CGO，适合单机部署
@@ -178,6 +182,9 @@ CronJob 是一个基于 Go 语言开发的现代化定时任务管理系统，�
 
    # 交叉编译所有平台
    make build-all
+
+   # 快速构建（跳过前端，使用已有前端资源）
+   make quick
    ```
 
 ## ⚙️ 配置说明
@@ -187,12 +194,37 @@ CronJob 是一个基于 Go 语言开发的现代化定时任务管理系统，�
 ### 完整配置示例
 
 ```yaml
+# 运行模式
+debug: release               # release / debug
+
 # HTTP 服务配置
 http:
     addr: :8210              # 监听地址和端口
     read_timeout: 10         # HTTP 读取超时（秒）
     write_timeout: 10        # HTTP 写入超时（秒）
     max_header_bytes: 20     # HTTP 请求头最大字节数（MB）
+
+# Swagger 文档
+swagger:
+    title: "定时任务服务swagger API"
+    desc: 这是一个简单的定时任务执行系统
+    host: 127.0.0.1:8210
+    base_path: ""
+    enable: false            # 是否启用 Swagger 文档（生产环境建议关闭）
+
+# 跨域配置
+cors:
+    allowed_origins: http://localhost:8210,http://127.0.0.1:8210
+
+# 身份验证
+auth:
+    enable: true             # 是否启用 JWT 认证（false 时所有 API 无需登录）
+
+# JWT 配置
+jwt:
+    expires: 7200            # Token 过期时间（秒），默认 2 小时
+    # secret: ""             # 生产环境请固定为随机密钥（如 `openssl rand -hex 64` 生成）
+                            # 不配置时每次启动生成随机密钥，重启后所有登录态失效
 
 # 数据库配置
 db:
@@ -203,59 +235,25 @@ db:
 
     # SQLite 专属配置
     sqlite:
-        busy_timeout: 30000  # 数据库锁定等待时间（毫秒）
-        cache_size: -64000   # 缓存大小（-64MB，负数表示 KB）
         synchronous: NORMAL  # 同步模式：OFF / NORMAL / FULL
+        cache_size: -64000   # 缓存大小（-64MB，负数表示 KB）
         temp_store: MEMORY   # 临时存储：FILE / MEMORY
+        busy_timeout: 30000  # 数据库锁定等待时间（毫秒）
         vacuum_interval_hours: 168  # SQLite VACUUM 间隔（小时），回收删除后的文件空间
+
+    # PostgreSQL 专用（engine: postgres 时生效）
+    # sslmode: disable       # PostgreSQL SSL 模式：disable / require / verify-ca / verify-full
+    # timezone: Asia/Shanghai # PostgreSQL 连接时区
 
 # 任务日志管理
 log:
-    retention_days: 30       # 任务日志保留天数，0 表示不自动清理（启动时及每 6 小时清理一次）
+    retention_days: 30       # 任务日志保留天数，0 表示不自动清理
     cleanup_interval_hours: 6  # 日志清理检查间隔（小时）
-
-    # MySQL 配置（engine: mysql 时生效）
-    # host: localhost
-    # port: 3306
-    # username: root
-    # password: password
-    # charset: utf8mb4
-
-    # PostgreSQL 配置（engine: postgres 时生效）
-    # host: localhost
-    # port: 5432
-    # username: postgres
-    # password: password
-    # sslmode: disable
-    # timezone: Asia/Shanghai
-
-# 身份验证
-auth:
-    enable: false            # 是否启用 JWT 认证（false 时所有 API 无需登录）
-
-# JWT 配置
-jwt:
-    secret: <your-secret>    # JWT 签名密钥
-    expires: 7200            # Token 过期时间（秒），默认 2 小时
 
 # 敏感数据加密
 security:
-    secret: <your-secret>    # SSH密码等敏感数据加密密钥，留空时回退到 jwt.secret
-
-# 跨域配置
-cors:
-    allowed_origins: http://localhost:8210,http://127.0.0.1:8210
-
-# Swagger 文档
-swagger:
-    title: "定时任务服务swagger API"
-    desc: 这是一个简单的定时任务执行系统
-    host: 127.0.0.1:8210
-    base_path: ""
-    enable: false            # 是否启用 Swagger 文档（生产环境建议关闭）
-
-# 运行模式
-debug: release               # release / debug
+    # secret: ""             # SSH密码等敏感数据加密密钥，请固定为随机字符串（如 `openssl rand -hex 64`）
+                            # 留空时回退到 jwt.secret；若两者都未固定，每次启动密钥会变化，历史密文将无法解密
 ```
 
 ### 数据库配置切换
@@ -477,10 +475,20 @@ cron-job/
 ├── web/                    # 前端（Vue 3 + TypeScript）
 │   ├── src/
 │   │   ├── api/            # API 请求封装
+│   │   ├── assets/         # 静态资源（SVG 图标等）
 │   │   ├── components/     # 公共组件
-│   │   ├── views/          # 页面视图
-│   │   └── utils/          # 工具函数
-│   └── static.go           # Go embed 嵌入前端资源
+│   │   ├── enum/           # 枚举定义
+│   │   ├── hooks/          # 组合式函数（Composables）
+│   │   ├── layouts/        # 布局组件（Header、Logo 等）
+│   │   ├── locales/        # 国际化配置（中文/英文）
+│   │   ├── router/         # 路由配置
+│   │   ├── store/          # Pinia 状态管理
+│   │   ├── styles/         # 全局样式（重置 CSS、过渡动画）
+│   │   ├── types/          # TypeScript 类型定义
+│   │   ├── utils/          # 工具函数（消息提示、本地存储）
+│   │   └── views/          # 页面视图
+│   ├── static.go           # Go embed 嵌入前端资源
+│   └── vite.config.ts      # Vite 构建配置
 ├── docs/                   # Swagger 文档（自动生成）
 ├── data/                   # SQLite 数据文件
 └── logs/                   # 应用日志
@@ -524,6 +532,15 @@ make docs
 
 # 清理构建产物
 make clean
+
+# 快速构建（跳过前端，使用已有前端资源）
+make quick
+
+# 检查构建环境
+make check
+
+# 显示版本信息
+make version
 ```
 
 ### 前端开发
@@ -608,6 +625,9 @@ MySQL/PostgreSQL 模式下请使用各自数据库的备份工具。
 - [x] 多数据库支持（SQLite/MySQL/PostgreSQL）
 - [x] Swagger API 文档
 - [x] 中英文国际化
+- [x] 响应式 Web 管理界面
+- [x] 快速构建命令（make quick）
+- [x] 构建环境检查（make check）
 
 ### 近期计划
 - [ ] 邮件/Webhook 通知
