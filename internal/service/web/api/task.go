@@ -7,6 +7,7 @@ import (
 	"cronJob/internal/service/cron/handler"
 	"cronJob/internal/service/cron/lib/httpclient"
 	taskManager "cronJob/internal/service/cron/task_manager"
+	"cronJob/internal/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -76,6 +77,50 @@ func sshPasswordNeedsPreserve(params string) bool {
 
 	pw, ok := config["password"].(string)
 	return !ok || pw == "" || pw == sshPasswordMask
+}
+
+// encryptSSHParams 对SSH任务参数中的密码字段进行加密存储（非SSH/已加密/空密码原样返回）
+func encryptSSHParams(protocol global.TaskProtocol, params string) string {
+	if protocol != global.TaskProtocolSSH || params == "" {
+		return params
+	}
+
+	var config map[string]interface{}
+	if err := json.Unmarshal([]byte(params), &config); err != nil {
+		return params
+	}
+
+	pw, ok := config["password"].(string)
+	if !ok || pw == "" || strings.HasPrefix(pw, "enc:v1:") {
+		return params
+	}
+
+	enc, err := utils.EncryptSecret(pw)
+	if err != nil {
+		return params
+	}
+	config["password"] = enc
+
+	out, err := json.Marshal(config)
+	if err != nil {
+		return params
+	}
+	return string(out)
+}
+
+// validateTaskSchedulable 创建/更新前校验任务协议与cron表达式，
+// 避免"任务入库成功但注册调度器失败"的状态不一致；返回空串表示校验通过
+func validateTaskSchedulable(protocol global.TaskProtocol, spec string) string {
+	switch protocol {
+	case global.TaskProtocolHttp, global.TaskProtocolShell, global.TaskProtocolSSH:
+	default:
+		return "不支持的任务协议"
+	}
+
+	if err := taskManager.ValidateCronSpec(spec); err != nil {
+		return "cron表达式错误（需为6字段：秒 分 时 日 月 周，或@every/@daily等格式）：" + err.Error()
+	}
+	return ""
 }
 
 // taskDependencyWouldCycle 判断添加 taskID→dependentID 依赖是否会形成循环依赖（纯函数，便于单测）
@@ -285,6 +330,15 @@ func TaskEdit(c *gin.Context) {
 		return
 	}
 
+	// 预校验协议与cron表达式，避免"入库成功但注册调度器失败"
+	if msg := validateTaskSchedulable(params.Protocol, params.Spec); msg != "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    400,
+			"message": msg,
+		})
+		return
+	}
+
 	// ID > 0 时走更新逻辑，否则走创建逻辑
 	if params.ID > 0 {
 		task := &models.Task{}
@@ -305,9 +359,10 @@ func TaskEdit(c *gin.Context) {
 		_, err := task.Update(params.ID, map[string]interface{}{
 			"name":           params.Name,
 			"command":        params.Command,
-			"params":         updateParams,
+			"params":         encryptSSHParams(params.Protocol, updateParams),
 			"spec":           params.Spec,
 			"protocol":       params.Protocol,
+			"status":         params.Status,
 			"timeout":        params.Timeout,
 			"policy":         params.Policy,
 			"count":          params.Count,
@@ -326,11 +381,22 @@ func TaskEdit(c *gin.Context) {
 			return
 		}
 
-		// 如果任务的当前状态是禁用，就删除正在调度的任务；否则更新调度
-		if task.Status == global.TaskStatusDisabled {
+		// 按更新后的状态决定调度动作
+		var schedErr error
+		if params.Status == global.TaskStatusDisabled {
 			taskManager.TaskManager.RemoveTask(task)
 		} else {
-			taskManager.TaskManager.UpdateTask(task)
+			schedErr = taskManager.TaskManager.UpdateTask(task)
+		}
+		if schedErr != nil {
+			// 注册失败时把状态改为禁用，避免"启用但未调度"的状态脱节
+			_, _ = task.Update(params.ID, map[string]interface{}{"status": global.TaskStatusDisabled})
+			zap.S().Errorf("更新任务后注册调度器失败: taskId=%d, error=%v", params.ID, schedErr)
+			c.JSON(http.StatusOK, gin.H{
+				"code":    400,
+				"message": "更新成功，但调度器注册失败：" + schedErr.Error(),
+			})
+			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
@@ -361,7 +427,7 @@ func TaskEdit(c *gin.Context) {
 
 	task.Name = params.Name
 	task.Command = params.Command
-	task.Params = params.Params
+	task.Params = encryptSSHParams(params.Protocol, params.Params)
 	task.Spec = params.Spec
 	task.Protocol = params.Protocol
 	task.Timeout = params.Timeout
@@ -383,10 +449,16 @@ func TaskEdit(c *gin.Context) {
 		return
 	}
 
-	// 创建时状态为启用则直接注册到调度器
+	// 创建时状态为启用则直接注册到调度器；注册失败时改为禁用，避免状态脱节
 	if task.Status == global.TaskStatusEnabled {
 		if err := taskManager.TaskManager.AddTask(task); err != nil {
+			_, _ = task.Update(task.ID, map[string]interface{}{"status": global.TaskStatusDisabled})
 			zap.S().Errorf("任务创建成功但注册调度器失败: taskId=%d, error=%v", task.ID, err)
+			c.JSON(http.StatusOK, gin.H{
+				"code":    400,
+				"message": "任务已创建，但注册调度器失败：" + err.Error(),
+			})
+			return
 		}
 	}
 
@@ -438,7 +510,15 @@ func TaskOp(c *gin.Context) {
 			})
 			return
 		}
-		taskManager.TaskManager.StartTask(task)
+		if err := taskManager.TaskManager.StartTask(task); err != nil {
+			_, _ = task.Update(params.ID, map[string]interface{}{"status": global.TaskStatusDisabled})
+			zap.S().Errorf("启动任务失败: taskId=%d, error=%v", params.ID, err)
+			c.JSON(http.StatusOK, gin.H{
+				"code":    400,
+				"message": "任务启动失败：" + err.Error(),
+			})
+			return
+		}
 	case "stop":
 		if _, err := task.Update(params.ID, map[string]interface{}{"status": global.TaskStatusDisabled}); err != nil {
 			zap.S().Error("更新任务状态失败", err)
@@ -506,6 +586,15 @@ func TaskCreate(c *gin.Context) {
 		return
 	}
 
+	// 预校验协议与cron表达式，避免"入库成功但注册调度器失败"
+	if msg := validateTaskSchedulable(params.Protocol, params.Spec); msg != "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    400,
+			"message": msg,
+		})
+		return
+	}
+
 	task := &models.Task{}
 	if ok := task.IsNameExist(params.Name); ok {
 		c.JSON(http.StatusOK, gin.H{
@@ -526,7 +615,7 @@ func TaskCreate(c *gin.Context) {
 
 	task.Name = params.Name
 	task.Command = params.Command
-	task.Params = params.Params
+	task.Params = encryptSSHParams(params.Protocol, params.Params)
 	task.Spec = params.Spec
 	task.Protocol = params.Protocol
 	task.Timeout = params.Timeout
@@ -548,10 +637,16 @@ func TaskCreate(c *gin.Context) {
 		return
 	}
 
-	// 创建时状态为启用则直接注册到调度器
+	// 创建时状态为启用则直接注册到调度器；注册失败时改为禁用，避免状态脱节
 	if task.Status == global.TaskStatusEnabled {
 		if err := taskManager.TaskManager.AddTask(task); err != nil {
+			_, _ = task.Update(task.ID, map[string]interface{}{"status": global.TaskStatusDisabled})
 			zap.S().Errorf("任务创建成功但注册调度器失败: taskId=%d, error=%v", task.ID, err)
+			c.JSON(http.StatusOK, gin.H{
+				"code":    400,
+				"message": "任务已创建，但注册调度器失败：" + err.Error(),
+			})
+			return
 		}
 	}
 
@@ -584,6 +679,15 @@ func TaskUpdate(c *gin.Context) {
 		return
 	}
 
+	// 预校验协议与cron表达式，避免"入库成功但注册调度器失败"
+	if msg := validateTaskSchedulable(params.Protocol, params.Spec); msg != "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    400,
+			"message": msg,
+		})
+		return
+	}
+
 	task := &models.Task{}
 	err := task.FindOne(global.GormDB, map[string]interface{}{"id": params.ID})
 	if err != nil {
@@ -603,9 +707,10 @@ func TaskUpdate(c *gin.Context) {
 	_, err = task.Update(params.ID, map[string]interface{}{
 		"name":           params.Name,
 		"command":        params.Command,
-		"params":         updateParams,
+		"params":         encryptSSHParams(params.Protocol, updateParams),
 		"spec":           params.Spec,
 		"protocol":       params.Protocol,
+		"status":         params.Status,
 		"timeout":        params.Timeout,
 		"policy":         params.Policy,
 		"count":          params.Count,
@@ -624,12 +729,23 @@ func TaskUpdate(c *gin.Context) {
 		return
 	}
 
-	// 如果更新的任务状态是禁用，就删除当前正在调度的任务
-	if task.Status == global.TaskStatusDisabled {
+	// 按更新后的状态决定调度动作
+	var schedErr error
+	if params.Status == global.TaskStatusDisabled {
 		taskManager.TaskManager.RemoveTask(task)
 	} else {
 		// 添加任务到调度进程中
-		taskManager.TaskManager.UpdateTask(task)
+		schedErr = taskManager.TaskManager.UpdateTask(task)
+	}
+	if schedErr != nil {
+		// 注册失败时把状态改为禁用，避免"启用但未调度"的状态脱节
+		_, _ = task.Update(params.ID, map[string]interface{}{"status": global.TaskStatusDisabled})
+		zap.S().Errorf("更新任务后注册调度器失败: taskId=%d, error=%v", params.ID, schedErr)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    400,
+			"message": "更新成功，但调度器注册失败：" + schedErr.Error(),
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -742,7 +858,16 @@ func TaskStart(c *gin.Context) {
 		return
 	}
 
-	taskManager.TaskManager.StartTask(task)
+	if err := taskManager.TaskManager.StartTask(task); err != nil {
+		// 启动/注册失败时把状态改回禁用，避免"启用但未调度"的状态脱节
+		_, _ = task.Update(params.ID, map[string]interface{}{"status": global.TaskStatusDisabled})
+		zap.S().Errorf("启动任务失败: taskId=%d, error=%v", params.ID, err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    400,
+			"message": "任务启动失败：" + err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    200,

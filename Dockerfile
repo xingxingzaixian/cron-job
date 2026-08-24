@@ -66,8 +66,9 @@ COPY --from=backend-builder /app/cronJob .
 # 复制配置文件
 COPY config.example.yaml config.yaml
 
-# 创建数据目录
-RUN mkdir -p /app/data && \
+# 创建运行用户（alpine 基础镜像没有 cronjob 用户，直接 chown 会导致构建失败）
+RUN adduser -D -H -s /sbin/nologin cronjob && \
+    mkdir -p /app/data && \
     chown -R cronjob:cronjob /app
 
 # 暴露端口（与默认配置 http.addr 保持一致）

@@ -61,6 +61,13 @@ func startServer(configFile string) {
 		// 初始化数据库
 		database.InitDB(viper.GetString("db.prefix"))
 
+		// 迁移历史明文SSH密码为加密存储
+		if n, err := task.MigrateSSHSecrets(); err != nil {
+			zap.S().Warnf("SSH密码加密迁移失败: %v", err)
+		} else if n > 0 {
+			zap.S().Infof("SSH密码加密迁移完成，共 %d 条", n)
+		}
+
 		// 启动定时任务调度
 		go func() {
 			task.CronServerRun()

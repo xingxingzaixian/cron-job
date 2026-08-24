@@ -5,6 +5,7 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"cronJob/internal/service/cron/lib/sshclient"
+	"cronJob/internal/utils"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -115,6 +116,15 @@ func (h *SSHHandler) parseSSHConfig(taskModel *models.Task) (*SSHConfig, error) 
 
 	if err := json.Unmarshal([]byte(taskModel.Params), config); err != nil {
 		return nil, fmt.Errorf("SSH配置JSON解析失败: %v", err)
+	}
+
+	// 解密密码（兼容历史明文存储的配置）
+	if config.Password != "" {
+		password, err := utils.DecryptSecret(config.Password)
+		if err != nil {
+			return nil, fmt.Errorf("SSH密码解密失败: %v", err)
+		}
+		config.Password = password
 	}
 
 	// 设置默认值

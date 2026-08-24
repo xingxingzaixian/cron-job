@@ -35,7 +35,7 @@ CronJob 是一个基于 Go 语言开发的现代化定时任务管理系统，�
 ### 任务管理
 - **多协议支持**：HTTP 请求、Shell 命令、SSH 远程执行
 - **灵活调度**：支持标准 Cron 表达式，精确到秒级
-- **执行策略**：并行（multi）、单例（single）、单次（once）、多次（times）四种执行策略
+- **执行策略**：并行（multi）、单例（single）、单次（once）、多次（times）四种执行策略（单次/多次的执行次数会持久化，服务重启后不会重复执行）
 - **任务依赖**：支持任务间依赖关系，可配置是否强依赖
 - **任务分组**：通过标签对任务进行分类管理
 - **超时控制**：自定义任务执行超时时间
@@ -227,6 +227,7 @@ log:
     # username: postgres
     # password: password
     # sslmode: disable
+    # timezone: Asia/Shanghai
 
 # 身份验证
 auth:
@@ -236,6 +237,10 @@ auth:
 jwt:
     secret: <your-secret>    # JWT 签名密钥
     expires: 7200            # Token 过期时间（秒），默认 2 小时
+
+# 敏感数据加密
+security:
+    secret: <your-secret>    # SSH密码等敏感数据加密密钥，留空时回退到 jwt.secret
 
 # 跨域配置
 cors:
@@ -247,6 +252,7 @@ swagger:
     desc: 这是一个简单的定时任务执行系统
     host: 127.0.0.1:8210
     base_path: ""
+    enable: false            # 是否启用 Swagger 文档（生产环境建议关闭）
 
 # 运行模式
 debug: release               # release / debug
@@ -279,6 +285,7 @@ db:
     username: postgres
     password: password
     sslmode: disable
+    timezone: Asia/Shanghai
     prefix: sched_
 ```
 
@@ -409,7 +416,7 @@ db:
 
 ### Swagger 在线文档
 
-启动服务后，访问 `http://localhost:8210/swagger/index.html` 查看完整的 API 文档。
+启动服务后，在配置中开启 `swagger.enable: true`，访问 `http://localhost:8210/swagger/index.html` 查看完整的 API 文档（默认关闭）。
 
 ### 认证方式
 

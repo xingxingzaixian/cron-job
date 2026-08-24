@@ -41,7 +41,6 @@ const selectedKey = computed<string>(() => {
 
   const routeName = ((hideInMenu ? activeMenu : name) as string) || name;
 
-  console.log(routeName);
   return routeName;
 });
 

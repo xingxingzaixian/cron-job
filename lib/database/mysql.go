@@ -19,7 +19,6 @@ func (m *MySqlDB) Create(option *gorm.Config) (*gorm.DB, error) {
 		viper.GetInt("db.port"),
 		viper.GetString("db.name"),
 	)
-	zap.S().Info("mysql dsn: ", dsn)
 	db, err := gorm.Open(mysql.Open(dsn), option)
 	if err != nil {
 		zap.S().Fatalf("MySQL数据库连接失败:%s:%d", viper.GetString("db.host"), viper.GetInt("db.port"))

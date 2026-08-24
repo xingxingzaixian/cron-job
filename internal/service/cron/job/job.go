@@ -91,16 +91,24 @@ func beforeExecJob(taskModel *models.Task) (taskLogId uint) {
 		zap.S().Error("任务开始执行#写入任务日志失败-", err)
 		return
 	}
+	// 同步任务状态为运行中
+	if err := global.GormDB.Model(&models.Task{}).Where("id = ?", taskModel.ID).Update("status", global.TaskStatusRunning).Error; err != nil {
+		zap.S().Errorf("更新任务状态为运行中失败: taskId=%d, error=%v", taskModel.ID, err)
+	}
 	zap.S().Debugf("任务命令-%s", taskModel.Command)
 
 	return taskLogId
 }
 
 // 执行任务
-func execJob(ctx context.Context, handler handler.Handler, taskModel *models.Task, taskUniqueId uint) global.TaskResult {
+func execJob(ctx context.Context, handler handler.Handler, taskModel *models.Task, taskUniqueId uint) (result global.TaskResult) {
 	defer func() {
-		if err := recover(); err != nil {
-			zap.S().Error("panic#service/cron/job/job.go:execJob#", err)
+		if r := recover(); r != nil {
+			zap.S().Errorf("panic#service/cron/job/job.go:execJob#%v", r)
+			// 出现未预期 panic 时返回失败结果，避免任务被记录为成功
+			result = global.TaskResult{
+				Err: fmt.Errorf("任务【%d】执行发生内部错误: %v", taskModel.ID, r),
+			}
 		}
 	}()
 
@@ -157,6 +165,17 @@ func afterExecJob(taskModel *models.Task, taskResult global.TaskResult, taskLogI
 	_, err := updateTaskLog(taskLogId, taskResult, startTime)
 	if err != nil {
 		zap.S().Error("任务结束#更新任务日志失败-", err)
+	}
+
+	// 同步任务状态为完成/失败；仅在仍处于运行中时更新，避免覆盖用户手动停止(禁用)的状态
+	finalStatus := global.TaskStatusFinish
+	if taskResult.Err != nil {
+		finalStatus = global.TaskStatusFailure
+	}
+	if err := global.GormDB.Model(&models.Task{}).
+		Where("id = ? AND status = ?", taskModel.ID, global.TaskStatusRunning).
+		Update("status", finalStatus).Error; err != nil {
+		zap.S().Errorf("更新任务状态失败: taskId=%d, error=%v", taskModel.ID, err)
 	}
 }
 

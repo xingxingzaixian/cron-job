@@ -4,7 +4,10 @@ import (
 	"cronJob/internal/global"
 	"cronJob/internal/models"
 	"encoding/json"
+	"strings"
 	"testing"
+
+	"github.com/spf13/viper"
 )
 
 func TestMaskSSHParams(t *testing.T) {
@@ -85,6 +88,38 @@ func TestTaskDependencyWouldCycle(t *testing.T) {
 				t.Fatalf("taskDependencyWouldCycle(%d, %d) = %v, 期望 %v", tc.taskID, tc.dependentID, got, tc.want)
 			}
 		})
+	}
+}
+
+func TestEncryptSSHParams(t *testing.T) {
+	old := viper.GetString("security.secret")
+	viper.Set("security.secret", "ssh-test-key")
+	defer viper.Set("security.secret", old)
+
+	params := `{"host":"h","port":22,"username":"u","password":"real-pass","mode":"script"}`
+	enc := encryptSSHParams(global.TaskProtocolSSH, params)
+	if enc == params {
+		t.Fatal("SSH密码应被加密")
+	}
+
+	var config map[string]interface{}
+	if err := json.Unmarshal([]byte(enc), &config); err != nil {
+		t.Fatalf("加密后参数不是合法JSON: %v", err)
+	}
+	if pw, _ := config["password"].(string); !strings.HasPrefix(pw, "enc:v1:") {
+		t.Fatalf("密码应为密文: %v", config["password"])
+	}
+
+	// 已加密的值不再重复加密
+	enc2 := encryptSSHParams(global.TaskProtocolSSH, enc)
+	if enc2 != enc {
+		t.Fatal("已加密的密码不应重复加密")
+	}
+
+	// 非SSH任务原样返回
+	httpParams := `{"url":"http://x","method":"GET"}`
+	if got := encryptSSHParams(global.TaskProtocolHttp, httpParams); got != httpParams {
+		t.Fatal("非SSH任务参数不应被修改")
 	}
 }
 

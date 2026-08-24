@@ -19,6 +19,7 @@ type Task struct {
 	Timeout       int                 `gorm:"type:mediumint;not null;default:0" json:"timeout"`
 	Policy        global.TaskPolicy   `gorm:"type:tinyint;not null;default:1" json:"policy"`
 	Count         int                 `gorm:"type:smallint;not null;default:0" json:"count"`
+	ExecutedTimes int                 `gorm:"type:int;not null;default:0" json:"executed_times"` // once/times策略已执行次数（持久化，避免重启后重复执行）
 	Delay         int                 `gorm:"type:smallint;not null;default:0" json:"delay"`
 	RetryTimes    int8                `gorm:"type:tinyint;not null;default:0" json:"retry_times"`
 	RetryInterval int16               `gorm:"type:smallint;not null;default:0" json:"retry_interval"`

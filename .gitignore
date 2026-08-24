@@ -17,3 +17,12 @@
 logs
 node_modules
 components.d.ts
+
+# 运行时数据与本地产物
+data/
+*.db
+*.db-wal
+*.db-shm
+cronJob
+config.yaml
+install.lock

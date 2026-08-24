@@ -58,6 +58,7 @@ func setDefaultConfig() {
 	viper.SetDefault("swagger.desc", "这是一个简单的定时任务执行系统")
 	viper.SetDefault("swagger.host", "127.0.0.1:8210")
 	viper.SetDefault("swagger.base_path", "")
+	viper.SetDefault("swagger.enable", false) // Swagger 文档开关，生产环境默认关闭
 
 	// CORS 默认配置
 	viper.SetDefault("cors.allowed_origins", "http://localhost:8210,http://127.0.0.1:8210")
@@ -65,8 +66,13 @@ func setDefaultConfig() {
 	// 数据库默认配置（空值，表示未配置）
 	viper.SetDefault("db.engine", "")
 	viper.SetDefault("db.prefix", "sched_")
+	viper.SetDefault("db.sslmode", "disable")        // PostgreSQL SSL模式
+	viper.SetDefault("db.timezone", "Asia/Shanghai") // PostgreSQL 时区
 	// 数据目录基于基础目录，避免从其他目录启动时找不到数据库
 	viper.SetDefault("db.data_dir", utils.BasePath("data"))
+
+	// 敏感数据加密密钥（为空时回退到 jwt.secret）
+	viper.SetDefault("security.secret", "")
 
 	// 认证默认配置
 	viper.SetDefault("auth.enable", true)

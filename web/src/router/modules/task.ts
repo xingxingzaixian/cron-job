@@ -37,7 +37,9 @@ const routes: AppRouteRecordRaw[] = [
         meta: {
           title: 'route.task_edit',
           icon: 'ic:baseline-edit-note',
-          hideInMenu: true
+          hideInMenu: true,
+          // 编辑页为隐藏路由，高亮"任务列表"菜单项
+          activeMenu: 'TaskList'
         }
       }
     ]

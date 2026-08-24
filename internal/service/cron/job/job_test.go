@@ -2,11 +2,17 @@ package job
 
 import (
 	"context"
+	"cronJob/internal/global"
 	"cronJob/internal/models"
+	"cronJob/lib/database"
 	"errors"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
 // fakeHandler 模拟任务执行处理器
@@ -22,6 +28,13 @@ func (f *fakeHandler) Run(_ *models.Task, _ uint) (string, error) {
 		return "", f.err
 	}
 	return "ok", nil
+}
+
+// panicHandler 模拟执行过程中发生未预期 panic 的处理器
+type panicHandler struct{}
+
+func (p *panicHandler) Run(_ *models.Task, _ uint) (string, error) {
+	panic("unexpected panic")
 }
 
 func TestRetryInterval(t *testing.T) {
@@ -119,6 +132,19 @@ func TestExecJobExhaustRetries(t *testing.T) {
 	}
 }
 
+func TestExecJobPanic(t *testing.T) {
+	h := &panicHandler{}
+	task := &models.Task{RetryTimes: 0}
+
+	result := execJob(context.Background(), h, task, 1)
+	if result.Err == nil {
+		t.Fatal("期望 panic 后返回失败结果，而不是被记为成功")
+	}
+	if !strings.Contains(result.Err.Error(), "内部错误") {
+		t.Fatalf("错误信息应包含内部错误提示, 实际: %v", result.Err)
+	}
+}
+
 func TestTruncateLogOutput(t *testing.T) {
 	short := "正常输出"
 	if got := truncateLogOutput(short); got != short {
@@ -140,5 +166,82 @@ func TestTruncateLogOutput(t *testing.T) {
 	}
 	if !strings.Contains(got, "1048676") {
 		t.Fatalf("截断提示应包含原始长度, 实际: %q", got)
+	}
+}
+
+func setupJobTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+
+	viper.Set("db.engine", "sqlite")
+	viper.Set("db.path", filepath.Join(t.TempDir(), "test_job.db"))
+
+	sqliteDB := &database.SQLiteDB{}
+	db, err := sqliteDB.Create(&gorm.Config{})
+	if err != nil {
+		t.Fatalf("创建测试数据库失败: %v", err)
+	}
+	if err := db.AutoMigrate(&models.Task{}, &models.TaskLog{}); err != nil {
+		t.Fatalf("迁移数据表失败: %v", err)
+	}
+	return db
+}
+
+func TestTaskStatusLifecycle(t *testing.T) {
+	oldDB := global.GormDB
+	defer func() { global.GormDB = oldDB }()
+
+	db := setupJobTestDB(t)
+	global.GormDB = db
+
+	task := &models.Task{
+		Name:     "test",
+		Spec:     "0 */5 * * * *",
+		Protocol: global.TaskProtocolHttp,
+		Command:  `{"url":"http://example.com","method":"GET"}`,
+		Policy:   global.TaskPolicyMulti,
+		Status:   global.TaskStatusEnabled,
+	}
+	if _, err := task.Create(); err != nil {
+		t.Fatalf("创建任务失败: %v", err)
+	}
+
+	start := time.Now()
+	logID := beforeExecJob(task)
+	if logID == 0 {
+		t.Fatal("beforeExecJob 应创建日志")
+	}
+
+	var status global.TaskStatus
+	if err := db.Model(&models.Task{}).Where("id = ?", task.ID).Select("status").Scan(&status).Error; err != nil {
+		t.Fatal(err)
+	}
+	if status != global.TaskStatusRunning {
+		t.Fatalf("执行中状态应为 Running, 实际 %d", status)
+	}
+
+	afterExecJob(task, global.TaskResult{Result: "ok", Err: nil}, logID, start)
+
+	if err := db.Model(&models.Task{}).Where("id = ?", task.ID).Select("status").Scan(&status).Error; err != nil {
+		t.Fatal(err)
+	}
+	if status != global.TaskStatusFinish {
+		t.Fatalf("执行完成后状态应为 Finish, 实际 %d", status)
+	}
+
+	// 用户手动停止（禁用）后，任务结束不应覆盖禁用状态
+	if err := db.Model(&models.Task{}).Where("id = ?", task.ID).Update("status", global.TaskStatusRunning).Error; err != nil {
+		t.Fatal(err)
+	}
+	beforeExecJob(task)
+	if err := db.Model(&models.Task{}).Where("id = ?", task.ID).Update("status", global.TaskStatusDisabled).Error; err != nil {
+		t.Fatal(err)
+	}
+	afterExecJob(task, global.TaskResult{Result: "", Err: errors.New("boom")}, logID, start)
+
+	if err := db.Model(&models.Task{}).Where("id = ?", task.ID).Select("status").Scan(&status).Error; err != nil {
+		t.Fatal(err)
+	}
+	if status != global.TaskStatusDisabled {
+		t.Fatalf("手动停止的状态不应被任务结束覆盖, 实际 %d", status)
 	}
 }

@@ -277,7 +277,8 @@ func TestSQLiteDatabase(t *testing.T) {
 	// 设置SQLite配置
 	viper.Set("db.engine", "sqlite")
 	viper.Set("db.name", "test_cronJob")
-	viper.Set("db.data_dir", "test_data")
+	// 使用临时目录，避免测试污染仓库内的 test_data 夹具
+	viper.Set("db.data_dir", t.TempDir())
 	viper.Set("db.prefix", "test_")
 
 	// 创建工厂

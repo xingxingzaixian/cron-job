@@ -343,6 +343,11 @@ func (s *InstallApi) writeConfigFile(params *schemas.InstallInput) error {
 		"expires": 7200,
 	}
 
+	// 敏感数据加密密钥（用于SSH密码等加密存储）
+	configData["security"] = map[string]interface{}{
+		"secret": utils.GenerateRandomJWTSecret(),
+	}
+
 	// 写入配置文件
 	yamlData, err := yaml.Marshal(configData)
 	if err != nil {

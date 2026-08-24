@@ -1,21 +1,4 @@
 definitions:
-  global.TaskPolicy:
-    enum:
-    - 1
-    - 2
-    - 3
-    - 4
-    type: integer
-    x-enum-comments:
-      TaskPolicyMulti: 并行策略
-      TaskPolicyOnce: 单词策略
-      TaskPolicySingle: 单利策略
-      TaskPolicyTimes: 多次策略
-    x-enum-varnames:
-    - TaskPolicyMulti
-    - TaskPolicyOnce
-    - TaskPolicySingle
-    - TaskPolicyTimes
   global.TaskProtocol:
     enum:
     - 1
@@ -25,7 +8,7 @@ definitions:
     x-enum-varnames:
     - TaskProtocolHttp
     - TaskProtocolShell
-    - TaskProtocolGrpc
+    - TaskProtocolSSH
   global.TaskStatus:
     enum:
     - 0
@@ -52,10 +35,99 @@ definitions:
     - TaskStatusFinish
     - TaskStatusCancel
     - TaskStatusTimeout
+  schemas.AdminUserInput:
+    properties:
+      email:
+        example: admin@example.com
+        type: string
+      nickname:
+        example: 系统管理员
+        type: string
+      password:
+        example: ""
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - nickname
+    - password
+    - username
+    type: object
+  schemas.CheckAuthOutput:
+    properties:
+      authEnabled:
+        type: boolean
+    type: object
+  schemas.DatabaseTestInput:
+    properties:
+      engine:
+        example: mysql
+        type: string
+      host:
+        example: 127.0.0.1
+        type: string
+      name:
+        example: cronJob
+        type: string
+      password:
+        example: ""
+        type: string
+      path:
+        example: ""
+        type: string
+      port:
+        example: 3306
+        type: integer
+      user:
+        example: root
+        type: string
+    required:
+    - engine
+    - name
+    type: object
+  schemas.DatabaseTestOutput:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
   schemas.DelUserParams:
     properties:
       id:
         type: integer
+    type: object
+  schemas.InstallCheckOutput:
+    properties:
+      config_exists:
+        type: boolean
+      db_configured:
+        type: boolean
+      installed:
+        type: boolean
+    type: object
+  schemas.InstallInput:
+    properties:
+      admin_user:
+        $ref: '#/definitions/schemas.AdminUserInput'
+      auth_enabled:
+        example: true
+        type: boolean
+      database:
+        $ref: '#/definitions/schemas.DatabaseTestInput'
+      http_port:
+        example: 8210
+        type: integer
+    required:
+    - database
+    type: object
+  schemas.InstallOutput:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
     type: object
   schemas.LoginInput:
     properties:
@@ -81,164 +153,6 @@ definitions:
       data: {}
       message:
         type: string
-    type: object
-  schemas.RoleItem:
-    properties:
-      id:
-        example: 1
-        type: integer
-      is_super:
-        type: boolean
-      key:
-        example: ""
-        type: string
-      name:
-        example: ""
-        type: string
-      status:
-        type: integer
-    type: object
-  schemas.RoleList:
-    properties:
-      list:
-        items:
-          $ref: '#/definitions/schemas.RoleItem'
-        type: array
-      total:
-        type: integer
-    type: object
-  schemas.SearchTaskResponse:
-    properties:
-      list:
-        items:
-          $ref: '#/definitions/schemas.TaskItemOutput'
-        type: array
-      total:
-        type: integer
-    type: object
-  schemas.TaskEditHTTPInput:
-    properties:
-      command:
-        example: ""
-        type: string
-      count:
-        default: 0
-        example: 0
-        type: integer
-      delay:
-        default: 0
-        example: 0
-        type: integer
-      id:
-        default: 0
-        type: integer
-      name:
-        example: ""
-        type: string
-      params:
-        example: ""
-        type: string
-      policy:
-        allOf:
-        - $ref: '#/definitions/global.TaskPolicy'
-        default: 1
-        example: 1
-      protocol:
-        allOf:
-        - $ref: '#/definitions/global.TaskProtocol'
-        example: 1
-      remark:
-        example: ""
-        type: string
-      retry_interval:
-        default: 0
-        example: 0
-        type: integer
-      retry_times:
-        default: 0
-        example: 0
-        type: integer
-      spec:
-        example: ""
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/global.TaskStatus'
-        default: 0
-      tag:
-        example: ""
-        type: string
-      timeout:
-        default: 0
-        example: 0
-        type: integer
-    required:
-    - command
-    - name
-    - protocol
-    - spec
-    type: object
-  schemas.TaskItemOutput:
-    properties:
-      command:
-        example: ""
-        type: string
-      count:
-        default: 0
-        example: 0
-        type: integer
-      delay:
-        default: 0
-        example: 0
-        type: integer
-      id:
-        default: 0
-        type: integer
-      name:
-        example: ""
-        type: string
-      params:
-        example: ""
-        type: string
-      policy:
-        allOf:
-        - $ref: '#/definitions/global.TaskPolicy'
-        default: 1
-        example: 1
-      protocol:
-        allOf:
-        - $ref: '#/definitions/global.TaskProtocol'
-        example: 1
-      remark:
-        example: ""
-        type: string
-      retry_interval:
-        default: 0
-        example: 0
-        type: integer
-      retry_times:
-        default: 0
-        example: 0
-        type: integer
-      spec:
-        example: ""
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/global.TaskStatus'
-        default: 0
-      tag:
-        example: ""
-        type: string
-      timeout:
-        default: 0
-        example: 0
-        type: integer
-    required:
-    - command
-    - name
-    - protocol
-    - spec
     type: object
   schemas.TaskLogDelete:
     properties:
@@ -292,17 +206,40 @@ definitions:
       total:
         type: integer
     type: object
-  schemas.TaskOptionInput:
+  schemas.TaskTestInput:
     properties:
-      id:
-        example: 1
-        type: integer
-      op:
-        example: stop
+      command:
+        example: ""
         type: string
+      params:
+        example: ""
+        type: string
+      protocol:
+        allOf:
+        - $ref: '#/definitions/global.TaskProtocol'
+        example: 1
+      timeout:
+        default: 0
+        example: 30
+        type: integer
     required:
-    - id
-    - op
+    - command
+    - protocol
+    type: object
+  schemas.TaskTestOutput:
+    properties:
+      duration_ms:
+        type: integer
+      error:
+        type: string
+      output:
+        type: string
+      size:
+        type: integer
+      status_code:
+        type: integer
+      success:
+        type: boolean
     type: object
   schemas.UpdatePasswordInput:
     properties:
@@ -329,8 +266,6 @@ definitions:
       password:
         example: ""
         type: string
-      role:
-        type: integer
       username:
         example: ""
         type: string
@@ -347,11 +282,109 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/check-auth:
+    get:
+      consumes:
+      - application/json
+      description: 获取是否启用认证
+      operationId: /api/check-auth
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.CheckAuthOutput'
+              type: object
+      summary: 获取是否启用认证
+      tags:
+      - 登录
+  /api/install/check:
+    get:
+      consumes:
+      - application/json
+      description: 检查系统是否已安装
+      operationId: /api/install/check
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.InstallCheckOutput'
+              type: object
+      summary: 检查安装状态
+      tags:
+      - 安装
+  /api/install/install:
+    post:
+      consumes:
+      - application/json
+      description: 执行系统安装，配置数据库和管理员账户
+      operationId: /api/install/install
+      parameters:
+      - description: 安装配置
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.InstallInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.InstallOutput'
+              type: object
+      summary: 执行安装
+      tags:
+      - 安装
+  /api/install/test-db:
+    post:
+      consumes:
+      - application/json
+      description: 测试数据库连接是否正常
+      operationId: /api/install/test-db
+      parameters:
+      - description: 数据库配置
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.DatabaseTestInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/schemas.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/schemas.DatabaseTestOutput'
+              type: object
+      summary: 测试数据库连接
+      tags:
+      - 安装
   /api/login:
     post:
       consumes:
       - application/json
-      description: 登陆
+      description: 登录
       operationId: /api/login
       parameters:
       - description: body
@@ -372,45 +405,21 @@ paths:
                 data:
                   $ref: '#/definitions/schemas.LoginOutput'
               type: object
-      summary: 登陆
+      summary: 登录
       tags:
-      - 登陆
-  /api/role/list:
-    get:
-      consumes:
-      - application/json
-      description: 查询角色列表
-      operationId: /api/role/list
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: success
-          schema:
-            allOf:
-            - $ref: '#/definitions/schemas.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/schemas.RoleList'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 查询角色列表
-      tags:
-      - 用户管理
-  /api/task/edit:
+      - 登录
+  /api/task/test:
     post:
       consumes:
       - application/json
-      description: 新增/修改任务
-      operationId: /api/task/edit
+      description: 按当前表单配置同步执行一次，不保存任务
       parameters:
-      - description: body
+      - description: 测试任务配置
         in: body
         name: data
         required: true
         schema:
-          $ref: '#/definitions/schemas.TaskEditHTTPInput'
+          $ref: '#/definitions/schemas.TaskTestInput'
       produces:
       - application/json
       responses:
@@ -421,72 +430,17 @@ paths:
             - $ref: '#/definitions/schemas.Response'
             - properties:
                 data:
-                  type: string
+                  $ref: '#/definitions/schemas.TaskTestOutput'
               type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 新增/修改任务
+      summary: 测试任务配置
       tags:
-      - 任务管理
-  /api/task/list:
-    get:
-      consumes:
-      - application/json
-      description: 任务列表
-      operationId: /api/task/list
-      parameters:
-      - description: 页数
-        in: query
-        name: pageNo
-        required: true
-        type: integer
-      - description: 每页条数
-        in: query
-        name: pageSize
-        required: true
-        type: integer
-      - description: 任务名称
-        in: query
-        name: name
-        type: string
-      - description: 任务协议
-        in: query
-        name: protocol
-        type: string
-      - description: 任务标签
-        in: query
-        name: tag
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: success
-          schema:
-            allOf:
-            - $ref: '#/definitions/schemas.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/schemas.SearchTaskResponse'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 任务列表
-      tags:
-      - 任务管理
-  /api/task/op:
+      - 任务
+  /api/taskLog/clean:
     post:
       consumes:
       - application/json
-      description: 操作任务
-      operationId: /api/task/op
-      parameters:
-      - description: 操作信息
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/schemas.TaskOptionInput'
+      description: 按 log.retention_days 配置删除超过保留期的任务日志
+      operationId: /api/taskLog/clean
       produces:
       - application/json
       responses:
@@ -497,42 +451,13 @@ paths:
             - $ref: '#/definitions/schemas.Response'
             - properties:
                 data:
-                  type: boolean
+                  type: integer
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 操作任务
+      summary: 清理过期任务日志
       tags:
-      - 任务管理
-  /api/task/view:
-    get:
-      consumes:
-      - application/json
-      description: 任务信息
-      operationId: /api/task/view
-      parameters:
-      - description: 任务ID
-        in: query
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: success
-          schema:
-            allOf:
-            - $ref: '#/definitions/schemas.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/schemas.TaskItemOutput'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 任务信息
-      tags:
-      - 任务管理
+      - 任务日志管理
   /api/taskLog/delete:
     delete:
       consumes:

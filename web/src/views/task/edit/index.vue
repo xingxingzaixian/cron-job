@@ -27,7 +27,29 @@
             <NInput v-model:value="model.tag" :placeholder="$t('page.task.list.form.tag')" />
           </NFormItem>
           <NFormItem :label="$t('page.task.list.form.spec')" path="spec">
-            <NInput v-model:value="model.spec" :placeholder="$t('page.task.list.form.spec')" />
+            <NSpace vertical class="w-full">
+              <NSpace>
+                <NSelect
+                  v-model:value="cronPreset"
+                  :options="cronPresetOptions"
+                  :placeholder="$t('page.task.list.form.cronPreset')"
+                  size="small"
+                  class="cron-preset-select"
+                  @update:value="applyCronPreset"
+                />
+                <NInput
+                  v-model:value="model.spec"
+                  :placeholder="$t('page.task.list.form.specPlaceholder')"
+                  @update:value="onSpecChange"
+                />
+              </NSpace>
+              <NText v-if="specError" depth="3" style="color: #e88080; font-size: 12px">
+                {{ specError }}
+              </NText>
+              <NText v-else-if="specBreakdown" depth="3" style="font-size: 12px">
+                {{ specBreakdown }}
+              </NText>
+            </NSpace>
           </NFormItem>
           <NGrid :cols="2" :x-gap="12">
             <NGridItem>
@@ -139,6 +161,7 @@ import { message } from '@/utils/message';
 import { TaskProtocol, TaskPolicy, TaskStatus } from '@/enum/task';
 import { fetchTaskCreate, fetchTaskUpdate, fetchTaskView, fetchTaskTest } from '@/api/task';
 import type { TaskTestOutput } from '@/api/task/types';
+import { CRON_PRESETS, validateCronSpec, cronSpecBreakdown } from '@/utils/cron';
 import Ssh from '@/views/task/list/modules/ssh.vue';
 import HttpBuilder from './modules/http-builder.vue';
 import ResponsePanel from './modules/response-panel.vue';
@@ -154,6 +177,26 @@ const formRef = ref<HTMLElement & FormInst>();
 const submitLoading = ref(false);
 const testLoading = ref(false);
 const testResult = ref<TaskTestOutput | null>(null);
+const cronPreset = ref<string>('custom');
+
+const cronPresetOptions = [
+  { label: $t('page.task.list.form.cronPresetCustom'), value: 'custom' },
+  ...CRON_PRESETS.map((preset) => ({ label: preset.label, value: preset.value }))
+];
+
+const specError = computed(() => validateCronSpec(model.spec));
+const specBreakdown = computed(() => cronSpecBreakdown(model.spec));
+
+function applyCronPreset(value: string) {
+  if (value !== 'custom') {
+    model.spec = value;
+  }
+}
+
+function onSpecChange() {
+  // 手动编辑时切回"自定义"，避免预设选中态误导
+  cronPreset.value = 'custom';
+}
 
 const model = reactive({
   id: 0,
@@ -176,7 +219,15 @@ const model = reactive({
 const rules: FormRules = {
   name: [{ required: true, message: $t('page.task.list.form.name') }],
   protocol: [{ required: true, type: 'number', message: $t('page.task.list.form.protocol') }],
-  spec: [{ required: true, message: $t('page.task.list.form.spec') }]
+  spec: [
+    { required: true, message: $t('page.task.list.form.spec') },
+    {
+      validator: (_rule: unknown, value: string) => {
+        const err = validateCronSpec(value);
+        return err ? new Error(err) : true;
+      }
+    }
+  ]
 };
 
 const protocolOptions = [
@@ -260,15 +311,24 @@ async function handleSave() {
   submitLoading.value = true;
   try {
     if (isEdit.value) {
-      await fetchTaskUpdate(model);
+      const res = await fetchTaskUpdate(model);
+      if (res.code !== 200) {
+        message.error(res.message || $t('task.message.editFailed'));
+        return;
+      }
       message.success($t('task.message.editSuccess'));
     } else {
-      await fetchTaskCreate(model);
+      const res = await fetchTaskCreate(model);
+      if (res.code !== 200) {
+        message.error(res.message || $t('task.message.addFailed'));
+        return;
+      }
       message.success($t('task.message.addSuccess'));
     }
     goBack();
   } catch (error) {
     console.error('保存失败:', error);
+    message.error(isEdit.value ? $t('task.message.editFailed') : $t('task.message.addFailed'));
   } finally {
     submitLoading.value = false;
   }
@@ -317,6 +377,11 @@ getTaskData();
   font-size: 20px;
   font-weight: 600;
   margin: 0;
+}
+
+.cron-preset-select {
+  width: 130px;
+  flex-shrink: 0;
 }
 
 .edit-footer {

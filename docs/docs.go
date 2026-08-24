@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/login": {
-            "post": {
-                "description": "登陆",
+        "/api/check-auth": {
+            "get": {
+                "description": "获取是否启用认证",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,9 +25,175 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "登陆"
+                    "登录"
                 ],
-                "summary": "登陆",
+                "summary": "获取是否启用认证",
+                "operationId": "/api/check-auth",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.CheckAuthOutput"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/install/check": {
+            "get": {
+                "description": "检查系统是否已安装",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "安装"
+                ],
+                "summary": "检查安装状态",
+                "operationId": "/api/install/check",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.InstallCheckOutput"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/install/install": {
+            "post": {
+                "description": "执行系统安装，配置数据库和管理员账户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "安装"
+                ],
+                "summary": "执行安装",
+                "operationId": "/api/install/install",
+                "parameters": [
+                    {
+                        "description": "安装配置",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.InstallInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.InstallOutput"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/install/test-db": {
+            "post": {
+                "description": "测试数据库连接是否正常",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "安装"
+                ],
+                "summary": "测试数据库连接",
+                "operationId": "/api/install/test-db",
+                "parameters": [
+                    {
+                        "description": "数据库配置",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.DatabaseTestInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/schemas.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schemas.DatabaseTestOutput"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "description": "登录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "登录"
+                ],
+                "summary": "登录",
                 "operationId": "/api/login",
                 "parameters": [
                     {
@@ -62,14 +228,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/role/list": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "查询角色列表",
+        "/api/task/test": {
+            "post": {
+                "description": "按当前表单配置同步执行一次，不保存任务",
                 "consumes": [
                     "application/json"
                 ],
@@ -77,10 +238,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户管理"
+                    "任务"
                 ],
-                "summary": "查询角色列表",
-                "operationId": "/api/role/list",
+                "summary": "测试任务配置",
+                "parameters": [
+                    {
+                        "description": "测试任务配置",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.TaskTestInput"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "success",
@@ -93,7 +264,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schemas.RoleList"
+                                            "$ref": "#/definitions/schemas.TaskTestOutput"
                                         }
                                     }
                                 }
@@ -103,14 +274,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/task/edit": {
+        "/api/taskLog/clean": {
             "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "新增/修改任务",
+                "description": "按 log.retention_days 配置删除超过保留期的任务日志",
                 "consumes": [
                     "application/json"
                 ],
@@ -118,21 +289,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "任务管理"
+                    "任务日志管理"
                 ],
-                "summary": "新增/修改任务",
-                "operationId": "/api/task/edit",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schemas.TaskEditHTTPInput"
-                        }
-                    }
-                ],
+                "summary": "清理过期任务日志",
+                "operationId": "/api/taskLog/clean",
                 "responses": {
                     "200": {
                         "description": "success",
@@ -145,184 +305,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/api/task/list": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "任务列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "任务管理"
-                ],
-                "summary": "任务列表",
-                "operationId": "/api/task/list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "页数",
-                        "name": "pageNo",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页条数",
-                        "name": "pageSize",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务协议",
-                        "name": "protocol",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务标签",
-                        "name": "tag",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/schemas.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schemas.SearchTaskResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/api/task/op": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "操作任务",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "任务管理"
-                ],
-                "summary": "操作任务",
-                "operationId": "/api/task/op",
-                "parameters": [
-                    {
-                        "description": "操作信息",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schemas.TaskOptionInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/schemas.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "boolean"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/api/task/view": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "任务信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "任务管理"
-                ],
-                "summary": "任务信息",
-                "operationId": "/api/task/view",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "任务ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/schemas.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schemas.TaskItemOutput"
+                                            "type": "integer"
                                         }
                                     }
                                 }
@@ -821,27 +804,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "global.TaskPolicy": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3,
-                4
-            ],
-            "x-enum-comments": {
-                "TaskPolicyMulti": "并行策略",
-                "TaskPolicyOnce": "单词策略",
-                "TaskPolicySingle": "单利策略",
-                "TaskPolicyTimes": "多次策略"
-            },
-            "x-enum-varnames": [
-                "TaskPolicyMulti",
-                "TaskPolicyOnce",
-                "TaskPolicySingle",
-                "TaskPolicyTimes"
-            ]
-        },
         "global.TaskProtocol": {
             "type": "integer",
             "enum": [
@@ -852,7 +814,7 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "TaskProtocolHttp",
                 "TaskProtocolShell",
-                "TaskProtocolGrpc"
+                "TaskProtocolSSH"
             ]
         },
         "global.TaskStatus": {
@@ -885,11 +847,140 @@ const docTemplate = `{
                 "TaskStatusTimeout"
             ]
         },
+        "schemas.AdminUserInput": {
+            "type": "object",
+            "required": [
+                "nickname",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "admin@example.com"
+                },
+                "nickname": {
+                    "type": "string",
+                    "example": "系统管理员"
+                },
+                "password": {
+                    "type": "string",
+                    "example": ""
+                },
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "schemas.CheckAuthOutput": {
+            "type": "object",
+            "properties": {
+                "authEnabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "schemas.DatabaseTestInput": {
+            "type": "object",
+            "required": [
+                "engine",
+                "name"
+            ],
+            "properties": {
+                "engine": {
+                    "type": "string",
+                    "example": "mysql"
+                },
+                "host": {
+                    "type": "string",
+                    "example": "127.0.0.1"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "cronJob"
+                },
+                "password": {
+                    "type": "string",
+                    "example": ""
+                },
+                "path": {
+                    "type": "string",
+                    "example": ""
+                },
+                "port": {
+                    "type": "integer",
+                    "example": 3306
+                },
+                "user": {
+                    "type": "string",
+                    "example": "root"
+                }
+            }
+        },
+        "schemas.DatabaseTestOutput": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "schemas.DelUserParams": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "schemas.InstallCheckOutput": {
+            "type": "object",
+            "properties": {
+                "config_exists": {
+                    "type": "boolean"
+                },
+                "db_configured": {
+                    "type": "boolean"
+                },
+                "installed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "schemas.InstallInput": {
+            "type": "object",
+            "required": [
+                "database"
+            ],
+            "properties": {
+                "admin_user": {
+                    "$ref": "#/definitions/schemas.AdminUserInput"
+                },
+                "auth_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "database": {
+                    "$ref": "#/definitions/schemas.DatabaseTestInput"
+                },
+                "http_port": {
+                    "type": "integer",
+                    "example": 8210
+                }
+            }
+        },
+        "schemas.InstallOutput": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -928,235 +1019,6 @@ const docTemplate = `{
                 "data": {},
                 "message": {
                     "type": "string"
-                }
-            }
-        },
-        "schemas.RoleItem": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "is_super": {
-                    "type": "boolean"
-                },
-                "key": {
-                    "type": "string",
-                    "example": ""
-                },
-                "name": {
-                    "type": "string",
-                    "example": ""
-                },
-                "status": {
-                    "type": "integer"
-                }
-            }
-        },
-        "schemas.RoleList": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schemas.RoleItem"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "schemas.SearchTaskResponse": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schemas.TaskItemOutput"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "schemas.TaskEditHTTPInput": {
-            "type": "object",
-            "required": [
-                "command",
-                "name",
-                "protocol",
-                "spec"
-            ],
-            "properties": {
-                "command": {
-                    "type": "string",
-                    "example": ""
-                },
-                "count": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "delay": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "id": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "name": {
-                    "type": "string",
-                    "example": ""
-                },
-                "params": {
-                    "type": "string",
-                    "example": ""
-                },
-                "policy": {
-                    "default": 1,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/global.TaskPolicy"
-                        }
-                    ],
-                    "example": 1
-                },
-                "protocol": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/global.TaskProtocol"
-                        }
-                    ],
-                    "example": 1
-                },
-                "remark": {
-                    "type": "string",
-                    "example": ""
-                },
-                "retry_interval": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "retry_times": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "spec": {
-                    "type": "string",
-                    "example": ""
-                },
-                "status": {
-                    "default": 0,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/global.TaskStatus"
-                        }
-                    ]
-                },
-                "tag": {
-                    "type": "string",
-                    "example": ""
-                },
-                "timeout": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                }
-            }
-        },
-        "schemas.TaskItemOutput": {
-            "type": "object",
-            "required": [
-                "command",
-                "name",
-                "protocol",
-                "spec"
-            ],
-            "properties": {
-                "command": {
-                    "type": "string",
-                    "example": ""
-                },
-                "count": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "delay": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "id": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "name": {
-                    "type": "string",
-                    "example": ""
-                },
-                "params": {
-                    "type": "string",
-                    "example": ""
-                },
-                "policy": {
-                    "default": 1,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/global.TaskPolicy"
-                        }
-                    ],
-                    "example": 1
-                },
-                "protocol": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/global.TaskProtocol"
-                        }
-                    ],
-                    "example": 1
-                },
-                "remark": {
-                    "type": "string",
-                    "example": ""
-                },
-                "retry_interval": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "retry_times": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
-                },
-                "spec": {
-                    "type": "string",
-                    "example": ""
-                },
-                "status": {
-                    "default": 0,
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/global.TaskStatus"
-                        }
-                    ]
-                },
-                "tag": {
-                    "type": "string",
-                    "example": ""
-                },
-                "timeout": {
-                    "type": "integer",
-                    "default": 0,
-                    "example": 0
                 }
             }
         },
@@ -1240,20 +1102,56 @@ const docTemplate = `{
                 }
             }
         },
-        "schemas.TaskOptionInput": {
+        "schemas.TaskTestInput": {
             "type": "object",
             "required": [
-                "id",
-                "op"
+                "command",
+                "protocol"
             ],
             "properties": {
-                "id": {
-                    "type": "integer",
+                "command": {
+                    "type": "string",
+                    "example": ""
+                },
+                "params": {
+                    "type": "string",
+                    "example": ""
+                },
+                "protocol": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/global.TaskProtocol"
+                        }
+                    ],
                     "example": 1
                 },
-                "op": {
-                    "type": "string",
-                    "example": "stop"
+                "timeout": {
+                    "type": "integer",
+                    "default": 0,
+                    "example": 30
+                }
+            }
+        },
+        "schemas.TaskTestOutput": {
+            "type": "object",
+            "properties": {
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "output": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "status_code": {
+                    "type": "integer"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1292,9 +1190,6 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": ""
-                },
-                "role": {
-                    "type": "integer"
                 },
                 "username": {
                     "type": "string",
