@@ -12,85 +12,102 @@
       </div>
     </div>
 
-    <!-- 左右分栏：左侧基本信息，右侧执行方式配置 -->
+    <!-- 左右分栏：左侧基本信息+通知配置，右侧执行方式配置 -->
     <div class="edit-grid">
-      <!-- 基本信息 -->
-      <NCard :bordered="false" size="small" class="glass-card left-col">
-        <template #header>
-          <span class="text-base font-medium">{{ $t('page.task.list.basicInfoTitle') }}</span>
-        </template>
-        <NForm ref="formRef" :model="model" :rules="rules" label-placement="top">
-          <NFormItem :label="$t('page.task.list.form.name')" path="name">
-            <NInput v-model:value="model.name" :placeholder="$t('page.task.list.form.name')" />
-          </NFormItem>
-          <NFormItem :label="$t('page.task.list.form.tag')" path="tag">
-            <NInput v-model:value="model.tag" :placeholder="$t('page.task.list.form.tag')" />
-          </NFormItem>
-          <NFormItem :label="$t('page.task.list.form.spec')" path="spec">
-            <NSpace vertical class="w-full">
-              <NSpace>
-                <NSelect
-                  v-model:value="cronPreset"
-                  :options="cronPresetOptions"
-                  :placeholder="$t('page.task.list.form.cronPreset')"
-                  size="small"
-                  class="cron-preset-select"
-                  @update:value="applyCronPreset"
-                />
-                <NInput
-                  v-model:value="model.spec"
-                  :placeholder="$t('page.task.list.form.specPlaceholder')"
-                  @update:value="onSpecChange"
-                />
+      <!-- 左侧：基本信息 + 通知配置 -->
+      <div class="left-col">
+        <!-- 基本信息 -->
+        <NCard :bordered="false" size="small" class="glass-card">
+          <template #header>
+            <span class="text-base font-medium">{{ $t('page.task.list.basicInfoTitle') }}</span>
+          </template>
+          <NForm ref="formRef" :model="model" :rules="rules" label-placement="top">
+            <NFormItem :label="$t('page.task.list.form.name')" path="name">
+              <NInput v-model:value="model.name" :placeholder="$t('page.task.list.form.name')" />
+            </NFormItem>
+            <NFormItem :label="$t('page.task.list.form.tag')" path="tag">
+              <NInput v-model:value="model.tag" :placeholder="$t('page.task.list.form.tag')" />
+            </NFormItem>
+            <NFormItem :label="$t('page.task.list.form.spec')" path="spec">
+              <NSpace vertical class="w-full">
+                <NSpace>
+                  <NSelect
+                    v-model:value="cronPreset"
+                    :options="cronPresetOptions"
+                    :placeholder="$t('page.task.list.form.cronPreset')"
+                    size="small"
+                    class="cron-preset-select"
+                    @update:value="applyCronPreset"
+                  />
+                  <NInput
+                    v-model:value="model.spec"
+                    :placeholder="$t('page.task.list.form.specPlaceholder')"
+                    @update:value="onSpecChange"
+                  />
+                </NSpace>
+                <NText v-if="specError" depth="3" style="color: #e88080; font-size: 12px">
+                  {{ specError }}
+                </NText>
+                <NText v-else-if="specBreakdown" depth="3" style="font-size: 12px">
+                  {{ specBreakdown }}
+                </NText>
               </NSpace>
-              <NText v-if="specError" depth="3" style="color: #e88080; font-size: 12px">
-                {{ specError }}
-              </NText>
-              <NText v-else-if="specBreakdown" depth="3" style="font-size: 12px">
-                {{ specBreakdown }}
-              </NText>
-            </NSpace>
-          </NFormItem>
-          <NGrid :cols="2" :x-gap="12">
-            <NGridItem>
-              <NFormItem :label="$t('page.task.list.form.protocol')" path="protocol">
-                <NSelect v-model:value="model.protocol" :options="protocolOptions" @update:value="onProtocolChange" />
-              </NFormItem>
-            </NGridItem>
-            <NGridItem>
-              <NFormItem :label="$t('page.task.list.form.policy')" path="policy">
-                <NSelect v-model:value="model.policy" :options="policyOptions" />
-              </NFormItem>
-            </NGridItem>
-          </NGrid>
-          <NGrid :cols="2" :x-gap="12">
-            <NGridItem>
-              <NFormItem :label="$t('page.task.list.form.count')" path="count">
-                <NInputNumber v-model:value="model.count" :min="1" :max="999" class="w-full" />
-              </NFormItem>
-            </NGridItem>
-            <NGridItem>
-              <NFormItem :label="$t('page.task.list.form.timeout')" path="timeout">
-                <NInputNumber v-model:value="model.timeout" :min="1" :max="86400" class="w-full" />
-                <template #feedback>
-                  <span class="text-xs text-gray-500">{{ $t('page.task.list.form.timeoutUnit') }}</span>
-                </template>
-              </NFormItem>
-            </NGridItem>
-          </NGrid>
-          <NFormItem :label="$t('page.task.list.form.status')" path="status">
-            <NSwitch v-model:value="model.status" :checked-value="1" :unchecked-value="0">
-              <template #checked>{{ $t('common.enable') }}</template>
-              <template #unchecked>{{ $t('common.disable') }}</template>
-            </NSwitch>
-          </NFormItem>
-          <NFormItem :label="$t('page.task.list.form.remark')" path="remark" :show-feedback="false">
-            <NInput v-model:value="model.remark" type="textarea" :rows="2" :placeholder="$t('page.task.list.form.remark')" />
-          </NFormItem>
-        </NForm>
-      </NCard>
+            </NFormItem>
+            <NGrid :cols="2" :x-gap="12">
+              <NGridItem>
+                <NFormItem :label="$t('page.task.list.form.protocol')" path="protocol">
+                  <NSelect v-model:value="model.protocol" :options="protocolOptions" @update:value="onProtocolChange" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.task.list.form.policy')" path="policy">
+                  <NSelect v-model:value="model.policy" :options="policyOptions" />
+                </NFormItem>
+              </NGridItem>
+            </NGrid>
+            <NGrid :cols="2" :x-gap="12">
+              <NGridItem>
+                <NFormItem :label="$t('page.task.list.form.count')" path="count">
+                  <NInputNumber v-model:value="model.count" :min="1" :max="999" class="w-full" />
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem :label="$t('page.task.list.form.timeout')" path="timeout">
+                  <NInputNumber v-model:value="model.timeout" :min="1" :max="86400" class="w-full" />
+                  <template #feedback>
+                    <span class="text-xs text-gray-500">{{ $t('page.task.list.form.timeoutUnit') }}</span>
+                  </template>
+                </NFormItem>
+              </NGridItem>
+            </NGrid>
+            <NGrid :cols="2" :x-gap="12">
+              <NGridItem>
+                <NFormItem :label="$t('page.task.list.form.status')" path="status">
+                  <NSwitch v-model:value="statusEnabled">
+                    <template #checked>{{ $t('common.enable') }}</template>
+                    <template #unchecked>{{ $t('common.disable') }}</template>
+                  </NSwitch>
+                </NFormItem>
+              </NGridItem>
+              <NGridItem>
+                <NFormItem label="通知配置">
+                  <div class="flex items-center gap-8px">
+                    <NSwitch v-model:value="notificationEnabled" @update:value="onNotificationSwitchChange">
+                      <template #checked>启用</template>
+                      <template #unchecked>禁用</template>
+                    </NSwitch>
+                  </div>
+                </NFormItem>
+              </NGridItem>
+            </NGrid>
+            <NFormItem :label="$t('page.task.list.form.remark')" path="remark" :show-feedback="false">
+              <NInput v-model:value="model.remark" type="textarea" :rows="2" :placeholder="$t('page.task.list.form.remark')" />
+            </NFormItem>
+          </NForm>
+        </NCard>
+      </div>
 
-      <!-- 执行方式配置 + 测试响应 -->
+      <!-- 右侧：执行方式配置 + 测试响应 -->
       <div class="right-col">
         <NCard :bordered="false" size="small" class="glass-card">
           <template #header>
@@ -149,6 +166,20 @@
         </NButton>
       </NSpace>
     </div>
+
+    <!-- 通知配置弹窗 -->
+    <NModal v-model:show="showNotificationModal" preset="card" title="通知配置" style="width: 680px">
+      <NotificationConfig 
+        ref="notificationConfigRef"
+        :task-id="model.id"
+        @update="onNotificationUpdate"
+      />
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="onNotificationModalClose">{{ $t('common.close') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
   </div>
 </template>
 
@@ -165,6 +196,8 @@ import { CRON_PRESETS, validateCronSpec, cronSpecBreakdown } from '@/utils/cron'
 import Ssh from '@/views/task/list/modules/ssh.vue';
 import HttpBuilder from './modules/http-builder.vue';
 import ResponsePanel from './modules/response-panel.vue';
+import NotificationConfig from './modules/notification-config.vue';
+import type { NotificationConfigInput } from '@/api/notification/types';
 
 defineOptions({ name: 'TaskEdit' });
 
@@ -174,10 +207,14 @@ const router = useRouter();
 const isEdit = computed(() => Boolean(route.query.id));
 
 const formRef = ref<HTMLElement & FormInst>();
+const notificationConfigRef = ref<InstanceType<typeof NotificationConfig>>();
 const submitLoading = ref(false);
 const testLoading = ref(false);
+const showNotificationModal = ref(false);
+const notificationEnabled = ref(false);
 const testResult = ref<TaskTestOutput | null>(null);
 const cronPreset = ref<string>('custom');
+const notificationData = ref<NotificationConfigInput | null>(null);
 
 const cronPresetOptions = [
   { label: $t('page.task.list.form.cronPresetCustom'), value: 'custom' },
@@ -186,6 +223,15 @@ const cronPresetOptions = [
 
 const specError = computed(() => validateCronSpec(model.spec));
 const specBreakdown = computed(() => cronSpecBreakdown(model.spec));
+
+// 状态开关：与列表页保持一致，凡非"禁用"状态均视为启用。
+// 任务执行后会变为 运行中/成功/失败 等状态，因此不能只用 1 判定。
+const statusEnabled = computed<boolean>({
+  get: () => model.status !== TaskStatus.Disabled,
+  set: (val: boolean) => {
+    model.status = val ? TaskStatus.Enabled : TaskStatus.Disabled;
+  }
+});
 
 function applyCronPreset(value: string) {
   if (value !== 'custom') {
@@ -254,6 +300,23 @@ const onConfigUpdate = (command: string, params: string) => {
   model.params = params;
 };
 
+const onNotificationUpdate = (data: NotificationConfigInput | null) => {
+  notificationData.value = data;
+  notificationEnabled.value = data !== null && data.enabled;
+};
+
+const onNotificationSwitchChange = (enabled: boolean) => {
+  if (enabled) {
+    showNotificationModal.value = true;
+  } else {
+    notificationData.value = null;
+  }
+};
+
+const onNotificationModalClose = () => {
+  showNotificationModal.value = false;
+};
+
 const goBack = () => {
   router.push({ name: 'TaskList' });
 };
@@ -310,6 +373,8 @@ async function handleSave() {
 
   submitLoading.value = true;
   try {
+    let taskId = model.id;
+    
     if (isEdit.value) {
       const res = await fetchTaskUpdate(model);
       if (res.code !== 200) {
@@ -323,8 +388,16 @@ async function handleSave() {
         message.error(res.message || $t('task.message.addFailed'));
         return;
       }
+      // 创建成功后从返回数据中获取任务ID，用于关联通知配置
+      taskId = Number(res.data?.id) || model.id;
       message.success($t('task.message.addSuccess'));
     }
+    
+    // 保存通知配置
+    if (notificationConfigRef.value && taskId) {
+      await notificationConfigRef.value.saveNotification(taskId);
+    }
+    
     goBack();
   } catch (error) {
     console.error('保存失败:', error);
@@ -351,13 +424,13 @@ getTaskData();
 <style scoped>
 .task-edit-page {
   padding: 16px 24px 88px;
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .edit-grid {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: 380px 1fr;
   gap: 16px;
   align-items: start;
 }
@@ -367,9 +440,19 @@ getTaskData();
   min-width: 0;
 }
 
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 @media (max-width: 1024px) {
   .edit-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .left-col {
+    grid-column: 1 / -1;
   }
 }
 
@@ -382,6 +465,10 @@ getTaskData();
 .cron-preset-select {
   width: 130px;
   flex-shrink: 0;
+}
+
+.mt-4 {
+  margin-top: 16px;
 }
 
 .edit-footer {

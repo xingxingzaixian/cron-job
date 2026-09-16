@@ -465,6 +465,9 @@ func TaskEdit(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":    200,
 		"message": "创建成功",
+		"data": gin.H{
+			"id": task.ID,
+		},
 	})
 }
 

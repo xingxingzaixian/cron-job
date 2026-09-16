@@ -21,7 +21,7 @@ export const fetchTaskList = (params: QueryTask) => {
 };
 
 export const fetchTaskCreate = (data: TaskEditHTTPInput) => {
-  return apiHttp.post<HttpResult<string>>({
+  return apiHttp.post<HttpResult<{ id: number }>>({
     url: '/api/task/create',
     data
   });

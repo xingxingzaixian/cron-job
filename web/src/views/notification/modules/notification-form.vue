@@ -68,19 +68,17 @@
                 </template>
               </NButton>
             </template>
-            <div style="max-width: 300px;">
-              <p class="mb-2 font-medium">模板变量说明：</p>
-              <p class="text-sm">在邮件主题和正文中，可以使用以下变量：</p>
-              <ul class="mt-1 text-sm list-disc list-inside">
-                <li><code>.TaskName</code> - 任务名称</li>
-                <li><code>.Status</code> - 执行状态</li>
-                <li><code>.Command</code> - 执行命令</li>
-                <li><code>.Result</code> - 执行结果</li>
-                <li><code>.StartTime</code> - 开始时间</li>
-                <li><code>.EndTime</code> - 结束时间</li>
-                <li><code>.Duration</code> - 执行时长</li>
-              </ul>
-              <p class="mt-2 text-xs text-gray-400">示例：任务 .TaskName 执行 .Status</p>
+            <div style="max-width: 450px;">
+              <p class="mb-2 font-medium">可用的模板变量：</p>
+              <NGrid :cols="2" :x-gap="8" :y-gap="4">
+                <NGridItem v-for="item in templateVars" :key="item.var">
+                  <div class="flex items-center">
+                    <code class="px-2 py-1 bg-gray-100 rounded text-xs mr-1">.{{ item.var }}</code>
+                    <span class="text-xs text-gray-500">{{ item.desc }}</span>
+                  </div>
+                </NGridItem>
+              </NGrid>
+              <p class="mt-2 text-xs text-gray-400">在邮件主题和正文中使用</p>
             </div>
           </NPopover>
         </NDivider>
@@ -91,14 +89,14 @@
           <NInput v-model:value="model.email_recipients" placeholder="多个邮箱用逗号分隔" />
         </NFormItem>
         <NFormItem label="邮件主题" path="email_subject">
-          <NInput v-model:value="model.email_subject" placeholder="支持模板变量：TaskName Status" />
+          <NInput v-model:value="model.email_subject" placeholder="支持模板变量：.TaskName .Status" />
         </NFormItem>
         <NFormItem label="邮件正文" path="email_body">
           <NInput
             v-model:value="model.email_body"
             type="textarea"
             :rows="4"
-            placeholder="支持HTML和模板变量"
+            placeholder="支持HTML和模板变量，如：.TaskName .Status .Result"
           />
         </NFormItem>
       </template>
@@ -119,17 +117,17 @@
                 </template>
               </NButton>
             </template>
-            <div style="max-width: 300px;">
-              <p class="mb-2 font-medium">Webhook 说明：</p>
-              <p class="text-sm">Webhook 是一种 HTTP 回调机制，当任务执行完成时，系统会向指定的 URL 发送 POST 请求。</p>
-              <p class="mt-2 text-sm">常用场景：</p>
-              <ul class="mt-1 text-sm list-disc list-inside">
-                <li>钉钉机器人</li>
-                <li>企业微信</li>
-                <li>飞书机器人</li>
-                <li>自定义 API</li>
-              </ul>
-              <p class="mt-2 text-xs text-gray-400">请求体支持模板变量</p>
+            <div style="max-width: 350px;">
+              <p class="mb-2 font-medium">可用的模板变量：</p>
+              <NGrid :cols="2" :x-gap="8" :y-gap="4">
+                <NGridItem v-for="item in templateVars" :key="item.var">
+                  <div class="flex items-center">
+                    <code class="px-2 py-1 bg-gray-100 rounded text-xs mr-1">.{{ item.var }}</code>
+                    <span class="text-xs text-gray-500">{{ item.desc }}</span>
+                  </div>
+                </NGridItem>
+              </NGrid>
+              <p class="mt-2 text-xs text-gray-400">在请求体中使用</p>
             </div>
           </NPopover>
         </NDivider>
@@ -152,7 +150,7 @@
             v-model:value="model.webhook_body"
             type="textarea"
             :rows="4"
-            placeholder="支持模板变量"
+            placeholder="支持模板变量，如：.TaskName .Status .Result"
           />
         </NFormItem>
       </template>
@@ -173,49 +171,6 @@
           </NFormItem>
         </NGridItem>
       </NGrid>
-
-      <!-- 模板变量说明 -->
-      <NDivider>
-        模板变量说明
-        <NPopover trigger="hover" :show-arrow="true" :delay="300" :duration="200">
-          <template #trigger>
-            <NButton text type="info" class="ml-2">
-              <template #icon>
-                <NIcon>
-                  <svg viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                  </svg>
-                </NIcon>
-              </template>
-            </NButton>
-          </template>
-          <div style="max-width: 400px;">
-            <p class="mb-2 font-medium">可用的模板变量：</p>
-            <NGrid :cols="2" :x-gap="8" :y-gap="4">
-              <NGridItem v-for="item in templateVars" :key="item.var">
-                <div class="flex items-center">
-                  <code class="px-2 py-1 bg-gray-100 rounded text-xs mr-1">.{{ item.var }}</code>
-                  <span class="text-xs text-gray-500">{{ item.desc }}</span>
-                </div>
-              </NGridItem>
-            </NGrid>
-            <p class="mt-2 text-xs text-gray-400">在邮件主题、正文或 Webhook 请求体中使用</p>
-          </div>
-        </NPopover>
-      </NDivider>
-      <NAlert type="info" :show-icon="true" :bordered="false" class="template-vars-alert">
-        <template #header>可用的模板变量</template>
-        <p class="mb-2 text-sm text-gray-600">在邮件主题、正文或 Webhook 请求体中，您可以使用以下模板变量：</p>
-        <NGrid :cols="2" :x-gap="12" :y-gap="4">
-          <NGridItem v-for="item in templateVars" :key="item.var">
-            <div class="template-var-item">
-              <code class="mr-1 px-2 py-1 bg-gray-100 rounded text-sm">.{{ item.var }}</code>
-              <span class="text-xs text-gray-500">{{ item.desc }}</span>
-            </div>
-          </NGridItem>
-        </NGrid>
-        <p class="mt-3 text-xs text-gray-400">使用示例：在模板中输入 <code>.TaskName</code> 即可获取任务名称</p>
-      </NAlert>
     </NForm>
 
     <template #footer>

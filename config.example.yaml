@@ -14,6 +14,7 @@ swagger:
     desc: 这是一个简单的定时任务执行系统
     host: 127.0.0.1:8210
     base_path: ""
+    enable: false            # Swagger 文档开关，生产环境建议关闭
 
 cors:
     allowed_origins: http://localhost:8210,http://127.0.0.1:8210
@@ -32,6 +33,9 @@ db:
     name: cronJob
     data_dir: data
     prefix: sched_
+    # PostgreSQL 专用（engine: postgres 时生效）
+    # sslmode: disable       # PostgreSQL SSL 模式：disable / require / verify-ca / verify-full
+    # timezone: Asia/Shanghai # PostgreSQL 连接时区
     sqlite:
         synchronous: NORMAL
         cache_size: -64000
@@ -42,3 +46,22 @@ db:
 log:
     retention_days: 30               # 任务日志保留天数，0 表示不自动清理
     cleanup_interval_hours: 6        # 日志清理检查间隔（小时）
+
+# 通知配置
+notification:
+    email:
+        enabled: false               # 是否启用邮件通知
+        smtp_host: ""                # SMTP 服务器地址
+        smtp_port: 587               # SMTP 端口（587=STARTTLS, 465=SSL/TLS）
+        username: ""                 # SMTP 用户名
+        password: ""                 # SMTP 密码
+        from: ""                     # 发件人地址
+    webhook:
+        enabled: false               # 是否启用 Webhook 通知
+        url: ""                      # Webhook URL（任务级配置优先）
+        headers: {}                  # 自定义请求头
+
+security:
+    # 敏感数据（如SSH密码）加密密钥，请固定为随机字符串（如 `openssl rand -hex 64`）；
+    # 留空时回退到 jwt.secret；若两者都未固定，每次启动密钥会变化，历史密文将无法解密
+    secret: ""
