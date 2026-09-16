@@ -83,7 +83,7 @@ import TableHeaderOperation from '@/components/custom/TableHeaderOperation.vue';
 import { fetchNotificationList, fetchNotificationDelete } from '@/api/notification';
 import type { SearchNotificationResponse, SearchNotificationParams, NotificationConfigOutput } from '@/api/notification/types';
 import { NButton, NPopconfirm, NSwitch, NTag } from 'naive-ui';
-import { NotificationType, NotificationTrigger, NotificationStatus } from '@/enum/notification';
+import { NotificationType, NotificationTrigger } from '@/enum/notification';
 
 defineOptions({ name: 'NotificationList' });
 
@@ -238,7 +238,7 @@ async function handleDelete(id: number) {
   }
 }
 
-async function handleEnable(val: boolean, row: NotificationConfigOutput) {
+async function handleEnable(_val: boolean, _row: NotificationConfigOutput) {
   // TODO: 实现启用/禁用功能
   message.warning('启用/禁用功能待实现');
 }

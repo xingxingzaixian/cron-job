@@ -12,8 +12,8 @@ type TaskDependency struct {
 	gorm.Model
 	TaskID      uint              `json:"task_id" gorm:"type:int;not null;index:idx_task_dep_task_id"`           // 任务ID
 	DependentID uint              `json:"dependent_id" gorm:"type:int;not null;index:idx_task_dep_dependent_id"` // 依赖的任务ID
-	IsMust      bool              `json:"is_must" gorm:"type:tinyint;not null;default:1"`                        // 是否必须依赖（true: 必须成功完成 false: 完成即可）
-	Status      global.TaskStatus `json:"status" gorm:"type:tinyint;not null;default:0"`                         // 依赖状态 0:未完成 1:已完成 2:失败
+	IsMust      bool              `json:"is_must" gorm:"not null;default:1"`                                     // 是否必须依赖（true: 必须成功完成 false: 完成即可）
+	Status      global.TaskStatus `json:"status" gorm:"not null;default:0"`                                      // 依赖状态 0:未完成 1:已完成 2:失败
 }
 
 // Create 创建任务依赖关系

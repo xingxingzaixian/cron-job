@@ -16,10 +16,9 @@
 
 <script lang="tsx" setup>
 import { ref, watch } from 'vue';
-import { $t } from '@/locales';
 import { useTable } from '@/hooks';
 import { fetchNotificationLogs } from '@/api/notification';
-import type { NotificationLogResponse, NotificationLogInput, NotificationLogOutput } from '@/api/notification/types';
+import type { NotificationLogResponse, NotificationLogInput } from '@/api/notification/types';
 import { NTag } from 'naive-ui';
 
 const props = defineProps<{

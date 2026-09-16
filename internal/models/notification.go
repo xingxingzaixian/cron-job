@@ -33,40 +33,40 @@ const (
 // NotificationConfig 通知配置
 type NotificationConfig struct {
 	gorm.Model
-	TaskID   uint                `json:"task_id" gorm:"type:int;not null;index:idx_noti_task_id"` // 任务ID，0表示全局配置
-	Name     string              `json:"name" gorm:"size:64;not null"`                           // 通知名称
-	Type     NotificationType    `json:"type" gorm:"type:varchar(20);not null"`                   // email / webhook
-	Target   string              `json:"target" gorm:"type:varchar(255);not null"`                // 邮箱地址或webhook URL
-	Trigger  NotificationTrigger `json:"trigger" gorm:"type:varchar(20);not null;default:'all'"`  // success / failure / all / timeout / cancel
-	Enabled  bool                `json:"enabled" gorm:"type:boolean;not null;default:true"`       // 是否启用
+	TaskID  uint                `json:"task_id" gorm:"type:int;not null;index:idx_noti_task_id"` // 任务ID，0表示全局配置
+	Name    string              `json:"name" gorm:"size:64;not null"`                            // 通知名称
+	Type    NotificationType    `json:"type" gorm:"type:varchar(20);not null"`                   // email / webhook
+	Target  string              `json:"target" gorm:"type:varchar(255);not null"`                // 邮箱地址或webhook URL
+	Trigger NotificationTrigger `json:"trigger" gorm:"type:varchar(20);not null;default:'all'"`  // success / failure / all / timeout / cancel
+	Enabled bool                `json:"enabled" gorm:"type:boolean;not null;default:true"`       // 是否启用
 
 	// 邮件配置（type=email时有效）
-	EmailRecipients string `json:"email_recipients" gorm:"type:text"`    // 收件人列表，逗号分隔（多个邮箱）
-	EmailSubject    string `json:"email_subject" gorm:"size:256"`        // 邮件主题模板
-	EmailBody       string `json:"email_body" gorm:"type:mediumtext"`    // 邮件正文模板
+	EmailRecipients string `json:"email_recipients" gorm:"type:text"` // 收件人列表，逗号分隔（多个邮箱）
+	EmailSubject    string `json:"email_subject" gorm:"size:256"`     // 邮件主题模板
+	EmailBody       string `json:"email_body" gorm:"size:16777215"`   // 邮件正文模板
 
 	// Webhook配置（type=webhook时有效）
-	WebhookURL      string `json:"webhook_url" gorm:"size:512"`    // Webhook URL
-	WebhookMethod   string `json:"webhook_method" gorm:"size:10;not null;default:'POST'"` // HTTP方法
-	WebhookHeaders  string `json:"webhook_headers" gorm:"type:text"` // 自定义请求头 JSON格式
-	WebhookBody     string `json:"webhook_body" gorm:"type:mediumtext"` // 自定义请求体模板
+	WebhookURL     string `json:"webhook_url" gorm:"size:512"`                           // Webhook URL
+	WebhookMethod  string `json:"webhook_method" gorm:"size:10;not null;default:'POST'"` // HTTP方法
+	WebhookHeaders string `json:"webhook_headers" gorm:"type:text"`                      // 自定义请求头 JSON格式
+	WebhookBody    string `json:"webhook_body" gorm:"size:16777215"`                     // 自定义请求体模板
 
 	// 重试配置
-	RetryTimes    int8  `json:"retry_times" gorm:"type:tinyint;not null;default:0"`      // 通知重试次数
-	RetryInterval int   `json:"retry_interval" gorm:"type:int;not null;default:5"`       // 重试间隔(秒)
+	RetryTimes    int8 `json:"retry_times" gorm:"not null;default:0"`             // 通知重试次数
+	RetryInterval int  `json:"retry_interval" gorm:"type:int;not null;default:5"` // 重试间隔(秒)
 }
 
 // NotificationLog 通知发送日志
 type NotificationLog struct {
 	gorm.Model
 	NotificationID uint   `json:"notification_id" gorm:"type:int;not null;index:idx_notification_log_notification_id"` // 通知配置ID
-	TaskID         uint   `json:"task_id" gorm:"type:int;not null;index:idx_notification_log_task_id"`               // 任务ID
-	TaskLogID      uint   `json:"task_log_id" gorm:"type:int;not null"`                                           // 任务日志ID
-	Status         int8   `json:"status" gorm:"type:tinyint;not null;default:1"`                                 // 发送状态：1=成功, 0=失败
-	Result         string `json:"result" gorm:"type:mediumtext"`                                                 // 发送结果/错误信息
-	RetryCount     int8   `json:"retry_count" gorm:"type:tinyint;not null;default:0"`                            // 重试次数
-	StartTime      int64  `json:"start_time" gorm:"type:bigint"`                                                 // 开始时间戳
-	EndTime        int64  `json:"end_time" gorm:"type:bigint"`                                                   // 结束时间戳
+	TaskID         uint   `json:"task_id" gorm:"type:int;not null;index:idx_notification_log_task_id"`                 // 任务ID
+	TaskLogID      uint   `json:"task_log_id" gorm:"type:int;not null"`                                                // 任务日志ID
+	Status         int8   `json:"status" gorm:"not null;default:1"`                                                    // 发送状态：1=成功, 0=失败
+	Result         string `json:"result" gorm:"size:16777215"`                                                         // 发送结果/错误信息
+	RetryCount     int8   `json:"retry_count" gorm:"not null;default:0"`                                               // 重试次数
+	StartTime      int64  `json:"start_time" gorm:"type:bigint"`                                                       // 开始时间戳
+	EndTime        int64  `json:"end_time" gorm:"type:bigint"`                                                         // 结束时间戳
 }
 
 // Create 创建通知配置

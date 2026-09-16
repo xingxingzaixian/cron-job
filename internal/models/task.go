@@ -9,24 +9,28 @@ import (
 	"gorm.io/gorm"
 )
 
+// 列类型注意：不要使用 tinyint/mediumint/datetime 等 MySQL 专有类型标签，
+// GORM 会把 type 标签原样写入 DDL，PostgreSQL 会报 type "xxx" does not exist。
+// 可移植写法：int8 自动映射为 MySQL tinyint / PG smallint；
+// size:16777215 映射为 MySQL mediumtext / PG text；时间字段不加 type（MySQL datetime(3) / PG timestamptz）。
 type Task struct {
 	gorm.Model
-	Name          string              `gorm:"size:32;not null;index:idx_task_name" json:"name"`
-	Spec          string              `gorm:"size:64;not null" json:"spec"`
-	Protocol      global.TaskProtocol `gorm:"type:tinyint;not null;index:idx_task_protocol" json:"protocol"`
-	Command       string              `gorm:"size:512;not null" json:"command"`
-	Params        string              `gorm:"type:mediumtext" json:"params"`
-	Timeout       int                 `gorm:"type:mediumint;not null;default:0" json:"timeout"`
-	Policy        global.TaskPolicy   `gorm:"type:tinyint;not null;default:1" json:"policy"`
-	Count         int                 `gorm:"type:smallint;not null;default:0" json:"count"`
-	ExecutedTimes int                 `gorm:"type:int;not null;default:0" json:"executed_times"` // once/times策略已执行次数（持久化，避免重启后重复执行）
-	Delay         int                 `gorm:"type:smallint;not null;default:0" json:"delay"`
-	RetryTimes    int8                `gorm:"type:tinyint;not null;default:0" json:"retry_times"`
-	RetryInterval int16               `gorm:"type:smallint;not null;default:0" json:"retry_interval"`
-	Tag           string              `gorm:"size:32;not null;default:'';index:idx_task_tag" json:"tag"`
-	Remark        string              `gorm:"size:256;not null;default:''" json:"remark"`
-	Status        global.TaskStatus   `gorm:"type:tinyint;not null;default:0;index:idx_task_status" json:"status"`
-	EnableNotification bool           `gorm:"type:boolean;not null;default:true" json:"enable_notification"` // 是否启用通知
+	Name               string              `gorm:"size:32;not null;index:idx_task_name" json:"name"`
+	Spec               string              `gorm:"size:64;not null" json:"spec"`
+	Protocol           global.TaskProtocol `gorm:"not null;index:idx_task_protocol" json:"protocol"`
+	Command            string              `gorm:"size:512;not null" json:"command"`
+	Params             string              `gorm:"size:16777215" json:"params"`
+	Timeout            int                 `gorm:"type:integer;not null;default:0" json:"timeout"`
+	Policy             global.TaskPolicy   `gorm:"not null;default:1" json:"policy"`
+	Count              int                 `gorm:"type:smallint;not null;default:0" json:"count"`
+	ExecutedTimes      int                 `gorm:"type:int;not null;default:0" json:"executed_times"` // once/times策略已执行次数（持久化，避免重启后重复执行）
+	Delay              int                 `gorm:"type:smallint;not null;default:0" json:"delay"`
+	RetryTimes         int8                `gorm:"not null;default:0" json:"retry_times"`
+	RetryInterval      int16               `gorm:"type:smallint;not null;default:0" json:"retry_interval"`
+	Tag                string              `gorm:"size:32;not null;default:'';index:idx_task_tag" json:"tag"`
+	Remark             string              `gorm:"size:256;not null;default:''" json:"remark"`
+	Status             global.TaskStatus   `gorm:"not null;default:0;index:idx_task_status" json:"status"`
+	EnableNotification bool                `gorm:"type:boolean;not null;default:true" json:"enable_notification"` // 是否启用通知
 }
 
 func (t *Task) Create() (uint, error) {

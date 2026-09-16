@@ -15,12 +15,12 @@ type TaskLog struct {
 	gorm.Model
 	TaskId     uint                `json:"task_id" gorm:"type:int;not null;default:0;index:idx_task_log_task_id"`   // 任务id
 	TaskName   string              `json:"task_name" gorm:"type:varchar(32);not null;index:idx_task_log_task_name"` // 任务名称
-	Protocol   global.TaskProtocol `json:"protocol" gorm:"type:tinyint;not null;default:1"`                         // 任务方式 1:HTTP  2:间Shell
-	RetryTimes int8                `json:"retry_times" gorm:"type:tinyint;not null;default:0"`                      // 任务重试次数
-	Status     global.TaskStatus   `json:"status" gorm:"type:tinyint;not null;index:idx_task_log_status;default:0"` // 状态 0:执行失败 1:执行中  2:执行完毕 3:任务取消(上次任务未执行完成) 4:异步执行
-	Result     string              `json:"result" gorm:"type:mediumtext"`                                           // 执行结果
-	StartTime  *time.Time          `json:"start_time" gorm:"type:datetime;index:idx_task_log_start_time"`           // 开始时间
-	EndTime    *time.Time          `json:"end_time" gorm:"type:datetime"`                                           // 结束时间
+	Protocol   global.TaskProtocol `json:"protocol" gorm:"not null;default:1"`                                      // 任务方式 1:HTTP  2:间Shell
+	RetryTimes int8                `json:"retry_times" gorm:"not null;default:0"`                                   // 任务重试次数
+	Status     global.TaskStatus   `json:"status" gorm:"not null;index:idx_task_log_status;default:0"`              // 状态 0:执行失败 1:执行中  2:执行完毕 3:任务取消(上次任务未执行完成) 4:异步执行
+	Result     string              `json:"result" gorm:"size:16777215"`                                             // 执行结果
+	StartTime  *time.Time          `json:"start_time" gorm:"index:idx_task_log_start_time"`                         // 开始时间
+	EndTime    *time.Time          `json:"end_time"`                                                                // 结束时间
 	Duration   int64               `json:"duration" gorm:"type:bigint;default:0"`                                   // 执行时长(毫秒)
 }
 

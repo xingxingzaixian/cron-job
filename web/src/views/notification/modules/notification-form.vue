@@ -234,7 +234,7 @@
 
 <script lang="tsx" setup>
 import { ref, reactive, watch, onMounted } from 'vue';
-import type { FormInst, FormRules } from 'naive-ui';
+import type { FormRules } from 'naive-ui';
 import { $t } from '@/locales';
 import { message } from '@/utils/message';
 import { useForm } from '@/hooks';
