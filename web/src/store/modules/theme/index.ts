@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { defineStore } from 'pinia';
 import store from '../../index';
 import { darkTheme, lightTheme } from 'naive-ui';
@@ -29,6 +29,17 @@ const themeStore = defineStore('theme-store', () => {
   function toggleThemeScheme() {
     darkMode.value = !darkMode.value;
   }
+
+  // 把暗色标记同步到 <html>。
+  // Naive UI 的 n-config-provider 只影响其自身组件，
+  // 手写样式（management-page.css、log/modules/info.vue 等）依赖该 class 做暗色适配。
+  watch(
+    darkMode,
+    (val) => {
+      document.documentElement.classList.toggle('dark', val);
+    },
+    { immediate: true }
+  );
 
   return {
     darkMode,

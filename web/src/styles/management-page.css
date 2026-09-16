@@ -201,3 +201,25 @@
 .n-button--primary-type:hover {
   background: var(--primary-gradient-hover) !important;
 }
+
+/* ===== 暗色主题适配 =====
+   n-config-provider 的 theme 只作用于 Naive UI 组件，
+   本文件中的硬编码颜色需要在暗色模式下显式覆盖（html.dark 由 theme store 同步） */
+html.dark {
+  --glass-bg: rgba(24, 24, 28, 0.92);
+  --shadow-light: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.55);
+  --text-gradient: linear-gradient(135deg, #8b9dff, #bb9be8);
+}
+
+html.dark .title-icon {
+  color: #8b9dff;
+}
+
+html.dark .page-description {
+  color: #94a3b8;
+}
+
+html.dark .n-data-table-tbody .n-data-table-tr:hover {
+  background-color: rgba(139, 157, 255, 0.12) !important;
+}

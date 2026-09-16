@@ -379,4 +379,59 @@ watch(
     padding: 12px;
   }
 }
+
+/* ===== 暗色主题适配 =====
+   代码展示区使用硬编码浅色，需在暗色模式下覆盖（html.dark 由 theme store 同步） */
+html.dark .command-card,
+html.dark .result-card {
+  border-color: #3a3a41;
+}
+
+html.dark .command-display,
+html.dark .result-display {
+  background: #1f1f24;
+}
+
+html.dark .command-header,
+html.dark .result-header {
+  background: #26262c;
+  border-bottom-color: #3a3a41;
+}
+
+html.dark .command-type {
+  color: #cbd5e1;
+  background: #3a3a41;
+}
+
+html.dark .command-content,
+html.dark .result-content-wrapper,
+html.dark .result-content {
+  background: #18181c;
+  color: #d1d5db;
+}
+
+html.dark .line-numbers {
+  background: #1f1f24;
+  border-right-color: #3a3a41;
+}
+
+html.dark .line-number {
+  color: #6b7280;
+}
+
+html.dark .result-lines {
+  color: #94a3b8;
+}
+
+html.dark .result-content-wrapper::-webkit-scrollbar-track {
+  background: #26262c;
+}
+
+html.dark .result-content-wrapper::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+html.dark .result-content-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
 </style>
